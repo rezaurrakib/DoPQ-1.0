@@ -218,7 +218,8 @@ def run_queue(config, verbose=True):
     container_files_path = config.get('queue', 'container.path')
     build_directory = config.get('queue', 'build.directory')
     load_directory = config.get('queue', 'load.directory')
-    valid_executors = config.get('queue', 'valid_executors').split(',')
+    valid_executors = config.get('queue', 'valid.executors').split(',')
+    mount_volumes = config.get('queue', 'mount.volumes').split(',')
     max_history = config.getint('queue', 'max.history')
     auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers')
     max_gpu_assignment = config.getint('gpu', 'max.assignment')
@@ -400,9 +401,15 @@ def run_queue(config, verbose=True):
                     docker_env = os.environ.copy()
                     docker_env["NV_GPU"] = gpu_minor_list
 
+                    # build command which also mounts relevant paths
+                    run_cmd = ["nvidia-docker", "run", "-d"]
+                    for mount_volume in mount_volumes:
+                        run_cmd.append("-v")
+                        run_cmd.append(mount_volume)
+                    run_cmd.append(container_image_name)
+
                     # if the -rm flag is add, the run is not visible with docker -ps && docker -ls
-                    p = subprocess.Popen(["nvidia-docker", "run", "-d", container_image_name],
-                                         env=docker_env)
+                    p = subprocess.Popen(run_cmd, env=docker_env)
                     p.communicate()  # wait till done
 
                     # add to log fil whether it was successful
@@ -434,7 +441,8 @@ def write_default_config():
     config.set('queue', 'build.directory', 'docker_build')
     config.set('queue', 'max.history', '100')
     config.set('queue', 'remove.invalid.containers', 'yes')
-    config.set('queue', 'valid_executors', 'anees,ilja,ferry,markus')
+    config.set('queue', 'valid.executors', 'anees,ilja,ferry,markus')
+    config.set('queue', 'mount.volumes', '/home/markus/Downloads:/downloads,/home/markus/Musik:/music')
 
     config.add_section('reporting')
     config.set('reporting', 'log.path', 'queue.log')
