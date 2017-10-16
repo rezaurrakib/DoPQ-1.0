@@ -115,7 +115,7 @@ def get_gpu_minors():
     minors = []
     for dev in os.listdir("/dev"):
         match_dt = re.search(r'nvidia(\d+)', dev)
-        if not match_dt is None:
+        if match_dt is not None:
             minor = int(match_dt.group(1))
             minors.append(minor)
     return minors
@@ -324,7 +324,7 @@ def run_queue(config, verbose=True):
 
                         # report problem
                         logging.error(
-                            "An execption occured while trying to build the container ({}): {}. Maybe the container"
+                            "An exception occurred while trying to build the container ({}): {}. Maybe the container"
                             " is still copied, while trying accessing it. Will try again later".format(
                                 container_source_filename, ex))
 
@@ -391,13 +391,14 @@ def run_queue(config, verbose=True):
 
                     # get gpu assignment
                     gpu_assignment = free_gpus[:max_gpu_assignment]
+                    gpu_minor_list = ','.format(gpu_assignment)
 
                     # report
-                    logging.info("\n*** Running docker image {}\n".format(container_image_name))
+                    logging.info("\n*** Running docker image {} (GPU-minors={})\n".format(container_image_name, gpu_minor_list))
 
                     # run the container (detached mode, remove afterwards)
                     docker_env = os.environ.copy()
-                    docker_env["NV_GPU"] = ','.format(gpu_assignment)
+                    docker_env["NV_GPU"] = gpu_minor_list
 
                     # if the -rm flag is add, the run is not visible with docker -ps && docker -ls
                     p = subprocess.Popen(["nvidia-docker", "run", "-d", container_image_name],
