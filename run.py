@@ -9,6 +9,9 @@
 
 Created on Mon May 29 23:21:42 2017
 
+History:
+    16.10.2017: Changed to python 2.7
+
 @author: markus
 """
 
@@ -19,7 +22,11 @@ import subprocess
 import docker
 import zipfile
 import logging
-import configparser
+import time
+import shutil
+# import configparser # python 3
+import ConfigParser  # python 2
+import re
 
 # import requests
 
@@ -50,14 +57,14 @@ def handle_invalid_containers(container_path, valid_executors, auto_remove_inval
                             el.split('.')[0].split('_')[-1].lower() not in valid_executors and not len(
                                 valid_executors) == 0]
     if len(invalid_docker_files) > 0:
-        log.warning(
+        logging.warning(
             "*** WARNING ***: The following containers are provided by persons, who are not authorized to run "
             "containers on this machine: {}".format(
                 invalid_docker_files))
         if auto_remove_invalid:
             for filename in invalid_docker_files:
                 file_path = os.path.join(container_path, filename)
-                log.warning("\nRemoving {}".format(file_path))
+                logging.warning("\nRemoving {}".format(file_path))
                 os.remove(file_path)
 
 
@@ -196,10 +203,10 @@ def run_queue(config, verbose=True):
     """
 
     # init logging
-    init_file_logging(config.get('reporting', 'log.path', 'queue.log'))
+    init_file_logging(config.get('reporting', 'log.path'))
 
     # show init
-    log.info("Setting up DoP-Q..")
+    logging.info("Setting up DoP-Q..")
 
     # init api
     client = docker.from_env()
@@ -208,16 +215,16 @@ def run_queue(config, verbose=True):
     docker_history = []
 
     # get acquire paths from config
-    container_files_path = config.get('queue', 'container.path', 'docker_containers')
-    build_directory = config.get('queue', 'build.directory', 'docker_build')
-    load_directory = config.get('queue', 'load.directory', 'docker_load')
-    valid_executors = config.get('queue', 'valid_executors', '').split(',')
-    max_gpu_assignment = config.getint('gpu', 'max.assignment', 1)
-    max_history = config.getint('gpu', 'max.history', 100)
-    auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers', False)
+    container_files_path = config.get('queue', 'container.path')
+    build_directory = config.get('queue', 'build.directory')
+    load_directory = config.get('queue', 'load.directory')
+    valid_executors = config.get('queue', 'valid_executors').split(',')
+    max_history = config.getint('queue', 'max.history')
+    auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers')
+    max_gpu_assignment = config.getint('gpu', 'max.assignment')
 
     # build all non-existent directories
-    for dir_path in [build_directory, load_directory, valid_executors]:
+    for dir_path in [build_directory, load_directory, container_files_path]:
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
 
@@ -225,11 +232,11 @@ def run_queue(config, verbose=True):
     while True:
 
         # get docker files
-        docker_files = [el for el in os.listdir(container_files_path) if
+        docker_files = [os.path.join(container_files_path, el) for el in os.listdir(container_files_path) if
                         el.split('.')[0].split('_')[-1].lower() in valid_executors or len(valid_executors) == 0]
 
         # handle invalid containers
-        handle_invalid_containers(container_path, valid_executors, auto_remove_invalid=auto_remove_invalid)
+        handle_invalid_containers(container_files_path, valid_executors, auto_remove_invalid=auto_remove_invalid)
 
         # get free gpus
         free_gpus = get_free_gpu_minors(client)
@@ -268,6 +275,9 @@ def run_queue(config, verbose=True):
 
                     try:
 
+                        # report
+                        logging.info("Unzipping {} to {}".format(file_to_run_source_path, container_target_folder))
+
                         # open zip file
                         z = zipfile.ZipFile(file_to_run_source_path)
 
@@ -281,12 +291,25 @@ def run_queue(config, verbose=True):
                         container_image_name = "dbsifi/dl_{}:latest".format(
                             container_source_filename[6:-4].replace(' ', ''))
 
+                        logging.info("Container-Image: {}".format(container_image_name))
+
                         # run command
-                        p = subprocess.Popen(["nvidia-docker", "build", "-t {}".format(container_image_name)])
+                        p = subprocess.Popen(["nvidia-docker", "build", "-t", "{}".format(container_image_name),
+                                              container_target_folder])
                         p.communicate()  # wait till done
+
+                        build_success = p.returncode == 0
+
+                        if not build_success:
+                            # pass on to log file
+                            logging.error("Unable to build given docker file"
+                                          ": {}, response-code={}".format(container_image_name, p.returncode))
 
                         # wait a second (just to be sure that the archive is closed)
                         time.sleep(1)
+
+                        # report
+                        logging.info("All done. Cleaning up..".format(file_to_run_source_path, container_target_folder))
 
                         # remove the container
                         os.remove(file_to_run_source_path)
@@ -295,12 +318,12 @@ def run_queue(config, verbose=True):
                         shutil.rmtree(container_target_folder)
 
                         # set flag
-                        successfully_dequeued_one = True
+                        successfully_dequeued_one = build_success
 
                     except Exception as ex:
 
                         # report problem
-                        log.error(
+                        logging.error(
                             "An execption occured while trying to build the container ({}): {}. Maybe the container"
                             " is still copied, while trying accessing it. Will try again later".format(
                                 container_source_filename, ex))
@@ -320,38 +343,46 @@ def run_queue(config, verbose=True):
                         time.sleep(1)
 
                         # try to load the file
-                        p = subprocess.Popen(["nvidia-docker", "load", "--input {}".format(file_to_run_target_path)])
+                        p = subprocess.Popen(["nvidia-docker", "load", "--input", file_to_run_target_path])
                         out, _ = p.communicate()  # wait till done
 
-                        # get loaded images
-                        loaded_images = get_loaded_images(out)
+                        if p.returncode == 0:
 
-                        # verify
-                        if len(loaded_images) > 0:
+                            # get loaded images
+                            loaded_images = get_loaded_images(out)
 
-                            # warning if more than one
-                            if len(loaded_images) > 1:
-                                log.warning("We found more than one image in container {}. However, we will only run "
-                                            "the last one. Please provide containers which only expose a single "
-                                            "image.".format(container_source_filename))
+                            # verify
+                            if len(loaded_images) > 0:
 
-                            # use the latest found image
-                            container_image_name = loaded_images[-1]
+                                # warning if more than one
+                                if len(loaded_images) > 1:
+                                    logging.warning(
+                                        "We found more than one image in container {}. However, we will only run "
+                                        "the last one. Please provide containers which only expose a single "
+                                        "image.".format(container_source_filename))
 
-                            # set success flag
-                            successfully_dequeued_one = True
+                                # use the latest found image
+                                container_image_name = loaded_images[-1]
+
+                                # set success flag
+                                successfully_dequeued_one = True
+
+                            else:
+
+                                logging.error("We were not able to load a single image from container "
+                                              "{}".format(container_source_filename))
 
                         else:
 
-                            log.error("We were not able to load a single image from container "
-                                      "{}".format(container_source_filename))
+                            logging.error("Unable to load the container image from"
+                                          " file {}".format(container_source_filename))
 
                     except Exception as ex:
 
                         # report problem
-                        log.error("An execption occured while trying to load the container ({}): {}. Maybe the "
-                                  "container is still copied, while trying accessing it. Will try again"
-                                  " later".format(container_source_filename, ex))
+                        logging.error("An exception occurred while trying to load the container ({}): {}. Maybe the "
+                                      "container is still copied, while trying accessing it. Will try again"
+                                      " later".format(container_source_filename, ex))
 
                 # successful?
                 if successfully_dequeued_one:
@@ -362,12 +393,19 @@ def run_queue(config, verbose=True):
                     gpu_assignment = free_gpus[:max_gpu_assignment]
 
                     # report
-                    log.info("\n*** Running docker image {}\n".format(container_image_name))
+                    logging.info("\n*** Running docker image {}\n".format(container_image_name))
 
                     # run the container (detached mode, remove afterwards)
-                    p = subprocess.Popen(["NV_GPU={}".format(','.format(gpu_assignment)), "nvidia-docker",
-                                          "run", "-d", "--rm", "{}".format(container_image_name)])
+                    docker_env = os.environ.copy()
+                    docker_env["NV_GPU"] = ','.format(gpu_assignment)
+
+                    # if the -rm flag is add, the run is not visible with docker -ps && docker -ls
+                    p = subprocess.Popen(["nvidia-docker", "run", "-d", container_image_name],
+                                         env=docker_env)
                     p.communicate()  # wait till done
+
+                    # add to log fil whether it was successful
+                    logging.info("Result from nvidia-docker run: {}".format(p.returncode))
 
                     # add to history
                     docker_history = [extract_user_from_filename(container_source_filename)] + docker_history
@@ -376,7 +414,8 @@ def run_queue(config, verbose=True):
             else:
 
                 # wait 5 seconds (do not write this to log file, we do not want to blow it up!)
-                if verbose: print("Nothing there to do.. So boring here, I take some rest.. :-(")
+                if verbose:
+                    print("Nothing there to do.. So boring here, I take some rest.. :-(")
                 time.sleep(5)
 
 
@@ -386,16 +425,22 @@ def write_default_config():
     :return: None
     """
 
-    config = configparser.ConfigParser()
-    config['queue'] = {'container.path': 'docker_containers',
-                       'load.directory': 'docker_load',
-                       'build.directory': 'docker_build',
-                       'max.history': '100',
-                       'remove.invalid.containers': 'yes',
-                       'valid_executors': "anees,ilja,ferry,markus"}
-    config['reporting'] = {'log.path': 'queue.log',
-                           'verbose': 'yes'}
-    config['gpu'] = {'max.assignment': '1'}
+    config = ConfigParser.ConfigParser()
+
+    config.add_section('queue')
+    config.set('queue', 'container.path', 'docker_containers')
+    config.set('queue', 'load.directory', 'docker_load')
+    config.set('queue', 'build.directory', 'docker_build')
+    config.set('queue', 'max.history', '100')
+    config.set('queue', 'remove.invalid.containers', 'yes')
+    config.set('queue', 'valid_executors', 'anees,ilja,ferry,markus')
+
+    config.add_section('reporting')
+    config.set('reporting', 'log.path', 'queue.log')
+    config.set('reporting', 'verbose', 'yes')
+
+    config.add_section('gpu')
+    config.set('gpu', 'max.assignment', '1')
 
     # store config
     with open(CONFIG_FILE, 'w') as configfile:
@@ -404,21 +449,21 @@ def write_default_config():
 
 def read_config():
     # create config parser and read file
-    config = configparser.ConfigParser()
+    config = ConfigParser.ConfigParser()
     config.read(CONFIG_FILE)
     return config
 
 
 def main(argv=None):
     # create new config if not there
-    if os.path.isfile(CONFIG_FILE):
+    if not os.path.isfile(CONFIG_FILE):
         write_default_config()
 
     # read in config
     config = read_config()
 
     # get verbosity flag
-    verbose = config.getboolean('reporting', 'verbose', True)
+    verbose = config.getboolean('reporting', 'verbose')
 
     # run the queue
     run_queue(config, verbose)
