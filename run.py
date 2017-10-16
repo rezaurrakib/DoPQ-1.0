@@ -297,7 +297,7 @@ def run_queue(config, verbose=True):
                             " is still copied, while trying accessing it. Will try again later".format(
                                 container_source_filename, ex))
 
-                elif container_source_filename.lower().endswith('.tar'):
+                else:
 
                     try:
 
@@ -347,17 +347,6 @@ def run_queue(config, verbose=True):
                         log.error("An execption occured while trying to load the container ({}): {}. Maybe the "
                                   "container is still copied, while trying accessing it. Will try again"
                                   " later".format(container_source_filename, ex))
-
-                else:
-
-                    # unknown type of task
-                    log.error("Unkown type of file provided ({})!" .format(container_source_filename) +
-                              "Please provide either a zip archive with the dockerfiles"
-                              " to be built or provide a tar archive of an image created by docker save "
-                              "(see instructions on docker website)")
-
-                    # try to load file
-                    "docker load --input mrtflmu-simpledltask-latest.tar"
 
                 # successful?
                 if successfully_dequeued_one:
