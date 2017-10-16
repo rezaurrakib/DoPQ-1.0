@@ -1,0 +1,4 @@
+# ignore all local container, load and build directories
+docker_containers
+docker_load
+docker_build
