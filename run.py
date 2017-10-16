@@ -47,7 +47,8 @@ def handle_invalid_containers(container_path, valid_executors, auto_remove_inval
     """
     # check for invalid files and warn
     invalid_docker_files = [el for el in os.listdir(container_path) if
-                            el.split('.')[0].split('_')[-1].lower() not in valid_executors and not len(valid_executors) == 0]
+                            el.split('.')[0].split('_')[-1].lower() not in valid_executors and not len(
+                                valid_executors) == 0]
     if len(invalid_docker_files) > 0:
         log.warning(
             "*** WARNING ***: The following containers are provided by persons, who are not authorized to run "
@@ -90,6 +91,8 @@ def show_penalties(docker_users, docker_history):
         print("Penalty for {}: {}".format(user, round(calc_penalty(user, docker_history), 4)))
 
 
+# Interesting stuff here. If nvidia-docker is running you access information about
+# gpu devices by running get requests on local host.
 # def get_gpu_devices(request_url="http://localhost:3476/gpu/info/json"):
 #    r = requests.get(request_url)
 #    json_data = r.json()
@@ -204,7 +207,7 @@ def run_queue(config, verbose=True):
     # create empty history
     docker_history = []
 
-    # get container files path
+    # get acquire paths from config
     container_files_path = config.get('queue', 'container.path', 'docker_containers')
     build_directory = config.get('queue', 'build.directory', 'docker_build')
     load_directory = config.get('queue', 'load.directory', 'docker_load')
@@ -212,6 +215,11 @@ def run_queue(config, verbose=True):
     max_gpu_assignment = config.getint('gpu', 'max.assignment', 1)
     max_history = config.getint('gpu', 'max.history', 100)
     auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers', False)
+
+    # build all non-existent directories
+    for dir_path in [build_directory, load_directory, valid_executors]:
+        if not os.path.isdir(dir_path):
+            os.makedirs(dir_path)
 
     # run this until forced to quit
     while True:
@@ -315,9 +323,6 @@ def run_queue(config, verbose=True):
                         p = subprocess.Popen(["nvidia-docker", "load", "--input {}".format(file_to_run_target_path)])
                         out, _ = p.communicate()  # wait till done
 
-                        # build matcher
-                        img_matcher = re.compile(r'Loaded image: (.*)?')
-
                         # get loaded images
                         loaded_images = get_loaded_images(out)
 
@@ -405,7 +410,6 @@ def read_config():
 
 
 def main(argv=None):
-
     # create new config if not there
     if os.path.isfile(CONFIG_FILE):
         write_default_config()
