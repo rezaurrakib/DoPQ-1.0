@@ -133,7 +133,7 @@ def get_loaded_images(out):
     loaded_images = []
 
     # get the name of the image
-    for out_line in out.splitlines():
+    for out_line in out.split('\n'):
         img_match_dt = img_matcher.search(out_line)
         if img_match_dt is not None:
             img = img_match_dt.group(1)
@@ -220,9 +220,14 @@ def run_queue(config, verbose=True):
     load_directory = config.get('queue', 'load.directory')
     valid_executors = config.get('queue', 'valid.executors').split(',')
     mount_volumes = config.get('queue', 'mount.volumes').split(',')
+    run_params = config.get('queue', 'run.params').split(',')
+
     max_history = config.getint('queue', 'max.history')
     auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers')
     max_gpu_assignment = config.getint('gpu', 'max.assignment')
+
+    # show docker run params
+    print("Docker run params: {}".format(run_params))
 
     # build all non-existent directories
     for dir_path in [build_directory, load_directory, container_files_path]:
@@ -296,15 +301,17 @@ def run_queue(config, verbose=True):
 
                         # run command
                         p = subprocess.Popen(["nvidia-docker", "build", "-t", "{}".format(container_image_name),
-                                              container_target_folder])
-                        p.communicate()  # wait till done
+                                              container_target_folder], stdout=subprocess.PIPE,
+                                             stderr=subprocess.PIPE)
+                        out, err = p.communicate()  # wait till done
 
                         build_success = p.returncode == 0
 
                         if not build_success:
                             # pass on to log file
                             logging.error("Unable to build given docker file"
-                                          ": {}, response-code={}".format(container_image_name, p.returncode))
+                                          ": {}, response-code={}, out={}, err={}".format(container_image_name,
+                                                                                          p.returncode, out, err))
 
                         # wait a second (just to be sure that the archive is closed)
                         time.sleep(1)
@@ -344,13 +351,17 @@ def run_queue(config, verbose=True):
                         time.sleep(1)
 
                         # try to load the file
-                        p = subprocess.Popen(["nvidia-docker", "load", "--input", file_to_run_target_path])
-                        out, _ = p.communicate()  # wait till done
+                        p = subprocess.Popen(["nvidia-docker", "load", "--input", file_to_run_target_path],
+                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        out, err = p.communicate()  # wait till done
 
                         if p.returncode == 0:
 
                             # get loaded images
                             loaded_images = get_loaded_images(out)
+
+                            # show it
+                            print("Loaded images: {}".format(loaded_images))
 
                             # verify
                             if len(loaded_images) > 0:
@@ -376,7 +387,11 @@ def run_queue(config, verbose=True):
                         else:
 
                             logging.error("Unable to load the container image from"
-                                          " file {}".format(container_source_filename))
+                                          " file {}. Status-code={}, out={}, err={}".format(container_source_filename,
+                                                                                           p.returncode, out, err))
+
+                            # remove the file after loading
+                            # os.remove(file_to_run_target_path)
 
                     except Exception as ex:
 
@@ -395,25 +410,35 @@ def run_queue(config, verbose=True):
                     gpu_minor_list = ','.format(gpu_assignment)
 
                     # report
-                    logging.info("\n*** Running docker image {} (GPU-minors={})\n".format(container_image_name, gpu_minor_list))
+                    logging.info(
+                        "**************************\n"
+                        "Running docker image {} (GPU-minors={})".format(container_image_name, gpu_minor_list) +
+                        "\n**************************")
 
                     # run the container (detached mode, remove afterwards)
                     docker_env = os.environ.copy()
                     docker_env["NV_GPU"] = gpu_minor_list
 
                     # build command which also mounts relevant paths
-                    run_cmd = ["nvidia-docker", "run", "-d"]
+                    run_cmd = ["nvidia-docker", "run", "-d"] + run_params
                     for mount_volume in mount_volumes:
                         run_cmd.append("-v")
                         run_cmd.append(mount_volume)
                     run_cmd.append(container_image_name)
 
                     # if the -rm flag is add, the run is not visible with docker -ps && docker -ls
-                    p = subprocess.Popen(run_cmd, env=docker_env)
-                    p.communicate()  # wait till done
+                    p = subprocess.Popen(run_cmd, env=docker_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    out, err = p.communicate()  # wait till done
 
-                    # add to log fil whether it was successful
-                    logging.info("Result from nvidia-docker run: {}".format(p.returncode))
+                    # check if successful
+                    if p.returncode == 0:
+                        # add to log fil whether it was successful
+                        logging.info("Successfully ran docker container {}".format(container_image_name))
+                    else:
+                        # add to log fil whether it was successful
+                        logging.error("Failed to run docker container"
+                                      " {}: . Status-code={}, out={}, err={}".format(container_image_name,
+                                                                                     p.returncode, out, err))
 
                     # add to history
                     docker_history = [extract_user_from_filename(container_source_filename)] + docker_history
@@ -443,6 +468,7 @@ def write_default_config():
     config.set('queue', 'remove.invalid.containers', 'yes')
     config.set('queue', 'valid.executors', 'anees,ilja,ferry,markus')
     config.set('queue', 'mount.volumes', '/home/markus/Downloads:/downloads,/home/markus/Musik:/music')
+    config.set('queue', 'run.params', '--net=host')
 
     config.add_section('reporting')
     config.set('reporting', 'log.path', 'queue.log')
