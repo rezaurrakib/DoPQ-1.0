@@ -393,7 +393,7 @@ def run_queue(config, verbose=True):
                                                                                             p.returncode, out, err))
 
                             # remove the file after loading
-                            # os.remove(file_to_run_target_path)
+                            os.remove(file_to_run_target_path)
 
                     except Exception as ex:
 
