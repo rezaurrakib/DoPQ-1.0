@@ -226,6 +226,8 @@ def run_queue(config, verbose=True):
     auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers')
     max_gpu_assignment = config.getint('gpu', 'max.assignment')
 
+    assert(max_gpu_assignment > 0)
+
     # show docker run params
     print("Docker run params: {}".format(run_params))
 
@@ -404,16 +406,17 @@ def run_queue(config, verbose=True):
                 if successfully_dequeued_one:
                     # ensure valid
                     assert (container_image_name is not None)
-                    print("Free GPUs: {}".format(free_gpusfree_gpus))
 
                     # get gpu assignment
                     gpu_assignment = free_gpus[:max_gpu_assignment]
-                    gpu_minor_list = ','.format(gpu_assignment)
+                    gpu_minor_list = ','.join([str(el) for el in gpu_assignment])
 
                     # report
                     logging.info(
-                        "**************************\n"
-                        "Running docker image {} (GPU-minors={})".format(container_image_name, gpu_minor_list) +
+                        "\n**************************\n"
+                        "Running docker image "
+                        "{} (GPU-minors={}, assign={}, available={})".format(container_image_name, gpu_minor_list,
+                                                                             gpu_assignment, free_gpus) +
                         "\n**************************")
 
                     # run the container (detached mode, remove afterwards)
