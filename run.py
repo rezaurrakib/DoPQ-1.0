@@ -40,7 +40,7 @@ def init_file_logging(log_file_path, log_level=logging.DEBUG):
     :param log_level: Logging level to use
     :return: None
     """
-    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
+    logging.basicConfig(filename=log_file_path, level=log_level)
 
 
 def handle_invalid_containers(container_path, valid_executors, auto_remove_invalid=False):
@@ -361,7 +361,7 @@ def run_queue(config, verbose=True):
                             loaded_images = get_loaded_images(out)
 
                             # show it
-                            print("Loaded images: {}".format(loaded_images))
+                            logging.info("Loaded images: {}".format(loaded_images))
 
                             # verify
                             if len(loaded_images) > 0:
@@ -388,7 +388,7 @@ def run_queue(config, verbose=True):
 
                             logging.error("Unable to load the container image from"
                                           " file {}. Status-code={}, out={}, err={}".format(container_source_filename,
-                                                                                           p.returncode, out, err))
+                                                                                            p.returncode, out, err))
 
                             # remove the file after loading
                             # os.remove(file_to_run_target_path)
@@ -404,6 +404,7 @@ def run_queue(config, verbose=True):
                 if successfully_dequeued_one:
                     # ensure valid
                     assert (container_image_name is not None)
+                    print("Free GPUs: {}".format(free_gpusfree_gpus))
 
                     # get gpu assignment
                     gpu_assignment = free_gpus[:max_gpu_assignment]
@@ -489,7 +490,7 @@ def read_config():
     return config
 
 
-def main(argv=None):
+def main():
     # create new config if not there
     if not os.path.isfile(CONFIG_FILE):
         write_default_config()
