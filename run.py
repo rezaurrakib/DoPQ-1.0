@@ -204,8 +204,8 @@ def run_queue(config, verbose=True):
     """
 
     # init logging
-	log_path = config.get('reporting', 'log.dir')
-    init_file_logging(os.path.join(log_path,LOG_FILE))
+    log_path = config.get('reporting', 'log.dir')
+    init_file_logging(os.path.join(log_path, LOG_FILE))
 
     # show init
     logging.info("Setting up DoP-Q..")
@@ -218,7 +218,7 @@ def run_queue(config, verbose=True):
 
     # get acquire paths from config
     container_files_path = config.get('queue', 'container.path')
-	network_files_path = config.get('queue', 'network.path')
+    network_files_path = config.get('queue', 'network.path')
     build_directory = config.get('queue', 'build.directory')
     load_directory = config.get('queue', 'load.directory')
     valid_executors = config.get('queue', 'valid.executors').split(',')
@@ -229,7 +229,7 @@ def run_queue(config, verbose=True):
     auto_remove_invalid = config.getboolean('queue', 'remove.invalid.containers')
     max_gpu_assignment = config.getint('gpu', 'max.assignment')
 
-    assert(max_gpu_assignment > 0)
+    assert (max_gpu_assignment > 0)
 
     # show docker run params
     print("Docker run params: {}".format(run_params))
@@ -238,18 +238,18 @@ def run_queue(config, verbose=True):
     for dir_path in [build_directory, load_directory, container_files_path, network_files_path]:
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
-			
-	#start the container fetching process
-	fetcher = subprocess.Popen("python", "fetcher.py", container_files_path, network_files_path, log_path],
-                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # start the container fetching process
+    fetcher = subprocess.Popen(["python", "fetcher.py", container_files_path, network_files_path, log_path],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # run this until forced to quit
     while True:
-	
-		#check if fetching process is still running
-		if not fetcher.poll() == None:
-			print("WARNING "+time.ctime() + ": fetching process has terminated")
-			logging.warning(time.ctime() + "\tfetching process has terminated")
+
+        # check if fetching process is still running
+        if fetcher.poll() is None:
+            print("WARNING " + time.ctime() + ": fetching process has terminated")
+            logging.warning(time.ctime() + "\tfetching process has terminated")
 
         # get docker files
         docker_files = [os.path.join(container_files_path, el) for el in os.listdir(container_files_path) if
@@ -478,7 +478,7 @@ def write_default_config():
 
     config.add_section('queue')
     config.set('queue', 'container.path', 'docker_containers')
-	config.set('queue', 'network.path', 'network_containers')
+    config.set('queue', 'network.path', 'network_containers')
     config.set('queue', 'load.directory', 'docker_load')
     config.set('queue', 'build.directory', 'docker_build')
     config.set('queue', 'max.history', '100')
