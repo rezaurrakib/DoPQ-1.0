@@ -40,7 +40,7 @@ def get_free_space(path,log_dir):
     else:
         stat = os.statvfs(path)
         free_space_abs = stat.f_frsize*stat.f_bavail
-        free_space_rel = free_space_abs / stat.f_frsize*stat.f_blocks
+        free_space_rel = free_space_abs / (stat.f_frsize*stat.f_blocks)
     
     logging.info(time.ctime()+"\tFree space on hard drive: "+str(int(free_space_abs/1024/1024))+"MB which is "+\
                                                              str(round(free_space_rel,2))+"%")    
