@@ -31,6 +31,7 @@ import re
 # import requests
 
 CONFIG_FILE = 'config.ini'
+LOG_FILE = 'queue.log'
 
 
 def init_file_logging(log_file_path, log_level=logging.DEBUG):
@@ -203,7 +204,8 @@ def run_queue(config, verbose=True):
     """
 
     # init logging
-    init_file_logging(config.get('reporting', 'log.path'))
+	log_path = config.get('reporting', 'log.dir')
+    init_file_logging(os.path.join(log_path,LOG_FILE))
 
     # show init
     logging.info("Setting up DoP-Q..")
@@ -216,6 +218,7 @@ def run_queue(config, verbose=True):
 
     # get acquire paths from config
     container_files_path = config.get('queue', 'container.path')
+	network_files_path = config.get('queue', 'network.path')
     build_directory = config.get('queue', 'build.directory')
     load_directory = config.get('queue', 'load.directory')
     valid_executors = config.get('queue', 'valid.executors').split(',')
@@ -232,12 +235,21 @@ def run_queue(config, verbose=True):
     print("Docker run params: {}".format(run_params))
 
     # build all non-existent directories
-    for dir_path in [build_directory, load_directory, container_files_path]:
+    for dir_path in [build_directory, load_directory, container_files_path, network_files_path]:
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
+			
+	#start the container fetching process
+	fetcher = subprocess.Popen("python", "fetcher.py", container_files_path, network_files_path, log_path],
+                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # run this until forced to quit
     while True:
+	
+		#check if fetching process is still running
+		if not fetcher.poll() == None:
+			print("WARNING "+time.ctime() + ": fetching process has terminated")
+			logging.warning(time.ctime() + "\tfetching process has terminated")
 
         # get docker files
         docker_files = [os.path.join(container_files_path, el) for el in os.listdir(container_files_path) if
@@ -466,6 +478,7 @@ def write_default_config():
 
     config.add_section('queue')
     config.set('queue', 'container.path', 'docker_containers')
+	config.set('queue', 'network.path', 'network_containers')
     config.set('queue', 'load.directory', 'docker_load')
     config.set('queue', 'build.directory', 'docker_build')
     config.set('queue', 'max.history', '100')
@@ -475,7 +488,7 @@ def write_default_config():
     config.set('queue', 'run.params', '--net=host')
 
     config.add_section('reporting')
-    config.set('reporting', 'log.path', 'queue.log')
+    config.set('reporting', 'log.dir', './')
     config.set('reporting', 'verbose', 'yes')
 
     config.add_section('gpu')
