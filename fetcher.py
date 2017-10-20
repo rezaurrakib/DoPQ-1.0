@@ -58,6 +58,10 @@ def move_containers(network_containers,network_dir, local_dir):
         - local_dir: directory on the local drive where the containers should be moved to (destination)
     """
     
+	#write to log
+    logging.info(time.ctime() + ":\tFetching containers form network drive.")
+    logging.info("---------------------------------------------------------")
+	
     for container in network_containers:
             
         #move files
@@ -101,10 +105,6 @@ while 1:
     #check if enough space is present on hard drive
     free_space_abs, free_space_rel = get_free_space(local_dir,log_dir)
     if free_space_rel > 0.95: continue
-    
-    #write to log
-    logging.info(time.ctime() + ":\tFetching containers form network drive.")
-    logging.info("---------------------------------------------------------")
     
     #get list of containers on network drive
     network_containers = os.listdir(network_dir)
