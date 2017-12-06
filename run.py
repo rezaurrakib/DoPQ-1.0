@@ -34,7 +34,7 @@ CONFIG_FILE = 'config.ini'
 LOG_FILE = 'queue.log'
 
 
-def init_file_logging(log_file_path, log_level=logging.DEBUG):
+def init_file_logging(log_file_path, log_level=logging.INFO):
     """
     Init basic logging
     :param log_file_path: Path to logfile
@@ -247,7 +247,7 @@ def run_queue(config, verbose=True):
     while True:
 
         # check if fetching process is still running
-        if fetcher.poll() is None:
+        if fetcher.poll() is not None:
             print("WARNING " + time.ctime() + ": fetching process has terminated")
             logging.warning(time.ctime() + "\tfetching process has terminated")
 
@@ -278,7 +278,6 @@ def run_queue(config, verbose=True):
                 # sort priority queue:
                 sort_fn = partial(split_and_calc_penalty, docker_history=docker_history)
                 docker_files = sorted(docker_files, key=sort_fn)
-                # print(docker_files)
 
                 # pick first
                 file_to_run_source_path = docker_files.pop(0)
@@ -308,8 +307,8 @@ def run_queue(config, verbose=True):
                         z.close()
 
                         # build image name
-                        container_image_name = "dbsifi/dl_{}:latest".format(
-                            container_source_filename[6:-4].replace(' ', ''))
+                        container_image_name = "{}:latest".format(
+                            container_source_filename[6:-4].replace(' ', '').lower())
 
                         logging.info("Container-Image: {}".format(container_image_name))
 
@@ -317,8 +316,9 @@ def run_queue(config, verbose=True):
                         p = subprocess.Popen(["nvidia-docker", "build", "-t", "{}".format(container_image_name),
                                               container_target_folder], stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE)
-                        out, err = p.communicate()  # wait till done
+                        out, err = p.communicate()
 
+                        # wait till done
                         build_success = p.returncode == 0
 
                         if not build_success:
@@ -462,10 +462,10 @@ def run_queue(config, verbose=True):
 
             else:
 
-                # wait 5 seconds (do not write this to log file, we do not want to blow it up!)
+                # wait 30 seconds (do not write this to log file, we do not want to blow it up!)
                 if verbose:
                     print("Nothing there to do.. So boring here, I take some rest.. :-(")
-                time.sleep(5)
+                time.sleep(30)
 
 
 def write_default_config():
