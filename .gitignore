@@ -5,3 +5,4 @@ docker_build
 queue.log
 push-to-repo.sh
 pull-from-repo.sh
+*.pyc
