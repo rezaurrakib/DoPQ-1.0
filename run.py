@@ -143,10 +143,11 @@ def get_loaded_images(out):
     return loaded_images
 
 
-def get_assigned_gpu_minors(client):
+def get_assigned_gpu_minors(client, available_minors):
     """
     Looks at each running container and extracts the minors of the GPUs used there
     :param client: docker-client
+    :param available_minors receives available GPU minors
     :return: Minors of all GPUs assigned to some container
     """
 
@@ -156,14 +157,24 @@ def get_assigned_gpu_minors(client):
     # look in each running container
     for container in client.containers.list():
 
-        if 'HostConfig' in container.attrs:
-            if 'Devices' in container.attrs['HostConfig']:
-                for el in container.attrs['HostConfig']['Devices']:
-                    host_path = el['PathOnHost']
-                    match_dt = re.search(r'/dev/nvidia(\d+)', host_path)
-                    if match_dt is not None:
-                        gpu_minor = int(match_dt.group(1))
-                        assigned_gpus.add(gpu_minor)
+        if 'Config' in container.attrs:
+            if 'Env' in container.attrs['Config']:
+                for el in container.attrs['Config']['Env']:
+                    if el.startswith('NVIDIA_VISIBLE_DEVICES'):
+                        minor_str = el.split('=')[1]
+                        if minor_str.lower() == 'all':
+                            for gpu_minor in available_minors:
+                                assigned_gpus.add(gpu_minor)
+                        elif minor_str.lower() == 'none':
+                            # here no minors will be used
+                            logging.debug("Using no minors..")
+                        elif minor_str.lower() == 'void' or minor_str.trim() == "":
+                            logging.debug("Insecure option: Please do not use empty minor option for containers!")
+                        else:
+                            minor_list = minor_str.split(",")
+                            for gpu_minor in minor_list:
+                                if gpu_minor in available_minors:
+                                    assigned_gpus.add(gpu_minor)
 
     return assigned_gpus
 
@@ -175,11 +186,11 @@ def get_free_gpu_minors(client):
     :return: Unused GPU minors
     """
 
-    # get assigned gpus
-    assigned_gpus = get_assigned_gpu_minors(client)
-
     # get all gpus
     available_gpus = get_gpu_minors()
+
+    # get assigned gpus
+    assigned_gpus = get_assigned_gpu_minors(client, available_gpus)
 
     free_gpus = []
 
@@ -433,7 +444,7 @@ def run_queue(config, verbose=True):
 
                     # run the container (detached mode, remove afterwards)
                     docker_env = os.environ.copy()
-                    docker_env["NV_GPU"] = gpu_minor_list
+                    docker_env["NVIDIA_VISIBLE_DEVICES"] = gpu_minor_list
 
                     # build command which also mounts relevant paths
                     run_cmd = ["nvidia-docker", "run", "-d"] + run_params
