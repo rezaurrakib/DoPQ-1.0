@@ -27,11 +27,18 @@ import shutil
 # import configparser # python 3
 import ConfigParser  # python 2
 import re
+import sys
 
 # import requests
-
 CONFIG_FILE = 'config.ini'
 LOG_FILE = 'queue.log'
+if len(sys.argv) >= 3:
+    if os.path.isfile(sys.argv[1]): CONFIG_FILE = sys.argv[1]
+    if os.path.isfile(sys.argv[2]): LOG_FILE = sys.argv[2]
+
+# TODO: create a process for each container that can be monitored
+# TODO: create a process for the fetcher
+# TODO: adjust logging and std output
 
 
 def init_file_logging(log_file_path, log_level=logging.INFO):

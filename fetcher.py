@@ -14,8 +14,6 @@ import ctypes
 import numpy as np
 
 
-# MIN_NUM_CONTAINERS = 3
-# DEBUG_MODE = True
 
 def get_free_space(path, log_dir):
     """
@@ -76,74 +74,79 @@ def move_containers(network_containers, network_dir, local_dir):
     logging.info("\n")
 
 
-# get directories from console args
-local_dir, network_dir, log_dir = sys.argv[1:4]
+def run_fetcher(local_dir, network_dir, log_dir):
 
-# set up logging
-LOG_FILE = os.path.join(log_dir, "container_fetcher.log")
-logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
+    # set up logging
+    LOG_FILE = os.path.join(log_dir, "container_fetcher.log")
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
 
-# write passed directories to log
-logging.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + local_dir \
-             + "\n\t\tshared network drive:\t" + network_dir \
-             + "\n\t\tlog-file path:\t\t" + log_dir)
+    # write passed directories to log
+    logging.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + local_dir
+                 + "\n\t\tshared network drive:\t" + network_dir
+                 + "\n\t\tlog-file path:\t\t" + log_dir)
 
-# control variable for while loop
-first_run = True
+    # control variable for while loop
+    first_run = True
 
-##get number of containers present on the hard drive
-# num_local_containers = len(os.listdir(local_dir))
+    ##get number of containers present on the hard drive
+    # num_local_containers = len(os.listdir(local_dir))
 
-# start monitoring loop
-while 1:
+    # start monitoring loop
+    while 1:
 
-    # wait for 1h from the second iteration onward before fetching containers
-    if not first_run:
-        time.sleep(36000)
-    else:
-        first_run = not first_run
+        # wait for 1h from the second iteration onward before fetching containers
+        if not first_run:
+            time.sleep(36000)
+        else:
+            first_run = not first_run
 
-    # check if enough space is present on hard drive
-    free_space_abs, free_space_rel = get_free_space(local_dir, log_dir)
-    if free_space_rel < 0.05:
-        logging.info(time.ctime() + "\tnot enough space to fetch new containers")
-        continue
+        # check if enough space is present on hard drive
+        free_space_abs, free_space_rel = get_free_space(local_dir, log_dir)
+        if free_space_rel < 0.05:
+            logging.info(time.ctime() + "\tnot enough space to fetch new containers")
+            continue
 
-    # get list of containers on network drive
-    network_containers = os.listdir(network_dir)
+        # get list of containers on network drive
+        network_containers = os.listdir(network_dir)
 
-    # check if any containers are on the network drive
-    if len(network_containers) == 0:
-        logging.info(time.ctime() + "\tno containers to fetch")
-        continue
+        # check if any containers are on the network drive
+        if len(network_containers) == 0:
+            logging.info(time.ctime() + "\tno containers to fetch")
+            continue
 
-    # get filesizes of the network containers
-    network_containers_sizes = [os.stat(os.path.join(network_dir, container)).st_size for container in
-                                network_containers]
+        # get filesizes of the network containers
+        network_containers_sizes = [os.stat(os.path.join(network_dir, container)).st_size for container in
+                                    network_containers]
 
-    # check if there is enough space to move all files
-    if np.sum(network_containers_sizes) < free_space_abs:
+        # check if there is enough space to move all files
+        if np.sum(network_containers_sizes) < free_space_abs:
+            # move containers
+            move_containers(network_containers, network_dir, local_dir)
+            continue
+
+        # remove files until they fit on the hard drive
+        logging.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
+
+        # clone lists for modification
+        tmp_network_containers = network_containers
+        tmp_network_containers_sizes = network_containers_sizes
+
+        # iteratively remove containers
+        while np.sum(tmp_network_containers_sizes) > free_space_abs:
+            tmp_network_containers.pop()
+            tmp_network_containers_sizes.pop()
+            if len(tmp_network_containers) == 1:
+                if tmp_network_containers_sizes[0] > free_space_abs:
+                    continue
+                else:
+                    break
+
         # move containers
         move_containers(network_containers, network_dir, local_dir)
         continue
 
-    # remove files until they fit on the hard drive
-    logging.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
+if __name__ == "__main__":
 
-    # clone lists for modification
-    tmp_network_containers = network_containers
-    tmp_network_containers_sizes = network_containers_sizes
-
-    # iteratively remove containers
-    while np.sum(tmp_network_containers_sizes) > free_space_abs:
-        tmp_network_containers.pop()
-        tmp_network_containers_sizes.pop()
-        if len(tmp_network_containers) == 1:
-            if tmp_network_containers_sizes[0] > free_space_abs:
-                continue
-            else:
-                break
-
-    # move containers
-    move_containers(network_containers, network_dir, local_dir)
-    continue
+    # get directories from console args
+    local_dir, network_dir, log_dir = sys.argv[1:4]
+    run_fetcher(local_dir,network_dir,local_dir)
