@@ -5,148 +5,235 @@ This script is intended to be called from run.py with the relevant paths passed
 as command line arguments.
 """
 
-import sys
 import os
 import shutil
 import logging
 import time
 import ctypes
 import numpy as np
+import helper_process as hp
 
 
+class Fetcher(hp.HelperProcess):
+    
+    def __init__(self, config):
 
-def get_free_space(path, log_dir):
-    """
-    helper function for examining free space on a drive
-    --------------
-    args:
-        - path: directory that should be examined
-    return: 
-        - free_space_abs: absolute amount of free space in bytes
-        - free_space_rel: percentage of available free space
-    """
-
-    # initialize return variables
-    free_space_abs, free_space_rel = 0, 0
-
-    # check if windows or unix
-    if os.name == "nt":
-        free_bytes, total_bytes = ctypes.c_ulonglong(0), ctypes.c_ulonglong(0)
-        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path), None, ctypes.pointer(total_bytes),
-                                                   ctypes.pointer(free_bytes))
-        free_space_abs = free_bytes.value
-        free_space_rel = free_space_abs / total_bytes.value
-
-    else:
-        stat = os.statvfs(path)
-        free_space_abs = stat.f_frsize * stat.f_bavail
-        total_space = stat.f_frsize * stat.f_blocks
-        free_space_rel = float(free_space_abs) / float(total_space)
-
-    logging.info(
-        time.ctime() + "\tFree space on hard drive: " + str(int(free_space_abs / 1024 / 1024)) + "MB which is " + \
-        str(round(free_space_rel * 100, 2)) + "%")
-    return free_space_abs, free_space_rel
-
-
-def move_containers(network_containers, network_dir, local_dir):
-    """
-    helper function for moving containers from network share to local drie
-    --------------
-    args:
-        - network_containers: list of the container names that should be moved
-        - network_dir: directory on the network share that hold the containers (source)
-        - local_dir: directory on the local drive where the containers should be moved to (destination)
-    """
-
-    # write to log
-    logging.info(time.ctime() + ":\tFetching containers form network drive.")
-    logging.info("---------------------------------------------------------")
-
-    for container in network_containers:
-        # move files
-        shutil.move(os.path.join(network_dir, container), local_dir)
-
-        # log containers that have been moved
-        logging.info(time.ctime() + ":\tMoved container {} from network to local drive.".format(container))
-
-    # write LF to log for better readability
-    logging.info("\n")
-
-
-def run_fetcher(local_dir, network_dir, log_dir):
-
-    # set up logging
-    LOG_FILE = os.path.join(log_dir, "container_fetcher.log")
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
-
-    # write passed directories to log
-    logging.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + local_dir
-                 + "\n\t\tshared network drive:\t" + network_dir
-                 + "\n\t\tlog-file path:\t\t" + log_dir)
-
-    # control variable for while loop
-    first_run = True
-
-    ##get number of containers present on the hard drive
-    # num_local_containers = len(os.listdir(local_dir))
-
-    # start monitoring loop
-    while 1:
-
-        # wait for 1h from the second iteration onward before fetching containers
-        if not first_run:
-            time.sleep(36000)
+        super(Fetcher, self).__init__()
+        
+        self.paths = config['paths']
+        self.config = config['fetcher']
+        
+        # set up logging
+        self.logfile = os.path.join(self.paths['log'], "fetcher.log")
+        logging.basicConfig(filename=self.logfile, level=logging.INFO)
+        
+    @staticmethod
+    def get_free_space(path):
+        """
+        helper function for examining free space on a drive
+        --------------
+        args:
+            - path: directory that should be examined
+        return: 
+            - free_space_abs: absolute amount of free space in bytes
+            - free_space_rel: percentage of available free space
+        """
+    
+        # check if windows or unix
+        if os.name == "nt":
+            free_bytes, total_bytes = ctypes.c_ulonglong(0), ctypes.c_ulonglong(0)
+            ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path), None, ctypes.pointer(total_bytes),
+                                                       ctypes.pointer(free_bytes))
+            free_space_abs = free_bytes.value
+            free_space_rel = free_space_abs / total_bytes.value
+    
         else:
-            first_run = not first_run
+            stat = os.statvfs(path)
+            free_space_abs = stat.f_frsize * stat.f_bavail
+            total_space = stat.f_frsize * stat.f_blocks
+            free_space_rel = float(free_space_abs) / float(total_space)
+    
+        logging.info(
+            time.ctime() + "\tFree space on hard drive: " + str(int(free_space_abs / 1024 / 1024)) + "MB which is " + \
+            str(round(free_space_rel * 100, 2)) + "%")
+        
+        return free_space_abs, free_space_rel
+    
+    @staticmethod
+    def move_containers(container_list, source_dir, target_dir):
+        """
+        helper function for moving containers from network share to local drive
+        --------------
+        args:
+            - container_list: list of the container names that should be moved
+            - source_dir: directory on the network share that hold the containers (source)
+            - target_dir: directory on the local drive where the containers should be moved to (destination)
+        """
+    
+        # write to log
+        logging.info(time.ctime() + ":\tFetching containers form {}.".format(source_dir))
+        logging.info("---------------------------------------------------------")
+    
+        for container in container_list:
+            # move files
+            shutil.move(os.path.join(source_dir, container), target_dir)
+    
+            # log containers that have been moved
+            logging.info(time.ctime() + ":\tMoved container {} to {}".format(container, target_dir))
+    
+        # write LF to log for better readability
+        logging.info("\n")
 
-        # check if enough space is present on hard drive
-        free_space_abs, free_space_rel = get_free_space(local_dir, log_dir)
-        if free_space_rel < 0.05:
-            logging.info(time.ctime() + "\tnot enough space to fetch new containers")
-            continue
+    def handle_invalid_containers(self):
+        """
+        Will detect invalid containers and create a warning in log and if flag is set, also delete the correspnding
+        containers.
+        :return: None
+        """
+        # check for invalid files and warn
+        invalid_docker_files = [el for el in os.listdir(self.paths['network_containers'])
+                                if os.path.isfile(os.path.join(self.paths['network_containers'], el))
+                                and el.split('_')[-1].split('.')[0].lower() not in self.config['executors']
+                                and not len(self.config['executors']) == 0]
 
-        # get list of containers on network drive
-        network_containers = os.listdir(network_dir)
+        if len(invalid_docker_files) > 0:
+            logging.warning(time.ctime() + ":\t"
+                            "The following containers are provided by persons, who are not authorized to run "
+                            "containers on this machine:\n {}".format(invalid_docker_files))
 
-        # check if any containers are on the network drive
-        if len(network_containers) == 0:
-            logging.info(time.ctime() + "\tno containers to fetch")
-            continue
+            if self.config['remove_invalid']:
+                for filename in invalid_docker_files:
+                    file_path = os.path.join(self.paths['network_containers'], filename)
+                    os.remove(file_path)
+            else:
+                invalid_path = os.path.join(self.paths['network_containers'],'invalid')+'/'
+                if not os.path.exists(invalid_path): os.makedirs(invalid_path)
+                for filename in invalid_docker_files:
+                    file_path = os.path.join(self.paths['network_containers'], filename)
+                    shutil.move(file_path,invalid_path)
 
-        # get filesizes of the network containers
-        network_containers_sizes = [os.stat(os.path.join(network_dir, container)).st_size for container in
-                                    network_containers]
+    def fetch(self):
 
-        # check if there is enough space to move all files
-        if np.sum(network_containers_sizes) < free_space_abs:
+        source_dir = self.paths['network_containers']
+        target_dir = self.paths['local_containers']
+        log_dir = self.paths['log']
+    
+        # write passed directories to log
+        logging.info(time.ctime() + "\n\tstarting fetcher process...")
+        logging.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + target_dir
+                     + "\n\t\tshared network drive:\t" + source_dir
+                     + "\n\t\tlog-file path:\t\t" + log_dir)
+    
+        # control variable for while loop
+        first_run = True
+    
+        # start monitoring loop
+        while 1:
+    
+            # wait from the second iteration onward before fetching containers
+            if not first_run:
+                time.sleep(self.config['sleep'])
+            else:
+                first_run = not first_run
+    
+            # check if enough space is present on hard drive
+            free_space_abs, free_space_rel = self.get_free_space(target_dir)
+            if free_space_rel < self.config['min_space']:
+                logging.info(time.ctime() + "\tnot enough space to fetch new containers")
+                continue
+
+            # check if invalid containers are present
+            self.handle_invalid_containers()
+    
+            # get list of containers on network drive
+            container_list = [f for f in os.listdir(source_dir) if os.path.isfile(os.path.join(source_dir, f))]
+    
+            # check if any containers are on the network drive
+            if len(container_list) == 0:
+                logging.info(time.ctime() + "\tno containers to fetch")
+                continue
+
+            # get filesizes of the network containers
+            container_list_sizes = [os.stat(os.path.join(source_dir, container)).st_size
+                                    for container in container_list]
+    
+            # check if there is enough space to move all files
+            if np.sum(container_list_sizes) < free_space_abs:
+                # move containers
+                self.move_containers(container_list, source_dir, target_dir)
+                continue
+    
+            # remove files until they fit on the hard drive
+            logging.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
+    
+            # clone lists for modification
+            tmp_container_list = container_list
+            tmp_container_list_sizes = container_list_sizes
+    
+            # iteratively remove containers
+            while np.sum(tmp_container_list_sizes) > free_space_abs:
+                tmp_container_list.pop()
+                tmp_container_list_sizes.pop()
+                if len(tmp_container_list) == 1:
+                    if tmp_container_list_sizes[0] > free_space_abs:
+                        continue
+                    else:
+                        break
+    
             # move containers
-            move_containers(network_containers, network_dir, local_dir)
+            self.move_containers(container_list, source_dir, target_dir)
             continue
 
-        # remove files until they fit on the hard drive
-        logging.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
+    def start(self):
 
-        # clone lists for modification
-        tmp_network_containers = network_containers
-        tmp_network_containers_sizes = network_containers_sizes
+        super(Fetcher, self).start(self.fetch)
 
-        # iteratively remove containers
-        while np.sum(tmp_network_containers_sizes) > free_space_abs:
-            tmp_network_containers.pop()
-            tmp_network_containers_sizes.pop()
-            if len(tmp_network_containers) == 1:
-                if tmp_network_containers_sizes[0] > free_space_abs:
-                    continue
-                else:
-                    break
-
-        # move containers
-        move_containers(network_containers, network_dir, local_dir)
-        continue
 
 if __name__ == "__main__":
 
-    # get directories from console args
-    local_dir, network_dir, log_dir = sys.argv[1:4]
-    run_fetcher(local_dir,network_dir,local_dir)
+    import argparse
+    import ConfigParser
+
+    def parse_config(configfile):
+        # create config parser and read file
+        config = ConfigParser.ConfigParser()
+        config.read(configfile)
+
+        # parse settings into dicts
+        parsed_config = {
+            'paths': {'local_containers': config.get('paths', 'container.dir'),
+                      'network_containers': config.get('paths', 'network.dir'),
+                      'build': config.get('paths', 'build.dir'),
+                      'load': config.get('paths', 'load.dir'),
+                      'log': config.get('paths', 'log.dir')},
+
+            'docker': {'mounts': config.get('docker', 'mount.volumes').split(','),
+                       'run': config.get('docker', 'run.params').split(','),
+                       'mem': config.get('docker', 'mem.limit'),
+                       'max_gpus': config.getint('docker', 'max.assignment')},
+
+            'queue': {'max_history': config.getint('queue', 'max.history'),
+                      'verbose': config.getboolean('queue', 'verbose'),
+                      'sleep': config.getint('queue', 'sleep.interval')},
+
+            'builder': {'sleep': config.getint('builder', 'sleep.interval'),
+                        'load': config.get('builder', 'load.suffix').split(','),
+                        'build': config.get('builder', 'build.suffix').split(',')},
+
+            'fetcher': {'remove_invalid': config.getboolean('fetcher', 'remove.invalid.containers'),
+                        'sleep': config.getint('fetcher', 'sleep.interval'),
+                        'min_space': config.getfloat('fetcher', 'min.space'),
+                        'executors': config.get('fetcher', 'valid.executors').split(',')}}
+
+        return parsed_config
+
+    parser = argparse.ArgumentParser(description='process for fetching docker containers from network to local storage')
+    parser.add_argument(parser.add_argument('-c', '--config', type=str, dest='configfile', metavar='filename', default='config.ini'))
+
+    args = vars(parser.parse_args())
+
+    fetcher = Fetcher(**args)
+    try:
+        fetcher.start()
+    finally:
+        fetcher.stop()
