@@ -7,6 +7,7 @@ import time
 import docker.errors
 import multiprocessing as mp
 import helper_process as hp
+import json
 
 
 class Builder(hp.HelperProcess):
@@ -16,7 +17,7 @@ class Builder(hp.HelperProcess):
         super(Builder, self).__init__()
 
         # make sure queue is mp.Queue
-        assert(type(queue) is mp.Queue)
+        assert(type(queue) is mp.queues.Queue)
 
         # init members
         self.paths = config['paths']
@@ -26,7 +27,10 @@ class Builder(hp.HelperProcess):
         self.build_list = []
 
         # init logging
-        logging.basicConfig(filename=os.path.join(self.paths['log'], 'builder.log'), level=logging.INFO)
+        self.logger = logging.getLogger('builder')
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.FileHandler(os.path.join(self.paths['log'], 'builder.log')))
+        self.logger.info(time.ctime() + '\tinitializing builder')
 
     def unzip_docker_files(self, image_name):
 
@@ -49,7 +53,7 @@ class Builder(hp.HelperProcess):
         try:
             foldername = self.unzip_docker_files(image_name)
         except Exception as e:
-            logging.error(time.ctime() + '\terror while unzipping file {}: '
+            self.logger.error(time.ctime() + '\terror while unzipping file {}: '
                                          '\n\t\t{}'.format(image_name, e))
             self.handle_failed_files(self.paths['local_containers'], image_name,  self.config['remove_invalid'])
             raise e
@@ -59,14 +63,14 @@ class Builder(hp.HelperProcess):
             try:
                 image = self.client.images.build(path=foldername, rm=True, tag=image_name)
             except (docker.errors.BuildError, docker.errors.APIError) as e:
-                logging.error(time.ctime() + '\terror while building image {}: '
+                self.logger.error(time.ctime() + '\terror while building image {}: '
                                              '\n\t\t{}'.format(image_name, e))
                 self.handle_failed_files(self.paths['unzip'], image_name, self.config['remove_invalid'])
                 raise e
             else:
-                logging.info(time.ctime() + '\tsuccessfully build image {}'.format(image_name))
+                self.logger.info(time.ctime() + '\tsuccessfully build image {}'.format(image_name))
                 self.handle_failed_files(self.paths['unzip'], image_name)
-                return image
+                return image.attrs['RepoTags'][0]
 
     def load_image(self, image_name):
 
@@ -84,11 +88,11 @@ class Builder(hp.HelperProcess):
             else:
                 os.remove(filename)
                 image = self.client.images.get(output['stream'][len('Loaded image: '):-1])
-                logging.info(time.ctime() + '\tsuccessfully loaded image {}'.format(image_name))
-                return image
+                self.logger.info(time.ctime() + '\tsuccessfully loaded image {}'.format(image_name))
+                return image.attrs['RepoTags'][0]
 
         except Exception as e:
-            logging.error(time.ctime() + '\t' + e)
+            self.logger.error(time.ctime() + '\t' + e)
             raise e
 
     def handle_failed_files(self, path, filename, rm=True):
@@ -123,7 +127,7 @@ class Builder(hp.HelperProcess):
                     elif suffix in self.config['load']:
                         image = self.load_image(filename)
                     else:
-                        logging.error(time.ctime() + '\tcould not build/load file {}:'
+                        self.logger.error(time.ctime() + '\tcould not build/load file {}:'
                                                      ' file extension unknown'.format(filename))
                         self.handle_failed_files(self.paths['local_containers'], filename)
                 except Exception:
@@ -139,6 +143,7 @@ class Builder(hp.HelperProcess):
     def start(self):
 
         super(Builder, self).start(self.build)
+        return self.process.pid
 
 
 

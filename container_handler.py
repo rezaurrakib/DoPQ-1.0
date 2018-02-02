@@ -41,6 +41,8 @@ class ContainerHandler(object):
         :return: list of docker.types.Mount objects, same len as mount_list
         """
 
+        if mount_list == ['']: return None
+
         mounts = []
         for mount in mount_list:
 
@@ -74,6 +76,7 @@ class ContainerHandler(object):
             container = self.client.containers.create(image=image, command=command, detach=True, mounts=mounts,
                                                       environment=["NVIDIA_VISIBLE_DEVICES="+str(gpu_minors)],
                                                       **self.config)
+
             # log start time and start container
             start_time = int(time.time())
             container.start()
@@ -102,8 +105,13 @@ class ContainerHandler(object):
         """
 
         # initialize logging for the container
-        filename = os.path.join(self.paths['log'], user, image + '.log')
-        logging.basicConfig(filename=filename, level=logging.INFO)
+        logfile = os.path.join(self.paths['log'], user)
+        if not os.path.isdir(logfile): os.makedirs(logfile)
+        logfile = os.path.join(logfile, image + '.log')
+        logger_name = user + '_' + image
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        logger.addHandler(logging.FileHandler(logfile))
 
         # update container
         container.reload()
@@ -120,13 +128,13 @@ class ContainerHandler(object):
             last_check = int(time.time())
 
             # write logs and update container
-            logging.info(new_logs)
+            logger.info(new_logs)
             container.reload()
 
         # write remaining logs, when container has finished
         else:
             new_logs = container.logs(since=last_check)
-            logging.info(new_logs)
+            logger.info(new_logs)
 
 
 # some testing

@@ -11,6 +11,8 @@ class HelperProcess(object):
         self.process = mp.Process(target=target)
         self.process.start()
 
+        return self.process.pid
+
     def stop(self):
         if type(self.process) is mp.Process:
             self.process.terminate()

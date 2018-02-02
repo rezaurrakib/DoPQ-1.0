@@ -28,17 +28,23 @@ import container_handler as ch
 import gpu_handler as gh
 import multiprocessing as mp
 import pickle as pkl
+import json
+import docker.models.images as dk
 
+
+class UserException(Exception):
+    pass
 
 class DopQ(object):
 
-    def __init__(self, configfile, logfile):
+    def __init__(self, configfile, logfile, debug=False):
 
         # get settings from config
         if not os.path.isfile(configfile):
             self.write_default_config(configfile)
 
         # init member variables
+        self.debug = debug
         self.configfile = configfile
         self.logfile = logfile
         self.config = self.parse_config(configfile)
@@ -55,15 +61,15 @@ class DopQ(object):
         self.fetcher = ft.Fetcher(self.config)
         self.container_handler = ch.ContainerHandler(self.config)
 
-        # start fetcher and builder
-        self.fetcher.start()
-        self.builder.start()
-
         # init logging
-        logging.basicConfig(filename=logfile, level=logging.INFO)
+        self.logger = logging.getLogger('queue')
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.FileHandler(logfile))
+        self.logger.info(time.ctime() + '\tinitializing dop-q' +
+                         '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
         # make sure gpus can be assigned to containers
-        assert (self.config['docker']['max_gpus'] > 0)
+        assert (self.config['queue']['max_gpus'] > 0)
 
         # build all non-existent directories, except the network container share
         keys = self.paths.keys()
@@ -79,17 +85,23 @@ class DopQ(object):
 
     def load_history(self):
         filename = os.path.join(self.paths['history'], self.history_file)
-        with open(filename, 'rb') as f:
-            history = pkl.load(f)
+        if os.path.isfile(filename):
+            with open(filename, 'rb') as f:
+                history = pkl.load(f)
 
-        return history
+            return history
+        else:
+            return []
 
     def load_image_list(self):
         filename = os.path.join(self.paths['history'], self.image_list_file)
-        with open(filename, 'rb') as f:
-            image_list = pkl.load(f)
+        if os.path.isfile(filename):
+            with open(filename, 'rb') as f:
+                image_list = pkl.load(f)
 
             return image_list
+        else:
+            return []
 
     def save_image_list(self):
         filename = os.path.join(self.paths['history'], self.image_list_file)
@@ -120,11 +132,18 @@ class DopQ(object):
         return np.sum(user_oh * self.calc_exp_decay())
 
     def get_user(self, image):
-        for user in self.config['fetcher']['executors']:
-            tags = image.attrs['RepoTags']
-            for tag in tags:
-                if user in tag.lower():
-                    return user
+        if type(image) is dk.Image:
+            for user in self.config['fetcher']['executors']:
+                tags = image.attrs['RepoTags']
+                for tag in tags:
+                    if user in tag.lower():
+                        return user
+        elif type(image) is str or type(image) is unicode:
+            for user in self.config['fetcher']['executors']:
+                    if user in image:
+                        return user
+        else:
+            raise UserException('unable to find user in docker image')
 
     def split_and_calc_penalty(self, image):
         user = self.get_user(image)
@@ -135,7 +154,7 @@ class DopQ(object):
             print("Penalty for {}: {}".format(user, round(self.calc_penalty(user), 4)))
 
     def sleep(self):
-        time.sleep(self.config['queue']['sleep.interval'])
+        time.sleep(self.config['queue']['sleep'])
 
     @staticmethod
     def write_default_config(configfile):
@@ -149,7 +168,6 @@ class DopQ(object):
         config.add_section('paths')
         config.set('paths', 'container.dir', '/media/local/input_container/reception/')
         config.set('paths', 'network.dir', '/media/temporary_network_share/')
-        config.set('paths', 'load.dir', '/media/local/input_container/loaded/')
         config.set('paths', 'unzip.dir', '/media/local/input_container/unzipped/')
         config.set('paths', 'log.dir', '/media/local/output_container/logging/')
         config.set('paths', 'history.dir', './')
@@ -195,7 +213,6 @@ class DopQ(object):
             'paths': {'local_containers':    config.get('paths', 'container.dir'),
                       'network_containers':  config.get('paths', 'network.dir'),
                       'unzip':               config.get('paths', 'unzip.dir'),
-                      'load':                config.get('paths', 'load.dir'),
                       'log':                 config.get('paths', 'log.dir'),
                       'history':             config.get('paths', 'history.dir'),
                       'failed':              config.get('paths', 'failed.dir')},
@@ -204,7 +221,7 @@ class DopQ(object):
                        'auto_remove':       config.getboolean('docker', 'remove'),
                        'mem_limit':         config.get('docker', 'mem.limit'),
                        'network_mode':      config.get('docker', 'network.mode'),
-                       'logging_intervall': config.getint('docker', 'logging.interval')},
+                       'logging_interval': config.getint('docker', 'logging.interval')},
 
 
             'queue': {'max_history':      config.getint('queue', 'max.history'),
@@ -231,14 +248,17 @@ class DopQ(object):
             containers += c.attrs['Config']['Image'] + '\t'
 
         # clear std out
-        os.system('clear')
+        #os.system('clear')
 
         # construct status string
         status_str = ('dop-q status:\t' + time.ctime() +
                       '\n\n\tfetcher status:\t' + self.fetcher.status +
                       '\n\tbuilder status:\t' + self.builder.status +
                       '\n\trunning containers:\t' + containers +
-                      '\n\tused gpu minors:\t' + self.gpu_handler.assigned_minors)
+                      '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors))
+        if self.debug:
+            status_str += '\n\timage list:\t' + str(self.image_list) +\
+                          '\n\thistory:\t' + str(self.history)
 
         # print status message
         print(status_str)
@@ -259,15 +279,24 @@ class DopQ(object):
 
         :return: None
         """
+
+        # start fetcher and builder
+        p = self.fetcher.start()
+        self.logger.info(time.ctime() + '\t started fetcher process, PID={}'.format(p))
+        time.sleep(5)
+        p = self.builder.start()
+        self.logger.info(time.ctime() + '\t started builder process, PID={}'.format(p))
+        time.sleep(5)
+
         try:
             # run this until forced to quit
             while True:
 
-                # print queue status
-                self.print_status()
-
                 # update image list
                 self.update_image_list()
+
+                # print queue status
+                self.print_status()
 
                 # can we run another container?
                 # TODO: add support for CPU only containers
@@ -288,12 +317,12 @@ class DopQ(object):
 
                 try:
                     p, _ = self.container_handler.run_container(image, user, gpu_minor)
-                except ch.CHException as e:
-                    logging.error(time.ctime() + '\tan error occurred while running a container from {}:\n\t\t{}'
+                except (ch.CHException, UserException) as e:
+                    self.logger.error(time.ctime() + '\tan error occurred while running a container from {}:\n\t\t{}'
                                   .format(image, e))
                     self.sleep()
                 else:
-                    logging.info(time.ctime() + '\tsuccessfully ran a container from {}'
+                    self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
                                                 '\n\tcontainer logs are acquired in process {}'
                                                 .format(image, p.pid))
                     # update history
@@ -303,7 +332,7 @@ class DopQ(object):
                     self.sleep()
 
         except Exception as e:
-            logging.error(time.ctime() + '\tan error occured during the execution of the queue:\n\t\t{}'.format(e))
+            self.logger.error(time.ctime() + '\tan error occured during the execution of the queue:\n\t\t{}'.format(e))
 
         finally:
             self.stop()
@@ -315,6 +344,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="priority queue for running docker containers")
     parser.add_argument('-l', '--logfile', type=str, dest='logfile', metavar='filename', default='queue.log')
     parser.add_argument('-c', '--config', type=str, dest='configfile', metavar='filename', default='config.ini')
+    parser.add_argument('-d', '--debug', type=bool, dest='debug', default=False, action='store_true')
     
     args = vars(parser.parse_args())
     

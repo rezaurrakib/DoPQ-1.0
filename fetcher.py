@@ -25,10 +25,16 @@ class Fetcher(hp.HelperProcess):
         
         # set up logging
         self.logfile = os.path.join(self.paths['log'], "fetcher.log")
-        logging.basicConfig(filename=self.logfile, level=logging.INFO)
-        
-    @staticmethod
-    def get_free_space(path):
+        self.logger = logging.getLogger('fetcher')
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.FileHandler(self.logfile))
+        # write passed directories to log
+        self.logger.info(time.ctime() + "\n\tstarting fetcher process...")
+        self.logger.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + self.paths['network_containers']
+                         + "\n\t\tshared network drive:\t" + self.paths['local_containers']
+                         + "\n\t\tlog-file path:\t\t" + self.paths['log'])
+
+    def get_free_space(self, path):
         """
         helper function for examining free space on a drive
         --------------
@@ -53,14 +59,13 @@ class Fetcher(hp.HelperProcess):
             total_space = stat.f_frsize * stat.f_blocks
             free_space_rel = float(free_space_abs) / float(total_space)
     
-        logging.info(
+        self.logger.info(
             time.ctime() + "\tFree space on hard drive: " + str(int(free_space_abs / 1024 / 1024)) + "MB which is " + \
             str(round(free_space_rel * 100, 2)) + "%")
         
         return free_space_abs, free_space_rel
-    
-    @staticmethod
-    def move_containers(container_list, source_dir, target_dir):
+
+    def move_containers(self, container_list, source_dir, target_dir):
         """
         helper function for moving containers from network share to local drive
         --------------
@@ -71,18 +76,18 @@ class Fetcher(hp.HelperProcess):
         """
     
         # write to log
-        logging.info(time.ctime() + ":\tFetching containers form {}.".format(source_dir))
-        logging.info("---------------------------------------------------------")
+        self.logger.info(time.ctime() + ":\tFetching containers form {}.".format(source_dir))
+        self.logger.info("---------------------------------------------------------")
     
         for container in container_list:
             # move files
             shutil.move(os.path.join(source_dir, container), target_dir)
     
             # log containers that have been moved
-            logging.info(time.ctime() + ":\tMoved container {} to {}".format(container, target_dir))
+            self.logger.info(time.ctime() + ":\tMoved container {} to {}".format(container, target_dir))
     
         # write LF to log for better readability
-        logging.info("\n")
+        self.logger.info("\n")
 
     def handle_invalid_containers(self):
         """
@@ -110,20 +115,13 @@ class Fetcher(hp.HelperProcess):
                 if not os.path.exists(invalid_path): os.makedirs(invalid_path)
                 for filename in invalid_docker_files:
                     file_path = os.path.join(self.paths['network_containers'], filename)
-                    shutil.move(file_path,invalid_path)
+                    shutil.move(file_path, invalid_path)
 
     def fetch(self):
 
         source_dir = self.paths['network_containers']
         target_dir = self.paths['local_containers']
-        log_dir = self.paths['log']
-    
-        # write passed directories to log
-        logging.info(time.ctime() + "\n\tstarting fetcher process...")
-        logging.info(time.ctime() + "\tpassed directories:\n\t\tlocal hard drive:\t" + target_dir
-                     + "\n\t\tshared network drive:\t" + source_dir
-                     + "\n\t\tlog-file path:\t\t" + log_dir)
-    
+
         # control variable for while loop
         first_run = True
     
@@ -139,7 +137,7 @@ class Fetcher(hp.HelperProcess):
             # check if enough space is present on hard drive
             free_space_abs, free_space_rel = self.get_free_space(target_dir)
             if free_space_rel < self.config['min_space']:
-                logging.info(time.ctime() + "\tnot enough space to fetch new containers")
+                self.logger.info(time.ctime() + "\tnot enough space to fetch new containers")
                 continue
 
             # check if invalid containers are present
@@ -150,7 +148,7 @@ class Fetcher(hp.HelperProcess):
     
             # check if any containers are on the network drive
             if len(container_list) == 0:
-                logging.info(time.ctime() + "\tno containers to fetch")
+                self.logger.info(time.ctime() + "\tno containers to fetch")
                 continue
 
             # get filesizes of the network containers
@@ -164,7 +162,7 @@ class Fetcher(hp.HelperProcess):
                 continue
     
             # remove files until they fit on the hard drive
-            logging.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
+            self.logger.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
     
             # clone lists for modification
             tmp_container_list = container_list
@@ -187,6 +185,7 @@ class Fetcher(hp.HelperProcess):
     def start(self):
 
         super(Fetcher, self).start(self.fetch)
+        return self.process.pid
 
 
 if __name__ == "__main__":
