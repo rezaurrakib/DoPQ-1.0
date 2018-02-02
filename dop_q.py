@@ -280,6 +280,8 @@ class DopQ(object):
         :return: None
         """
 
+        #TODO: rewrite this method so that ir runs in a seperate process and the queue is able to respond to user inputs
+
         # start fetcher and builder
         p = self.fetcher.start()
         self.logger.info(time.ctime() + '\t started fetcher process, PID={}'.format(p))
