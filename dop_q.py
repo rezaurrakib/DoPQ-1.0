@@ -255,7 +255,8 @@ class DopQ(object):
                       '\n\n\tfetcher status:\t' + self.fetcher.status +
                       '\n\tbuilder status:\t' + self.builder.status +
                       '\n\trunning containers:\t' + containers +
-                      '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors))
+                      '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors) +
+                      '\n\tfree gpu minors:\t' + str(self.gpu_handler.free_minors))
         if self.debug:
             status_str += '\n\timage list:\t' + str(self.image_list) +\
                           '\n\thistory:\t' + str(self.history)
