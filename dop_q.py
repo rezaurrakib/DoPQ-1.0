@@ -302,7 +302,7 @@ class DopQ(object):
 
                 # can we run another container?
                 # TODO: add support for CPU only containers
-                free_minors = self.gpu_handler.free_minors
+                free_minors = self.gpu_handler.free_minors()
                 if len(free_minors) == 0:
                     self.sleep()
                     continue
