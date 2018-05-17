@@ -75,6 +75,7 @@ class GPUHandler(object):
                             else:
                                 minor_list = minor_str.split(",")
                                 for gpu_minor in minor_list:
+                                    gpu_minor = int(gpu_minor)
                                     if gpu_minor in self.minors:
                                         assigned_gpus.append(gpu_minor)
 
