@@ -61,7 +61,7 @@ class Builder(hp.HelperProcess):
         else:
             image_name = "".join(image_name.split('.')[:-1])
             try:
-                image = self.client.images.build(path=foldername, rm=True, tag=image_name)
+                image = self.client.images.build(path=foldername, rm=True, tag=image_name.lower())
             except (docker.errors.BuildError, docker.errors.APIError) as e:
                 self.logger.error(time.ctime() + '\terror while building image {}: '
                                              '\n\t\t{}'.format(image_name, e))

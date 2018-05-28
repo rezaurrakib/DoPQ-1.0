@@ -347,7 +347,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="priority queue for running docker containers")
     parser.add_argument('-l', '--logfile', type=str, dest='logfile', metavar='filename', default='queue.log')
     parser.add_argument('-c', '--config', type=str, dest='configfile', metavar='filename', default='config.ini')
-    parser.add_argument('-d', '--debug', type=bool, dest='debug', default=False, action='store_true')
+    parser.add_argument('--debug', action='store_true')
     
     args = vars(parser.parse_args())
     
