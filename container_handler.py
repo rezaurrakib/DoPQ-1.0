@@ -145,4 +145,5 @@ if __name__ == '__main__':
     config = dop_q.parse_config(path)
     chandler = ContainerHandler(config)
     p, container = chandler.run_container('tf-base', 'imanakov', 'all', 'nvidia-smi')
+    print('done')
 
