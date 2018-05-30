@@ -110,7 +110,7 @@ class ContainerHandler(object):
         logfile = os.path.join(logfile, image + '.log')
         logger_name = user + '_' + image
         logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.FileHandler(logfile))
 
         # update container
