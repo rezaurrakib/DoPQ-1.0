@@ -30,11 +30,12 @@ import multiprocessing as mp
 import pickle as pkl
 import json
 import docker.models.images as dk
-
+from utils import log
 
 
 class UserException(Exception):
     pass
+
 
 class DopQ(object):
 
@@ -141,8 +142,8 @@ class DopQ(object):
                         return user
         elif type(image) is str or type(image) is unicode:
             for user in self.config['fetcher']['executors']:
-                    if user in image:
-                        return user
+                if user in image:
+                    return user
         else:
             raise UserException('unable to find user in docker image')
 
@@ -211,33 +212,32 @@ class DopQ(object):
 
         # parse settings into dicts
         parsed_config = {
-            'paths': {'local_containers':    config.get('paths', 'container.dir'),
-                      'network_containers':  config.get('paths', 'network.dir'),
-                      'unzip':               config.get('paths', 'unzip.dir'),
-                      'log':                 config.get('paths', 'log.dir'),
-                      'history':             config.get('paths', 'history.dir'),
-                      'failed':              config.get('paths', 'failed.dir')},
+            'paths': {'local_containers': config.get('paths', 'container.dir'),
+                      'network_containers': config.get('paths', 'network.dir'),
+                      'unzip': config.get('paths', 'unzip.dir'),
+                      'log': config.get('paths', 'log.dir'),
+                      'history': config.get('paths', 'history.dir'),
+                      'failed': config.get('paths', 'failed.dir')},
 
-            'docker': {'mounts':            config.get('docker', 'mount.volumes').split(','),
-                       'auto_remove':       config.getboolean('docker', 'remove'),
-                       'mem_limit':         config.get('docker', 'mem.limit'),
-                       'network_mode':      config.get('docker', 'network.mode'),
+            'docker': {'mounts': config.get('docker', 'mount.volumes').split(','),
+                       'auto_remove': config.getboolean('docker', 'remove'),
+                       'mem_limit': config.get('docker', 'mem.limit'),
+                       'network_mode': config.get('docker', 'network.mode'),
                        'logging_interval': config.getint('docker', 'logging.interval')},
 
+            'queue': {'max_history': config.getint('queue', 'max.history'),
+                      'verbose': config.getboolean('queue', 'verbose'),
+                      'sleep': config.getint('queue', 'sleep.interval'),
+                      'max_gpus': config.getint('queue', 'max.gpu.assignment')},
 
-            'queue': {'max_history':      config.getint('queue', 'max.history'),
-                      'verbose':          config.getboolean('queue', 'verbose'),
-                      'sleep':            config.getint('queue', 'sleep.interval'),
-                      'max_gpus':         config.getint('queue', 'max.gpu.assignment')},
+            'builder': {'sleep': config.getint('builder', 'sleep.interval'),
+                        'load': config.get('builder', 'load.suffix').split(','),
+                        'build': config.get('builder', 'build.suffix').split(',')},
 
-            'builder': {'sleep':        config.getint('builder', 'sleep.interval'),
-                        'load':         config.get('builder', 'load.suffix').split(','),
-                        'build':        config.get('builder', 'build.suffix').split(',')},
-
-            'fetcher': {'remove_invalid':   config.getboolean('fetcher', 'remove.invalid.containers'),
-                        'sleep':            config.getint('fetcher', 'sleep.interval'),
-                        'min_space':        config.getfloat('fetcher', 'min.space'),
-                        'executors':        config.get('fetcher', 'valid.executors').split(',')}}
+            'fetcher': {'remove_invalid': config.getboolean('fetcher', 'remove.invalid.containers'),
+                        'sleep': config.getint('fetcher', 'sleep.interval'),
+                        'min_space': config.getfloat('fetcher', 'min.space'),
+                        'executors': config.get('fetcher', 'valid.executors').split(',')}}
 
         return parsed_config
 
@@ -249,7 +249,7 @@ class DopQ(object):
             containers += c.attrs['Config']['Image'] + '\t'
 
         # clear std out
-        #os.system('clear')
+        # os.system('clear')
 
         # construct status string
         status_str = ('dop-q status:\t' + time.ctime() +
@@ -259,7 +259,7 @@ class DopQ(object):
                       '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors) +
                       '\n\tfree gpu minors:\t' + str(self.gpu_handler.free_minors))
         if self.debug:
-            status_str += '\n\timage list:\t' + str(self.image_list) +\
+            status_str += '\n\timage list:\t' + str(self.image_list) + \
                           '\n\thistory:\t' + str(self.history)
 
         # print status message
@@ -282,7 +282,7 @@ class DopQ(object):
         :return: None
         """
 
-        #TODO: rewrite this method so that ir runs in a seperate process and the queue is able to respond to user inputs
+        # TODO: rewrite this method so that ir runs in a seperate process and the queue is able to respond to user inputs
 
         # start fetcher and builder
         p = self.fetcher.start()
@@ -323,12 +323,12 @@ class DopQ(object):
                     p, _ = self.container_handler.run_container(image, user, gpu_minor)
                 except (ch.CHException, UserException) as e:
                     self.logger.error(time.ctime() + '\tan error occurred while running a container from {}:\n\t\t{}'
-                                  .format(image, e))
+                                      .format(image, e))
                     self.sleep()
                 else:
                     self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
-                                                '\n\tcontainer logs are acquired in process {}'
-                                                .format(image, p.pid))
+                                                    '\n\tcontainer logs are acquired in process {}'
+                                     .format(image, p.pid))
                     # update history
                     self.history = [user] + self.history
                     self.history = self.history[:self.config['queue']['max_history']]
@@ -349,8 +349,11 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--logfile', type=str, dest='logfile', metavar='filename', default='queue.log')
     parser.add_argument('-c', '--config', type=str, dest='configfile', metavar='filename', default='config.ini')
     parser.add_argument('--debug', action='store_true')
-    
+
     args = vars(parser.parse_args())
-    
+
+    # init logging
+    log.init_log()
+
     dop_q = DopQ(**args)
     dop_q.run_queue()
