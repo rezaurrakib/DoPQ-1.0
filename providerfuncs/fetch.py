@@ -1,10 +1,3 @@
-"""
-small script for monitoring the amount of containers on the local drive and
-fetching new ones if needed.
-This script is intended to be called from run.py with the relevant paths passed
-as command line arguments.
-"""
-
 import os
 import shutil
 import time
@@ -15,12 +8,9 @@ import numpy as np
 def get_free_space(path, logger):
     """
     helper function for examining free space on a drive
-    --------------
-    args:
-        - path: directory that should be examined
-    return:
-        - free_space_abs: absolute amount of free space in bytes
-        - free_space_rel: percentage of available free space
+    :param path: directory that should be examined
+    :return: - free_space_abs: absolute amount of free space in bytes
+             - free_space_rel: percentage of available free space
     """
 
     # check if windows or unix
@@ -71,9 +61,14 @@ def move_containers(container_list, source_dir, target_dir, logger):
 
 def handle_invalid_containers(source_dir, users, logger, rm_invalid=False):
     """
+    (currently not used in this version of the queue)
     Will detect invalid containers and create a warning in log and if flag is set, also delete the correspnding
     containers.
-    :return: None
+    :param source_dir: directory to check
+    :param users: list of valid usernames
+    :param logger: instance of logging
+    :param rm_invalid: remove invalid files if True
+    :return:
     """
     # check for invalid files and warn
     invalid_docker_files = [el for el in os.listdir(source_dir)
@@ -99,6 +94,14 @@ def handle_invalid_containers(source_dir, users, logger, rm_invalid=False):
 
 
 def fetch(source_dir, target_dir, logger, min_space=0.05):
+    """
+    move container from source to target dir
+    :param source_dir: directory containing the files to be moved
+    :param target_dir: directory where files will be moved to
+    :param logger: instance of logging
+    :param min_space: minimal relative (between 0 and 1) amount of space that has to be available before moving
+    :return: list of filenames that were moved
+    """
 
     # check if enough space is present on hard drive
     free_space_abs, free_space_rel = get_free_space(target_dir)

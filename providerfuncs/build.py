@@ -7,6 +7,13 @@ import docker
 
 
 def unzip_docker_files(source_dir, target_dir, image_name):
+    """
+    unpack zipped container files
+    :param source_dir: directory that contains the file
+    :param target_dir: directory where contexts will be extracted
+    :param image_name: name of the zip file
+    :return: foldername (with dir) that contains the extracted files
+    """
 
     try:
         filename = os.path.join(source_dir, image_name)
@@ -24,13 +31,21 @@ def unzip_docker_files(source_dir, target_dir, image_name):
         return os.path.join(target_dir, folder_name, "")
 
 
-def build_image(source_dir, image_name, logger, unzip_dir="", load_dir="", failed_dir="", rm_invalid=False):
+def build_image(source_dir, image_name, logger, unzip_dir="", failed_dir="", rm_invalid=False):
+    """
+    build docker image form zipfile
+    :param source_dir: directory that contains the zipfile
+    :param image_name: name of the zipfile
+    :param logger: instance of logging
+    :param unzip_dir: directory where files are extracted to temporarily
+    :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
+    :param rm_invalid: indicates whether failed builds are removed or moved
+    :return: docker image
+    """
 
-    #construct paths if none are passed
+    # construct paths if none are passed
     if not unzip_dir:
         unzip_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'unzipped', "")
-    if not load_dir:
-        load_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'loaded', "")
     if not failed_dir:
         failed_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'failed', "")
 
@@ -59,6 +74,15 @@ def build_image(source_dir, image_name, logger, unzip_dir="", load_dir="", faile
 
 
 def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
+    """
+    load docker image form tar file
+    :param source_dir: directory that contains the zipfile
+    :param image_name: name of the zipfile
+    :param logger: instance of logging
+    :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
+    :param rm_invalid: indicates whether failed builds are removed or moved
+    :return: docker image
+    """
 
     # construct paths if none are passed
     if not failed_dir:
@@ -87,6 +111,14 @@ def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
 
 
 def handle_failed_files(path, filename, failed_dir, rm=True):
+    """
+    helper for handling files which could not be built
+    :param path: directory that contains the file used for building
+    :param filename: name of the file
+    :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
+    :param rm: indicates whether failed builds are removed or moved
+    :return: None
+    """
 
     path = os.path.join(path, filename)
 
@@ -127,6 +159,14 @@ def create_mounts(mount_list, user):
 
 
 def create_container(image, config, mounts, gpu_minors):
+    """
+    create a docker container using a passed ContainerConfig object
+    :param image: docker image on which the container will be based
+    :param config: ContainerConfig object
+    :param mounts: list of mount pairs (/dir:/dir)
+    :param gpu_minors: minor that will be assigned to this container
+    :return: docker container
+    """
 
     mounts = create_mounts(mounts, config.executor)
     client = docker.from_env()
