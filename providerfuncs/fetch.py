@@ -2,10 +2,11 @@ import os
 import shutil
 import time
 import ctypes
-import numpy as np
+from utils import log
 
+LOG = log.get_module_log(__name__)
 
-def get_free_space(path, logger):
+def get_free_space(path, logger=LOG):
     """
     helper function for examining free space on a drive
     :param path: directory that should be examined
@@ -35,7 +36,7 @@ def get_free_space(path, logger):
     return free_space_abs, free_space_rel
 
 
-def move_container(filename, target_dir, logger):
+def move_container(filename, target_dir, logger=LOG):
     """
     helper function for moving containers from network share to local drive
     --------------
@@ -48,13 +49,15 @@ def move_container(filename, target_dir, logger):
     shutil.move(filename, target_dir)
 
     # log containers that has been moved
-    logger.info(time.ctime() + ":\tMoved container {} to {}".format(filename.split('/')[-1], target_dir))
+    logger.info(time.ctime() + ":\tMoved container {} to {}".format(os.path.basename(filename), target_dir))
 
     # write LF to log for better readability
     logger.info("\n")
 
+    return os.path.join(target_dir, os.path.basename(filename))
 
-def handle_invalid_container(filename, logger, rm_invalid=False):
+
+def handle_invalid_container(filename, rm_invalid=False, json_error=False, no_space=False, logger=LOG):
     """
     (currently not used in this version of the queue)
     Will detect invalid containers and create a warning in log and if flag is set, also delete the correspnding
@@ -67,9 +70,15 @@ def handle_invalid_container(filename, logger, rm_invalid=False):
 
     source_dir = os.path.dirname(filename)
 
-    logger.warning(time.ctime() + ":\t"
-                                   "The following container is provided by a person, who is not authorized to run "
-                                   "containers on this machine:\n {}".format(filename))
+    if no_space:
+        logger.info(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
+    elif json_error:
+        logger.warning(time.ctime() + ":\t"
+                                      "The container_config.json could not be read for this container:\n {}".format(filename))
+    else:
+        logger.warning(time.ctime() + ":\t"
+                                      "The following container is provided by a person, who is not authorized to run "
+                                      "containers on this machine:\n {}".format(filename))
 
     if rm_invalid:
         os.remove(filename)
@@ -79,7 +88,7 @@ def handle_invalid_container(filename, logger, rm_invalid=False):
         shutil.move(filename, invalid_path)
 
 
-def fetch(filename, target_dir, logger):
+def fetch(filename, target_dir, logger=LOG, rm_invalid=True):
     """
     move container from source to target dir
     :param filename: name of the file that will be moved
@@ -91,10 +100,10 @@ def fetch(filename, target_dir, logger):
     # check if enough space is present on hard drive
     free_space_abs, free_space_rel = get_free_space(target_dir)
     if free_space_abs < os.stat(filename).st_size:
-        logger.info(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
-        return 0
+        handle_invalid_container(filename, logger, rm_invalid, no_space=True)
+        raise IOError(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
     else:
         # move containers
-        move_container(filename, target_dir, logger)
-        return 1
+        filename = move_container(filename, target_dir, logger)
+        return filename
 

@@ -4,6 +4,9 @@ import os
 import time
 import docker.errors
 import docker
+from utils import log
+
+LOG = log.get_module_log(__name__)
 
 
 def unzip_docker_files(filename, target_dir):
@@ -29,7 +32,7 @@ def unzip_docker_files(filename, target_dir):
         return os.path.join(target_dir, folder_name, "")
 
 
-def build_image(filename, logger, unzip_dir="", failed_dir="", rm_invalid=False):
+def build_image(filename, unzip_dir="", failed_dir="", rm_invalid=False, logger=LOG):
     """
     build docker image form zipfile
     :param filename: name of the zipfile
@@ -70,7 +73,7 @@ def build_image(filename, logger, unzip_dir="", failed_dir="", rm_invalid=False)
             return image
 
 
-def load_image(filename, logger, failed_dir="", rm_invalid=False):
+def load_image(filename, failed_dir="", rm_invalid=False, logger=LOG):
     """
     load docker image form tar file
     :param filename: name of the tar file
@@ -102,6 +105,7 @@ def load_image(filename, logger, failed_dir="", rm_invalid=False):
 
     except Exception as e:
         logger.error(time.ctime() + '\t' + e)
+        handle_failed_file(filename, failed_dir, rm_invalid)
         raise e
 
 
@@ -150,21 +154,23 @@ def create_mounts(mount_list, user):
     return mounts
 
 
-def create_container(image, config, mounts, gpu_minors):
+def create_container(image, config, mounts, logger=LOG):
     """
     create a docker container using a passed ContainerConfig object
     :param image: docker image on which the container will be based
     :param config: ContainerConfig object
     :param mounts: list of mount pairs (/dir:/dir)
-    :param gpu_minors: minor that will be assigned to this container
     :return: docker container
     """
 
     mounts = create_mounts(mounts, config.executor)
     client = docker.from_env()
-    create_conf = config.docker_params(image=image, detach=True, mounts=mounts,
-                                       environment=["NVIDIA_VISIBLE_DEVICES=" + str(gpu_minors)])
-    container = client.containers.create(**create_conf)
+    try:
+        create_conf = config.docker_params(image=image, detach=True, mounts=mounts)
+        container = client.containers.create(**create_conf)
+    except docker.errors.APIError as e:
+        logger.error(e)
+        raise e
 
     return container
 
