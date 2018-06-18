@@ -6,20 +6,18 @@ import docker.errors
 import docker
 
 
-def unzip_docker_files(source_dir, target_dir, image_name):
+def unzip_docker_files(filename, target_dir):
     """
     unpack zipped container files
-    :param source_dir: directory that contains the file
+    :param filename: filename of the zipfile
     :param target_dir: directory where contexts will be extracted
-    :param image_name: name of the zip file
     :return: foldername (with dir) that contains the extracted files
     """
 
     try:
-        filename = os.path.join(source_dir, image_name)
         z = zipfile.ZipFile(filename)
-        folder_name = "".join(image_name.split('.')[0:-1])
-        # TODO add functionality to check wheter zipped file contains folder, create one if not
+        folder_name = "".join(filename.split('/')[-1].split('.')[0:-1])
+        # TODO add functionality to check whether zipped file contains folder, create one if not
         z.extractall(target_dir)
         z.close()
 
@@ -31,11 +29,10 @@ def unzip_docker_files(source_dir, target_dir, image_name):
         return os.path.join(target_dir, folder_name, "")
 
 
-def build_image(source_dir, image_name, logger, unzip_dir="", failed_dir="", rm_invalid=False):
+def build_image(filename, logger, unzip_dir="", failed_dir="", rm_invalid=False):
     """
     build docker image form zipfile
-    :param source_dir: directory that contains the zipfile
-    :param image_name: name of the zipfile
+    :param filename: name of the zipfile
     :param logger: instance of logging
     :param unzip_dir: directory where files are extracted to temporarily
     :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
@@ -45,39 +42,38 @@ def build_image(source_dir, image_name, logger, unzip_dir="", failed_dir="", rm_
 
     # construct paths if none are passed
     if not unzip_dir:
-        unzip_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'unzipped', "")
+        unzip_dir = os.path.join(os.path.dirname(os.path.dirname(filename)), 'unzipped', "")
     if not failed_dir:
-        failed_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'failed', "")
+        failed_dir = os.path.join(os.path.dirname(os.path.dirname(filename)), 'failed', "")
 
     # unzip files
     try:
-        foldername = unzip_docker_files(source_dir, unzip_dir, image_name)
+        unzipped_folder = unzip_docker_files(filename, unzip_dir)
     except Exception as e:
-        logger.error(time.ctime() + '\terror while unzipping file {}:\n\t\t{}'.format(image_name, e))
-        handle_failed_files(source_dir, image_name, failed_dir,  rm_invalid)
+        logger.error(time.ctime() + '\terror while unzipping file {}:\n\t\t{}'.format(filename, e))
+        handle_failed_file(filename, failed_dir, rm_invalid)
         raise e
 
     # build docker image after successful unzip
     else:
-        image_name = "".join(image_name.split('.')[:-1])
+        filename = "".join(filename.split('.')[:-1])
         try:
             client = docker.from_env()
-            image = client.images.build(path=foldername, rm=True, tag=image_name.lower())
+            image = client.images.build(path=unzipped_folder, rm=True, tag=filename.lower())
         except (docker.errors.BuildError, docker.errors.APIError) as e:
-            logger.error(time.ctime() + '\terror while building image {}:\n\t\t{}'.format(image_name, e))
-            handle_failed_files(source_dir, image_name, failed_dir, rm_invalid)
+            logger.error(time.ctime() + '\terror while building image {}:\n\t\t{}'.format(filename, e))
+            handle_failed_file(filename, failed_dir, rm_invalid)
             raise e
         else:
-            logger.info(time.ctime() + '\tsuccessfully build image {}'.format(image_name))
-            handle_failed_files(source_dir, image_name, failed_dir)
+            logger.info(time.ctime() + '\tsuccessfully build image {}'.format(filename))
+            handle_failed_file(filename, failed_dir)
             return image
 
 
-def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
+def load_image(filename, logger, failed_dir="", rm_invalid=False):
     """
     load docker image form tar file
-    :param source_dir: directory that contains the zipfile
-    :param image_name: name of the zipfile
+    :param filename: name of the tar file
     :param logger: instance of logging
     :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
     :param rm_invalid: indicates whether failed builds are removed or moved
@@ -86,9 +82,8 @@ def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
 
     # construct paths if none are passed
     if not failed_dir:
-        failed_dir = os.path.join(os.path.dirname(os.path.abspath(source_dir)), 'failed', "")
+        failed_dir = os.path.join(os.path.dirname(os.path.dirname(filename)), 'failed', "")
 
-    filename = os.path.join(source_dir, image_name)
     with open(filename, 'r') as f:
         data = f.read()
     try:
@@ -96,13 +91,13 @@ def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
         output = client.images.load(data).next()
 
         if 'error' in output.keys():
-            handle_failed_files(source_dir, image_name, failed_dir, rm_invalid)
+            handle_failed_file(filename, failed_dir, rm_invalid)
             raise Exception('error while loading image: ' + output['errorDetails'])
 
         else:
             os.remove(filename)
             image = client.images.get(output['stream'][len('Loaded image: '):-1])
-            logger.info(time.ctime() + '\tsuccessfully loaded image {}'.format(image_name))
+            logger.info(time.ctime() + '\tsuccessfully loaded image {}'.format(filename))
             return image  # image.attrs['RepoTags'][0]
 
     except Exception as e:
@@ -110,25 +105,22 @@ def load_image(source_dir, image_name, logger, failed_dir="", rm_invalid=False):
         raise e
 
 
-def handle_failed_files(path, filename, failed_dir, rm=True):
+def handle_failed_file(filename, failed_dir, rm=True):
     """
     helper for handling files which could not be built
-    :param path: directory that contains the file used for building
-    :param filename: name of the file
+    :param filename: name of the failed file
     :param failed_dir: directory where files are moved when build fails (if rm_invalid=True)
     :param rm: indicates whether failed builds are removed or moved
     :return: None
     """
 
-    path = os.path.join(path, filename)
-
     # remove file if rm flag is set, move otherwise
     if rm:
-        shutil.rmtree(path)
+        shutil.rmtree(filename)
     else:
         dest = os.path.join(failed_dir, filename)
         if os.path.exists(dest): shutil.rmtree(dest)
-        shutil.move(path, dest)
+        shutil.move(filename, dest)
 
 
 def create_mounts(mount_list, user):

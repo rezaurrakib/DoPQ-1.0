@@ -9,6 +9,7 @@ def get_free_space(path, logger):
     """
     helper function for examining free space on a drive
     :param path: directory that should be examined
+    :param logger: instance of logging
     :return: - free_space_abs: absolute amount of free space in bytes
              - free_space_rel: percentage of available free space
     """
@@ -34,120 +35,66 @@ def get_free_space(path, logger):
     return free_space_abs, free_space_rel
 
 
-def move_containers(container_list, source_dir, target_dir, logger):
+def move_container(filename, target_dir, logger):
     """
     helper function for moving containers from network share to local drive
     --------------
     args:
-        - container_list: list of the container names that should be moved
-        - source_dir: directory on the network share that hold the containers (source)
+        - filname: name of the file that will be moved
         - target_dir: directory on the local drive where the containers should be moved to (destination)
     """
 
-    # write to log
-    logger.info(time.ctime() + ":\tFetching containers form {}.".format(source_dir))
-    logger.info("---------------------------------------------------------")
+    # move file
+    shutil.move(filename, target_dir)
 
-    for container in container_list:
-        # move files
-        shutil.move(os.path.join(source_dir, container), target_dir)
-
-        # log containers that have been moved
-        logger.info(time.ctime() + ":\tMoved container {} to {}".format(container, target_dir))
+    # log containers that has been moved
+    logger.info(time.ctime() + ":\tMoved container {} to {}".format(filename.split('/')[-1], target_dir))
 
     # write LF to log for better readability
     logger.info("\n")
 
 
-def handle_invalid_containers(source_dir, users, logger, rm_invalid=False):
+def handle_invalid_container(filename, logger, rm_invalid=False):
     """
     (currently not used in this version of the queue)
     Will detect invalid containers and create a warning in log and if flag is set, also delete the correspnding
     containers.
-    :param source_dir: directory to check
-    :param users: list of valid usernames
+    :param filename: name of the invalid file
     :param logger: instance of logging
     :param rm_invalid: remove invalid files if True
     :return:
     """
-    # check for invalid files and warn
-    invalid_docker_files = [el for el in os.listdir(source_dir)
-                            if os.path.isfile(os.path.join(source_dir, el))
-                            and el.split('_')[-1].split('.')[0].lower() not in users
-                            and not len(users) == 0]
 
-    if len(invalid_docker_files) > 0:
-        logger.warning(time.ctime() + ":\t"
-                                       "The following containers are provided by persons, who are not authorized to run "
-                                       "containers on this machine:\n {}".format(invalid_docker_files))
+    source_dir = os.path.dirname(filename)
 
-        if rm_invalid:
-            for filename in invalid_docker_files:
-                file_path = os.path.join(source_dir, filename)
-                os.remove(file_path)
-        else:
-            invalid_path = os.path.join(source_dir, 'invalid') + '/'
-            if not os.path.exists(invalid_path): os.makedirs(invalid_path)
-            for filename in invalid_docker_files:
-                file_path = os.path.join(source_dir, filename)
-                shutil.move(file_path, invalid_path)
+    logger.warning(time.ctime() + ":\t"
+                                   "The following container is provided by a person, who is not authorized to run "
+                                   "containers on this machine:\n {}".format(filename))
+
+    if rm_invalid:
+        os.remove(filename)
+    else:
+        invalid_path = os.path.join(source_dir, 'invalid') + '/'
+        if not os.path.exists(invalid_path): os.makedirs(invalid_path)
+        shutil.move(filename, invalid_path)
 
 
-def fetch(source_dir, target_dir, logger, min_space=0.05):
+def fetch(filename, target_dir, logger):
     """
     move container from source to target dir
-    :param source_dir: directory containing the files to be moved
+    :param filename: name of the file that will be moved
     :param target_dir: directory where files will be moved to
     :param logger: instance of logging
-    :param min_space: minimal relative (between 0 and 1) amount of space that has to be available before moving
     :return: list of filenames that were moved
     """
 
     # check if enough space is present on hard drive
     free_space_abs, free_space_rel = get_free_space(target_dir)
-    if free_space_rel < min_space:
-        logger.info(time.ctime() + "\tnot enough space to fetch new containers")
-        return []
-
-    # check if invalid containers are present
-    #handle_invalid_containers(source_dir, users, logger, rm_invalid)
-
-    # get list of containers on network drive
-    container_list = [f for f in os.listdir(source_dir) if os.path.isfile(os.path.join(source_dir, f))]
-
-    # check if any containers are on the network drive
-    if len(container_list) == 0:
-        logger.info(time.ctime() + "\tno containers to fetch")
-        return []
-
-    # get filesizes of the network containers
-    container_list_sizes = [os.stat(os.path.join(source_dir, container)).st_size
-                            for container in container_list]
-
-    # check if there is enough space to move all files
-    if np.sum(container_list_sizes) < free_space_abs:
+    if free_space_abs < os.stat(filename).st_size:
+        logger.info(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
+        return 0
+    else:
         # move containers
-        move_containers(container_list, source_dir, target_dir, logger)
-        return []
-
-    # remove files until they fit on the hard drive
-    logger.info(time.ctime() + "\tnot enough space to fetch all containers...fetching only a part of them")
-
-    # clone lists for modification
-    tmp_container_list = container_list
-    tmp_container_list_sizes = container_list_sizes
-
-    # iteratively remove containers
-    while np.sum(tmp_container_list_sizes) > free_space_abs:
-        tmp_container_list.pop()
-        tmp_container_list_sizes.pop()
-        if len(tmp_container_list) == 1:
-            if tmp_container_list_sizes[0] > free_space_abs:
-                return tmp_container_list
-            else:
-                return []
-
-    # move containers
-    move_containers(container_list, source_dir, target_dir, logger)
-    return container_list
+        move_container(filename, target_dir, logger)
+        return 1
 
