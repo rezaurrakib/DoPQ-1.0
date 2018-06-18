@@ -6,9 +6,8 @@ container.py
 Provides a wrapper for container objects
 """
 
-from docker.models.containers import Container as DockerContainer
-
-from core.containerconfig import ContainerConfig
+# from docker.models.containers import Container as DockerContainer
+# from core.containerconfig import ContainerConfig
 from utils import log
 
 LOG = log.get_module_log(__name__)
@@ -19,7 +18,7 @@ class Container:
     Wrapper for docker container objects
     """
 
-    def __init__(self, config: ContainerConfig, container_obj: DockerContainer):
+    def __init__(self, config, container_obj):
         """
         Creates a new container instance.
 
@@ -323,3 +322,5 @@ class Container:
                 If the server returns an error.
         """
         return self.container_obj.export()
+
+
