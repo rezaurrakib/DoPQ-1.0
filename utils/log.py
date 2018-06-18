@@ -4,8 +4,13 @@
 log.py
 
 Provides logging support
+
+Created by Markus Rohm on 26. October 2017.
+Copyright (c) 2017 Artificial Engineering UG.
+All rights reserved.
 """
 import logging
+import colorlog
 
 
 LOGGER_NAME = "DOPQ"
@@ -36,9 +41,9 @@ def init_log(file_name='dopq.log', log_level=logging.DEBUG, file_log_level=loggi
     logger.setLevel(min([log_level, file_log_level]))
 
     # set format string
-    format_string = '%(levelname)s in %(name)s: %(message)s'
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(format_string, datefmt="%d.%m.%Y-%H:%M:%S"))
+    format_string = '%(log_color)s%(levelname)s:%(name)s:%(message)s'
+    handler = colorlog.StreamHandler(format_string)
+    handler.setFormatter(colorlog.ColoredFormatter())
     handler.setLevel(log_level)
     logger.addHandler(handler)
 
