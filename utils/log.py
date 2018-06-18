@@ -37,7 +37,7 @@ def init_log(file_name='dopq.log', log_level=logging.DEBUG, file_log_level=loggi
     logger.setLevel(min([log_level, file_log_level]))
 
     formatter = colorlog.ColoredFormatter(
-        "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+        "%(log_color)s%(levelname)s | %(asctime)s: %(message)s",
         datefmt=None,
         reset=True,
         log_colors={
