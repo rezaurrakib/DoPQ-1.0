@@ -51,6 +51,10 @@ class ContainerConfig:
                                num_slots=num_slots, run_params=run_params)
 
     @classmethod
+    def from_string(cls, json_str):
+        return cls.from_dict(json.loads(json_str))
+
+    @classmethod
     def load(cls, file_path):
         """
         Loads a container config instance from given file path (expected to be json dump).
