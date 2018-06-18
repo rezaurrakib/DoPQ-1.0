@@ -40,10 +40,24 @@ def init_log(file_name='dopq.log', log_level=logging.DEBUG, file_log_level=loggi
     logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(min([log_level, file_log_level]))
 
+    formatter = colorlog.ColoredFormatter(
+        "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+        datefmt=None,
+        reset=True,
+        log_colors={
+            'DEBUG': 'cyan',
+            'INFO': 'green',
+            'WARNING': 'yellow',
+            'ERROR': 'red',
+            'CRITICAL': 'red,bg_white',
+        },
+        secondary_log_colors={},
+        style='%'
+    )
+
     # set format string
-    format_string = '%(log_color)s%(levelname)s:%(name)s:%(message)s'
-    handler = colorlog.StreamHandler(format_string)
-    handler.setFormatter(colorlog.ColoredFormatter())
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
     handler.setLevel(log_level)
     logger.addHandler(handler)
 
