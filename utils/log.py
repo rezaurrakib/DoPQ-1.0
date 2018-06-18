@@ -4,10 +4,6 @@
 log.py
 
 Provides logging support
-
-Created by Markus Rohm on 26. October 2017.
-Copyright (c) 2017 Artificial Engineering UG.
-All rights reserved.
 """
 import logging
 import colorlog
