@@ -92,3 +92,46 @@ class ContainerConfig:
         # dump to file
         with open(file_path, 'w') as file_h:
             json.dump(config_dict, file_h)
+
+    def docker_params(self, image, detach, mounts, environment):
+        """
+        Build docker params from config and given parameters. Will perform a merge operation, if overlap exists.
+
+        For details of docker run config parameters look at:
+        [Docker config]
+        (http://docker-py.readthedocs.io/en/stable/containers.html#docker.models.containers.ContainerCollection.run)
+
+        :param image: Image name
+        :param detach: Whether to run in detached mode (instant return)
+        :param mounts: Mount configuration.
+        :param environment: Environment variables.
+        :return: Dictionary which can be passed as kwargs to client.containers.run
+        """
+        docker_params = self.run_params.copy()
+
+        # fix mem limit
+        mem_limit = str(self.required_memory)
+        if not mem_limit.lower().endswith('g'):
+            LOG.warning("Memory limit should also be in GB (with 'g' suffix)!")
+            mem_limit = "{}g".format(mem_limit)
+
+        # add default build parameters
+        build_params = {'mem_limit': mem_limit,
+                        'image': image,
+                        'detach': detach}
+        docker_params.update(build_params)
+
+        # add or update mounts
+        if 'mounts' in docker_params:
+            docker_params['mounts'].update(mounts)
+        else:
+            docker_params['mounts'] = mounts
+
+        # add or update environment
+        if 'environment' in docker_params:
+            docker_params['environment'].update(environment)
+        else:
+            docker_params['environment'] = environment
+
+        # return params
+        return docker_params
