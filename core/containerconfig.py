@@ -32,7 +32,7 @@ class ContainerConfig:
         :return: ContainerConfig instance if valid config is provided, otherwise None
         """
         executor_name = config_dict.get('executor_name')
-        required_memory = config_dict.get('required_memory', 20)
+        required_memory = config_dict.get('required_memory', '20g')
         num_gpus = config_dict.get('num_gpus', 1)
         num_slots = config_dict.get('num_slots', 1)
         run_params = config_dict.get('run_params')
