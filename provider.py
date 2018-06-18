@@ -25,11 +25,27 @@ class Provider(hp.HelperProcess):
 
     def provide(self):
 
+        network_dir = self.paths['network_dir']
+        local_dir = self.paths['container_dir']
+        unzip_dir = self.paths['unzip_dir']
+        load_dir = self.paths['load_dir']
+        failed_dir = self.paths['failed_dir']
+
         while 1:
-            # get jsons
-            # weed out invalid containers
 
-            # fetch valid containers
+            network_files = os.path.walk(network_dir)
 
-            #
+            for filename in network_files:
+
+                container_config =
+            # get json
+            # weed out invalid container
+
+            # fetch valid container
+
+            # generate image
+
+            # generate container
+
+            # build container object
             pass
