@@ -323,4 +323,5 @@ class Container:
         """
         return self.container_obj.export()
 
-
+    def set_gpu_minors(self, gpu_minors):
+        self.container_obj.attr['Config']['Env'] += ['NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
