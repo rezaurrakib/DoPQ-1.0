@@ -16,11 +16,12 @@ LOG = log.get_module_log(__name__)
 
 class ContainerConfig:
 
-    def __init__(self, executor_name, num_gpus, num_slots, required_memory, run_params=None):
+    def __init__(self, executor_name, num_gpus, num_slots, required_memory, build_flag=True, run_params=None):
         self.executor_name = executor_name
         self.required_memory = required_memory
         self.num_gpus = num_gpus
         self.num_slots = num_slots
+        self.build_flag = build_flag
         self.run_params = run_params if run_params is not None else dict()
 
     @staticmethod
@@ -35,6 +36,7 @@ class ContainerConfig:
         required_memory = config_dict.get('required_memory', '20g')
         num_gpus = config_dict.get('num_gpus', 1)
         num_slots = config_dict.get('num_slots', 1)
+        build_flag = config_dict.get('build_flag', True)
         run_params = config_dict.get('run_params')
 
         # ensure that the executor name is available
@@ -48,7 +50,7 @@ class ContainerConfig:
 
         # create instance
         return ContainerConfig(executor_name=executor_name, required_memory=required_memory, num_gpus=num_gpus,
-                               num_slots=num_slots, run_params=run_params)
+                               num_slots=num_slots, build_flag=build_flag, run_params=run_params)
 
     @classmethod
     def from_string(cls, json_str):
@@ -80,6 +82,7 @@ class ContainerConfig:
                 'required_memory': self.required_memory,
                 'num_gpus': self.num_gpus,
                 'num_slots': self.num_slots,
+                'build_flag': self.build_flag,
                 'run_params': self.run_params}
 
     def save(self, file_path):
