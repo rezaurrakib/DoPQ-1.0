@@ -7,7 +7,7 @@ Provides a configuration wrapper for container objects.
 """
 
 import json
-
+from utils.gpu import get_system_gpus
 from utils import log
 
 
@@ -46,6 +46,13 @@ class ContainerConfig:
 
         if len(executor_name) < 3:
             LOG.error("The name of the executor has to be at least 3 characters long!")
+            return None
+
+        # check if we have enough system GPUs to run this container
+        num_sys_gpus = get_system_gpus()
+        if num_gpus > num_sys_gpus:
+            LOG.error("There are not enough GPUs on this system to run this container "
+                      "(requested={}, available={}!".format(num_gpus, num_sys_gpus))
             return None
 
         # create instance
