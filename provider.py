@@ -2,8 +2,11 @@ import docker, docker.errors
 import os
 import helper_process as hp
 from providerfuncs import parse, fetch, build
-from core import container as core_container
+from core.container import Container
 from time import sleep
+import zipfile
+from utils import log
+from time import ctime
 
 
 class Provider(hp.HelperProcess):
@@ -19,13 +22,13 @@ class Provider(hp.HelperProcess):
         self.docker_conf = config['docker']
 
         self.queue = queue
+        self.logger = log.get_module_log(__name__)
 
     def provide(self):
 
-        network_dir = self.paths['network_dir']
-        local_dir = self.paths['container_dir']
-        unzip_dir = self.paths['unzip_dir']
-        failed_dir = self.paths['failed_dir']
+        network_dir = self.paths['network_containers']
+        local_dir = self.paths['local_containers']
+        unzip_dir = self.paths['unzip']
         remove_invalid = self.fetcher_conf['remove_invalid']
         mounts = self.docker_conf['mounts']
         queue = self.queue
@@ -35,12 +38,21 @@ class Provider(hp.HelperProcess):
 
             network_files = os.listdir(network_dir)
 
+            # exclude failed dir if its inside the network dir
+            if 'invalid' in network_files:
+                network_files.remove('invalid')
+
             for filename in network_files:
+
+                filename = os.path.join(network_dir, filename)
 
                 # get config from json
                 try:
                     container_config = parse.parse_zipped_config(filename)
-                except RuntimeError as e:
+                except (RuntimeError, zipfile.BadZipfile) as e:
+                    fetch.handle_invalid_container(filename, remove_invalid, json_error=True)
+                    continue
+                if container_config is None:
                     fetch.handle_invalid_container(filename, remove_invalid, json_error=True)
                     continue
 
@@ -58,9 +70,11 @@ class Provider(hp.HelperProcess):
                 # generate docker image
                 try:
                     if container_config.build_flag:
-                        image = build.build_image(filename, unzip_dir, failed_dir, remove_invalid)
+                        image = build.build_image(filename, unzip_dir)
                     else:
-                        image = build.load_image(filename, failed_dir, remove_invalid)
+                        self.logger.error(ctime() + '\tloading tarred images is currently not implemented')
+                        raise NotImplementedError
+                        #image = build.load_image(filename)
                 except Exception as e:
                     continue
 
@@ -70,14 +84,60 @@ class Provider(hp.HelperProcess):
                 except docker.errors.APIError as e:
                     continue
 
-                queue_container = core_container.Container(container_config, container)
+                queue_container = Container(container_config, container)
                 queue.put(queue_container)
 
             sleep(interval)
 
     def start(self):
-        super(Provider, self).start(self.provide())
+        super(Provider, self).start(self.provide)
         return self.process.pid
+
+def test_provider():
+    from pathos.helpers import mp
+    import shutil
+
+    test_config = {
+        'paths': {'local_containers': 'test/dest/',
+                  'network_containers': 'test/src/',
+                  'unzip': 'test/unzipped/',
+                  'log': 'test/log/',
+                  'history': './',
+                  'failed': 'test/failed/'},
+        'docker': {'mounts': ['/home/kazuki/:/blub'],
+                   'auto_remove': False,
+                   'mem_limit': '32gb',
+                   'network_mode': 'host',
+                   'logging_interval': 30},
+        'builder': {'sleep': 10,
+                    'load': '.tar',
+                    'build': '.zip'},
+        'fetcher': {'remove_invalid': False,
+                    'sleep': 10,
+                    'min_space': 0.01,
+                    'executors': 'ilja'}}
+
+    backup_dir = 'test/backup'
+    testfiles = os.listdir(backup_dir)
+    testfiles = [tf for tf in testfiles if '.zip' in tf]
+    print(testfiles)
+
+    for testfile in testfiles:
+        testfile = os.path.join(backup_dir, testfile)
+        shutil.copy(testfile, test_config['paths']['network_containers'])
+
+    q = mp.Queue()
+    p = Provider(test_config, q)
+    p.start()
+    while 1:
+        image = q.get()
+        print(image)
+    p.stop()
+
+
+
+if __name__ == '__main__':
+    test_provider()
 
 
 

@@ -100,7 +100,7 @@ class ContainerConfig:
         with open(file_path, 'w') as file_h:
             json.dump(config_dict, file_h)
 
-    def docker_params(self, image, detach, mounts, environment):
+    def docker_params(self, image, detach, mounts, environment=[]):
         """
         Build docker params from config and given parameters. Will perform a merge operation, if overlap exists.
 

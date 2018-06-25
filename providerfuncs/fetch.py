@@ -59,7 +59,6 @@ def move_container(filename, target_dir, logger=LOG):
 
 def handle_invalid_container(filename, rm_invalid=False, json_error=False, no_space=False, logger=LOG):
     """
-    (currently not used in this version of the queue)
     Will detect invalid containers and create a warning in log and if flag is set, also delete the correspnding
     containers.
     :param filename: name of the invalid file
@@ -83,8 +82,11 @@ def handle_invalid_container(filename, rm_invalid=False, json_error=False, no_sp
     if rm_invalid:
         os.remove(filename)
     else:
-        invalid_path = os.path.join(source_dir, 'invalid') + '/'
-        if not os.path.exists(invalid_path): os.makedirs(invalid_path)
+        invalid_path = os.path.join(source_dir, 'invalid', '')
+        if not os.path.exists(invalid_path):
+            os.makedirs(invalid_path)
+        if os.path.isfile(os.path.join(invalid_path, os.path.basename(filename))):
+            os.remove(os.path.join(invalid_path, os.path.basename(filename)))
         shutil.move(filename, invalid_path)
 
 
