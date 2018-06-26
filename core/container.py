@@ -29,6 +29,19 @@ class Container:
         self.config = config
         self.container_obj = container_obj
 
+    @property
+    def use_gpu(self):
+        """helper for seeing if the container requires gpu"""
+        return bool(self.config.num_gpus)
+
+    @property
+    def user(self):
+        """
+        wrapper for accessing the username from the config
+        :return: name of the executing user
+        """
+        return self.config.executor_name
+
     def name(self):
         """
         The name of the container.
@@ -111,6 +124,7 @@ class Container:
                                            socket, environment)
 
     def start(self, **kwargs):
+        # TODO extend start method. container can run itself since it contains all the necessary information
         """
         Start this container. Similar to the ``docker start`` command, but
         doesn't support attach options.

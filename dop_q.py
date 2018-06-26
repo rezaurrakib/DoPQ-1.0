@@ -18,18 +18,16 @@ History:
 from __future__ import print_function
 import os
 import numpy as np
-import logging
 import time
 # import configparser # python 3
 import ConfigParser  # python 2
-import fetcher as ft
-import builder as bd
+import provider
 import container_handler as ch
 import gpu_handler as gh
-import multiprocessing as mp
+from pathos.helpers import mp
+# import multiprocessing as mp  # cannot pass our container objects through the queue
 import pickle as pkl
 import json
-import docker.models.images as dk
 from utils import log
 
 
@@ -38,6 +36,8 @@ class UserException(Exception):
 
 
 class DopQ(object):
+
+    # TODO switch to provider
 
     def __init__(self, configfile, logfile, debug=False):
 
@@ -52,21 +52,18 @@ class DopQ(object):
         self.config = self.parse_config(configfile)
         self.paths = self.config['paths']
         self.history_file = 'history.pkl'
-        self.image_list_file = 'image_list.pkl'
-        self.image_list = self.load_image_list()
+        self.container_list_file = 'container_list.pkl'
+        self.container_list = self.load_container_list()
         self.history = self.load_history()
 
         # init helper processes and classes
         self.queue = mp.Queue()
         self.gpu_handler = gh.GPUHandler()
-        self.builder = bd.Builder(self.config, self.queue)
-        self.fetcher = ft.Fetcher(self.config)
+        self.provider = provider.Provider(self.config, self.queue)
         self.container_handler = ch.ContainerHandler(self.config)
 
         # init logging
-        self.logger = logging.getLogger('queue')
-        self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.FileHandler(logfile))
+        self.logger = log.init_log()
         self.logger.info(time.ctime() + '\tinitializing dop-q' +
                          '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
@@ -95,31 +92,31 @@ class DopQ(object):
         else:
             return []
 
-    def load_image_list(self):
-        filename = os.path.join(self.paths['history'], self.image_list_file)
+    def load_container_list(self):
+        filename = os.path.join(self.paths['history'], self.container_list_file)
         if os.path.isfile(filename):
             with open(filename, 'rb') as f:
-                image_list = pkl.load(f)
+                container_list = pkl.load(f)
 
-            return image_list
+            return container_list
         else:
             return []
 
-    def save_image_list(self):
-        filename = os.path.join(self.paths['history'], self.image_list_file)
+    def save_container_list(self):
+        filename = os.path.join(self.paths['history'], self.container_list_file)
         with open(filename, 'wb') as f:
-            pkl.dump(self.image_list, f)
+            pkl.dump(self.container_list, f)
 
-    def update_image_list(self):
+    def update_container_list(self):
         update_list = []
 
         # add new images that are obtained from the builder process
         while not self.queue.empty():
             update_list.append(self.queue.get())
-        self.image_list += update_list
+        self.container_list += update_list
 
         # sort priority queue:
-        self.image_list = sorted(self.image_list, key=self.split_and_calc_penalty)
+        self.container_list = sorted(self.container_list, key=self.split_and_calc_penalty)
 
     def get_user_oh(self, user_name):
         user_oh = [int(el == user_name.lower()) for el in self.history]
@@ -133,22 +130,11 @@ class DopQ(object):
         user_oh = self.get_user_oh(user_name)
         return np.sum(user_oh * self.calc_exp_decay())
 
-    def get_user(self, image):
-        if type(image) is dk.Image:
-            for user in self.config['fetcher']['executors']:
-                tags = image.attrs['RepoTags']
-                for tag in tags:
-                    if user in tag.lower():
-                        return user
-        elif type(image) is str or type(image) is unicode:
-            for user in self.config['fetcher']['executors']:
-                if user in image:
-                    return user
-        else:
-            raise UserException('unable to find user in docker image')
+    def get_user(self, container):
+        return container.user
 
-    def split_and_calc_penalty(self, image):
-        user = self.get_user(image)
+    def split_and_calc_penalty(self, container):
+        user = self.get_user(container)
         return self.calc_penalty(user)
 
     def show_penalties(self, docker_users):
@@ -259,7 +245,7 @@ class DopQ(object):
                       '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors) +
                       '\n\tfree gpu minors:\t' + str(self.gpu_handler.free_minors))
         if self.debug:
-            status_str += '\n\timage list:\t' + str(self.image_list) + \
+            status_str += '\n\timage list:\t' + str(self.container_list) + \
                           '\n\thistory:\t' + str(self.history)
 
         # print status message
@@ -269,11 +255,10 @@ class DopQ(object):
 
     def stop(self):
 
-        self.fetcher.stop()
-        self.builder.stop()
-        self.update_image_list()
+        self.provider.stop()
+        self.update_container_list()
         self.save_history()
-        self.save_image_list()
+        self.save_container_list()
 
     def run_queue(self):
         """
@@ -285,50 +270,52 @@ class DopQ(object):
         # TODO: rewrite this method so that ir runs in a seperate process and the queue is able to respond to user inputs
 
         # start fetcher and builder
-        p = self.fetcher.start()
-        self.logger.info(time.ctime() + '\t started fetcher process, PID={}'.format(p))
-        time.sleep(5)
-        p = self.builder.start()
-        self.logger.info(time.ctime() + '\t started builder process, PID={}'.format(p))
+        p = self.provider.start()
+        self.logger.info(time.ctime() + '\t started provider process, PID={}'.format(p))
         time.sleep(5)
 
         try:
             # run this until forced to quit
             while True:
 
-                # update image list
-                self.update_image_list()
+                # update container list
+                self.update_container_list()
 
                 # print queue status
+                # TODO move this to self.sleep()
                 self.print_status()
 
-                # can we run another container?
-                # TODO: add support for CPU only containers
+                # check if there are containers in the queue
+                if len(self.container_list) == 0:
+                    self.sleep()
+                    continue
+
+                # get next container
+                container = self.container_list.pop(0)
+                gpu = container.use_gpu()
+
+                # keep cycling if container requires gpu but none are available
                 free_minors = self.gpu_handler.free_minors
-                if len(free_minors) == 0:
+                if len(free_minors) == 0 and gpu:
+                    self.container_list.insert(0, container)
                     self.sleep()
                     continue
 
-                # check if there are images in the queue
-                if len(self.image_list) == 0:
-                    self.sleep()
-                    continue
-
-                # get next image
-                image = self.image_list.pop(0)
-                user = self.get_user(image)
+                # get next container
+                container = self.container_list.pop(0)
+                user = self.get_user(container)
                 gpu_minor = free_minors.pop()
 
                 try:
-                    p, _ = self.container_handler.run_container(image, user, gpu_minor)
-                except (ch.CHException, UserException) as e:
-                    self.logger.error(time.ctime() + '\tan error occurred while running a container from {}:\n\t\t{}'
-                                      .format(image, e))
-                    self.sleep()
+                    p = container.start()
+                except IOError as e:
+                    self.container_list.insert(0, container)
+                    continue
                 else:
+                    # TODO
                     self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
                                                     '\n\tcontainer logs are acquired in process {}'
-                                     .format(image, p.pid))
+                                     .format(container, p.pid))
                     # update history
                     self.history = [user] + self.history
                     self.history = self.history[:self.config['queue']['max_history']]

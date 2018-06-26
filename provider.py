@@ -130,8 +130,11 @@ def test_provider():
     p = Provider(test_config, q)
     p.start()
     while 1:
-        image = q.get()
-        print(image)
+        try:
+            image = q.get()
+            print(image)
+        except BaseException:
+            break
     p.stop()
 
 
