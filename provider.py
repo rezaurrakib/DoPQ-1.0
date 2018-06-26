@@ -87,11 +87,21 @@ class Provider(hp.HelperProcess):
                 queue_container = Container(container_config, container)
                 queue.put(queue_container)
 
+                # leave the loop if terminate flag is set
+                if self.term_flag.value:
+                    exit(0)
+
             sleep(interval)
 
     def start(self):
         super(Provider, self).start(self.provide)
         return self.process.pid
+
+    def stop(self):
+        self.term_flag.value = 1
+        if self.status == 'running':
+            self.process.join(timeout=None)
+
 
 def test_provider():
     from pathos.helpers import mp
@@ -129,13 +139,12 @@ def test_provider():
     q = mp.Queue()
     p = Provider(test_config, q)
     p.start()
-    while 1:
+    while p.status == 'running':
         try:
             image = q.get()
             print(image)
         except BaseException:
-            break
-    p.stop()
+            p.stop()
 
 
 

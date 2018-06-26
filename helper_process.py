@@ -6,6 +6,7 @@ class HelperProcess(object):
     def __init__(self):
 
         self.process = None
+        self.term_flag = mp.Value('i', 0)
 
     def start(self, target):
         self.process = mp.Process(target=target)
@@ -14,6 +15,7 @@ class HelperProcess(object):
         return self.process.pid
 
     def stop(self):
+        self.term_flag.value = 1
         if type(self.process) is mp.Process:
             self.process.terminate()
 

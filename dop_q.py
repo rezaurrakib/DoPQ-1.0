@@ -133,6 +133,8 @@ class DopQ(object):
         else:
             if key == 'running':
                 self.update_running_containers()
+            elif key == 'list':
+                self.update_container_list()
             save_single(self.paths['history'], *self.mapping[key])
 
     def update_container_list(self):
@@ -300,9 +302,7 @@ class DopQ(object):
     def stop(self):
 
         self.provider.stop()
-        self.update_container_list()
-        self.save_history()
-        self.save_container_list()
+        self.save('all')
 
     def run_queue(self):
         """
@@ -311,7 +311,7 @@ class DopQ(object):
         :return: None
         """
 
-        # TODO: rewrite this method so that ir runs in a seperate process and the queue is able to respond to user inputs
+        # TODO: rewrite this method so that it runs in a seperate process and the queue is able to respond to user inputs
 
         # start fetcher and builder
         p = self.provider.start()
