@@ -8,6 +8,7 @@ Provides a wrapper for container objects
 
 # from docker.models.containers import Container as DockerContainer
 # from core.containerconfig import ContainerConfig
+from utils.gpu import get_gpus_status
 from utils import log
 
 LOG = log.get_module_log(__name__)
@@ -133,6 +134,25 @@ class Container:
             :py:class:`docker.errors.APIError`
                 If the server returns an error.
         """
+
+        # read number of requested GPUs from config
+        n_gpus = self.config.num_gpus
+
+        # gpus required?
+        if n_gpus > 0:
+
+            # get free gpus
+            free_gpus, _ = get_gpus_status()
+
+            # set minors
+            if len(free_gpus) < n_gpus:
+
+                # report problem
+                raise IOError("Not enough GPUs available to run container "
+                              "(available={}, required={})!".format(len(free_gpus), n_gpus))
+
+            # assign
+            self.set_gpu_minors(free_gpus[:n_gpus])
 
         return self.container_obj.start(**kwargs)
 
