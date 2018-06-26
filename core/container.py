@@ -431,7 +431,7 @@ class Container:
         if file_path is None:
 
             # build file path
-            file_path = os.path.join(self.log_dir, "{}_{}".format(self.name(), self.created_at))
+            file_path = os.path.join(self.log_dir, "{}_{}.log".format(self.name(), self.created_at))
 
         # get new logs
         new_logs = self.logs(stdout=True, stderr=True, since=self.last_log_file_update)
