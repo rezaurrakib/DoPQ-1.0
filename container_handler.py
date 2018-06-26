@@ -136,7 +136,6 @@ class ContainerHandler(object):
             new_logs = container.logs(since=last_check)
             logger.info(new_logs)
 
-
 # some testing
 if __name__ == '__main__':
     import dop_q

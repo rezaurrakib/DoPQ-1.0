@@ -19,25 +19,20 @@ from __future__ import print_function
 import os
 import numpy as np
 import time
+import docker
 # import configparser # python 3
 import ConfigParser  # python 2
 import provider
-import container_handler as ch
 import gpu_handler as gh
 from pathos.helpers import mp
+import dill
 # import multiprocessing as mp  # cannot pass our container objects through the queue
-import pickle as pkl
+# import pickle as pkl          # cannot pickle our container object, which causes the failure of the mp.Queue
 import json
 from utils import log
 
 
-class UserException(Exception):
-    pass
-
-
 class DopQ(object):
-
-    # TODO switch to provider
 
     def __init__(self, configfile, logfile, debug=False):
 
@@ -46,21 +41,23 @@ class DopQ(object):
             self.write_default_config(configfile)
 
         # init member variables
+        self.client = docker.from_env()
         self.debug = debug
         self.configfile = configfile
         self.logfile = logfile
         self.config = self.parse_config(configfile)
         self.paths = self.config['paths']
-        self.history_file = 'history.pkl'
-        self.container_list_file = 'container_list.pkl'
+        self.history_file = 'history.dill'
+        self.container_list_file = 'container_list.dill'
+        self.running_containers_file = 'running_containers.dill'
         self.container_list = self.load_container_list()
+        self.running_containers = self.load_running_containers()
         self.history = self.load_history()
 
         # init helper processes and classes
         self.queue = mp.Queue()
         self.gpu_handler = gh.GPUHandler()
         self.provider = provider.Provider(self.config, self.queue)
-        self.container_handler = ch.ContainerHandler(self.config)
 
         # init logging
         self.logger = log.init_log()
@@ -80,13 +77,13 @@ class DopQ(object):
     def save_history(self):
         filename = os.path.join(self.paths['history'], self.history_file)
         with open(filename, 'wb') as f:
-            pkl.dump(self.history, f)
+            dill.dump(self.history, f)
 
     def load_history(self):
         filename = os.path.join(self.paths['history'], self.history_file)
         if os.path.isfile(filename):
             with open(filename, 'rb') as f:
-                history = pkl.load(f)
+                history = dill.load(f)
 
             return history
         else:
@@ -96,7 +93,7 @@ class DopQ(object):
         filename = os.path.join(self.paths['history'], self.container_list_file)
         if os.path.isfile(filename):
             with open(filename, 'rb') as f:
-                container_list = pkl.load(f)
+                container_list = dill.load(f)
 
             return container_list
         else:
@@ -105,7 +102,7 @@ class DopQ(object):
     def save_container_list(self):
         filename = os.path.join(self.paths['history'], self.container_list_file)
         with open(filename, 'wb') as f:
-            pkl.dump(self.container_list, f)
+            dill.dump(self.container_list, f)
 
     def update_container_list(self):
         update_list = []
@@ -116,7 +113,16 @@ class DopQ(object):
         self.container_list += update_list
 
         # sort priority queue:
-        self.container_list = sorted(self.container_list, key=self.split_and_calc_penalty)
+        self.container_list = sorted(self.container_list, key=self.sort_fn)
+
+    def load_running_containers(self):
+        pass
+
+    def save_running_containers(self):
+        pass
+
+    def update_running_containers(self):
+        pass
 
     def get_user_oh(self, user_name):
         user_oh = [int(el == user_name.lower()) for el in self.history]
@@ -136,6 +142,14 @@ class DopQ(object):
     def split_and_calc_penalty(self, container):
         user = self.get_user(container)
         return self.calc_penalty(user)
+
+    def sort_fn(self, container):
+        """
+        function that is used for sorting the container list
+        :param container: container object from the list
+        :return: tuple consisting of user penalty and creation time of the container
+        """
+        return self.split_and_calc_penalty(container), container.created_at
 
     def show_penalties(self, docker_users):
         for user in docker_users:
@@ -228,6 +242,8 @@ class DopQ(object):
         return parsed_config
 
     def print_status(self):
+        pass
+        # TODO needs reworking
 
         # extract image names of running containers
         containers = ""
@@ -307,8 +323,10 @@ class DopQ(object):
                 gpu_minor = free_minors.pop()
 
                 try:
+                    # TODO implement container logging and make sure starting the container returns the logging process
                     p = container.start()
                 except IOError as e:
+                    # put container back in the queue if not enough gpus are available
                     self.container_list.insert(0, container)
                     continue
                 else:

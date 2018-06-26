@@ -31,8 +31,19 @@ class Container:
         self.container_obj = container_obj
 
     @property
+    def created_at(self):
+        """
+        wrapper for getting the creation time of the container object
+        :return: creation date and time as unicode
+        """
+        return self.container_obj.attrs['Created']
+
+    @property
     def use_gpu(self):
-        """helper for seeing if the container requires gpu"""
+        """
+        helper for seeing if the container requires gpu
+        :return True if use of gpus is specified in the ContainerConfig object
+        """
         return bool(self.config.num_gpus)
 
     @property
