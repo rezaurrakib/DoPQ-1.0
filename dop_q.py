@@ -50,9 +50,13 @@ class DopQ(object):
         self.history_file = 'history.dill'
         self.container_list_file = 'container_list.dill'
         self.running_containers_file = 'running_containers.dill'
-        self.container_list = self.load_container_list()
-        self.running_containers = self.load_running_containers()
-        self.history = self.load_history()
+        self.container_list = []
+        self.running_containers = []
+        self.history = []
+        self.mapping = {'history': (self.history_file, self.history),
+                        'list': (self.container_list_file, self.container_list),
+                        'running': (self.running_containers_file, self.running_containers)}
+        self.restore('all')
 
         # init helper processes and classes
         self.queue = mp.Queue()
@@ -74,35 +78,62 @@ class DopQ(object):
                 if not os.path.isdir(self.paths[key]):
                     os.makedirs(self.paths[key])
 
-    def save_history(self):
-        filename = os.path.join(self.paths['history'], self.history_file)
-        with open(filename, 'wb') as f:
-            dill.dump(self.history, f)
+    def restore(self, key):
+        """
+        restores history, container_list, running_containers, or all three
+        :param key: dictionary key of self.mapping or 'all'
+        :return: None
+        """
 
-    def load_history(self):
-        filename = os.path.join(self.paths['history'], self.history_file)
-        if os.path.isfile(filename):
-            with open(filename, 'rb') as f:
-                history = dill.load(f)
+        def restore_single(path, file, member):
+            """
+            helper for loading a single queue list
+            :param path: directory of the dill file
+            :param file: name of the dill file
+            :param member: member that will be assigned the list
+            :return: None
+            """
+            filename = os.path.join(path, file)
+            if os.path.isfile(filename):
+                with open(filename, 'rb') as f:
+                    member = dill.load(f)
+            else:
+                member = []
 
-            return history
+        if key == 'all':
+            for item in self.mapping.values():
+                restore_single(self.paths['history'], *item)
         else:
-            return []
+            restore_single(self.paths['history'], *self.mapping[key])
+            if key == 'running':
+                self.update_running_containers()
 
-    def load_container_list(self):
-        filename = os.path.join(self.paths['history'], self.container_list_file)
-        if os.path.isfile(filename):
-            with open(filename, 'rb') as f:
-                container_list = dill.load(f)
+    def save(self, key):
+        """
+        restores history, container_list, running_containers, or all three
+        :param key: dictionary key of self.mapping or 'all'
+        :return: None
+        """
 
-            return container_list
+        def save_single(path, file, member):
+            """
+            helper for saving a single queue list
+            :param path: directory of the dill file
+            :param file: name of the dill file
+            :param member: member that will be assigned the list
+            :return: None
+            """
+            filename = os.path.join(path, file)
+            with open(filename, 'wb') as f:
+                dill.dump(member, f)
+
+        if key == 'all':
+            for item in self.mapping.values():
+                save_single(self.paths['history'], *item)
         else:
-            return []
-
-    def save_container_list(self):
-        filename = os.path.join(self.paths['history'], self.container_list_file)
-        with open(filename, 'wb') as f:
-            dill.dump(self.container_list, f)
+            if key == 'running':
+                self.update_running_containers()
+            save_single(self.paths['history'], *self.mapping[key])
 
     def update_container_list(self):
         update_list = []
@@ -115,14 +146,11 @@ class DopQ(object):
         # sort priority queue:
         self.container_list = sorted(self.container_list, key=self.sort_fn)
 
-    def load_running_containers(self):
-        pass
-
-    def save_running_containers(self):
-        pass
-
     def update_running_containers(self):
-        pass
+        running_containers = self.client.containers.list()
+        for i, container in enumerate(self.running_containers):
+            if container not in running_containers:
+                self.running_containers.pop(i)
 
     def get_user_oh(self, user_name):
         user_oh = [int(el == user_name.lower()) for el in self.history]
