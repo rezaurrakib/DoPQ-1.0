@@ -6,6 +6,8 @@ gpu.py
 Helpers for GPU information retrieval
 """
 
+import os
+import re
 import docker
 
 
@@ -37,6 +39,9 @@ def get_assigned_gpus(client=None):
         # get a client
         client = docker.from_env()
 
+    # get system minors
+    minors = get_system_gpus()
+
     # get assigned gpus
     assigned_gpus = []
 
@@ -49,18 +54,13 @@ def get_assigned_gpus(client=None):
                     if el.startswith('NVIDIA_VISIBLE_DEVICES'):
                         minor_str = el.split('=')[1]
                         if minor_str.lower() == 'all':
-                            for gpu_minor in self.minors:
+                            for gpu_minor in minors:
                                 assigned_gpus.append(gpu_minor)
-                        # elif minor_str.lower() == 'none':
-                        #     # here no minors will be used
-                        #     logging.debug("Using no minors..")
-                        # elif minor_str.lower() == 'void' or minor_str.trim() == "":
-                        #     logging.debug("Insecure option: Please do not use empty minor option for containers!")
                         else:
                             minor_list = minor_str.split(",")
                             for gpu_minor in minor_list:
                                 gpu_minor = int(gpu_minor)
-                                if gpu_minor in self.minors:
+                                if gpu_minor in minors:
                                     assigned_gpus.append(gpu_minor)
 
     return assigned_gpus
