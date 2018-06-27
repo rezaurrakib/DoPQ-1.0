@@ -26,13 +26,15 @@ import provider
 import gpu_handler as gh
 from pathos.helpers import mp
 import dill
+import helper_process as hp
 # import multiprocessing as mp  # cannot pass our container objects through the queue
 # import pickle as pkl          # cannot pickle our container object, which causes the failure of the mp.Queue
 import json
 from utils import log
+from utils import interface
 
 
-class DopQ(object):
+class DopQ(hp.HelperProcess):
 
     def __init__(self, configfile, logfile, debug=False):
 
@@ -68,15 +70,15 @@ class DopQ(object):
         self.logger.info(time.ctime() + '\tinitializing dop-q' +
                          '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
-        # make sure gpus can be assigned to containers
-        assert (self.config['queue']['max_gpus'] > 0)
-
         # build all non-existent directories, except the network container share
         keys = self.paths.keys()
         for key in keys:
             if key != 'network_containers':
                 if not os.path.isdir(self.paths[key]):
                     os.makedirs(self.paths[key])
+
+        # initialize process variable and termination flag
+        super(DopQ, self).__init__()
 
     def restore(self, key):
         """
@@ -304,14 +306,20 @@ class DopQ(object):
         self.provider.stop()
         self.save('all')
 
+    def start(self):
+
+        super(DopQ, self).start(self.run_queue)
+        try:
+            interface.run_interface(self)
+        finally:
+            self.term_flag.value = 1
+
     def run_queue(self):
         """
         Runs the priority queue.
 
         :return: None
         """
-
-        # TODO: rewrite this method so that it runs in a seperate process and the queue is able to respond to user inputs
 
         # start fetcher and builder
         p = self.provider.start()
@@ -322,12 +330,12 @@ class DopQ(object):
             # run this until forced to quit
             while True:
 
+                # exit queue process if termination flag is set
+                if self.term_flag.value:
+                    raise RuntimeError(time.ctime() + '\tqueue stopped')
+
                 # update container list
                 self.update_container_list()
-
-                # print queue status
-                # TODO move this to self.sleep()
-                self.print_status()
 
                 # check if there are containers in the queue
                 if len(self.container_list) == 0:
@@ -345,31 +353,32 @@ class DopQ(object):
                     self.sleep()
                     continue
 
-                # get next container
-                container = self.container_list.pop(0)
-                user = self.get_user(container)
-                gpu_minor = free_minors.pop()
-
                 try:
                     # TODO implement container logging and make sure starting the container returns the logging process
-                    p = container.start()
+                    container.start()
+
                 except IOError as e:
+
                     # put container back in the queue if not enough gpus are available
                     self.container_list.insert(0, container)
                     continue
+
                 else:
-                    # TODO
+
+                    # add to running containers and write log message
+                    self.running_containers.append(container)
                     self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
                                                     '\n\tcontainer logs are acquired in process {}'
-                                     .format(container, p.pid))
+                                                    .format(container, container.log_pid))
+
                     # update history
-                    self.history = [user] + self.history
+                    self.history = [container.user] + self.history
                     self.history = self.history[:self.config['queue']['max_history']]
 
                     self.sleep()
 
         except Exception as e:
-            self.logger.error(time.ctime() + '\tan error occured during the execution of the queue:\n\t\t{}'.format(e))
+            self.logger.error(time.ctime() + '{}'.format(e))
 
         finally:
             self.stop()
