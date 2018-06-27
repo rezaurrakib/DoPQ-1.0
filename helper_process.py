@@ -24,7 +24,7 @@ class HelperProcess(object):
 
         if not type(self.process) is mp.Process: return 'not started'
 
-        if self.process.is_alive():
+        if self.process.exitcode is None:
             return 'running'
         else:
             return 'terminated'
