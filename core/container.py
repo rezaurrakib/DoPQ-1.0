@@ -8,6 +8,8 @@ Provides a wrapper for container objects
 
 # from docker.models.containers import Container as DockerContainer
 # from core.containerconfig import ContainerConfig
+import os
+import time
 from utils.gpu import get_gpus_status
 from utils import log
 
@@ -19,7 +21,7 @@ class Container:
     Wrapper for docker container objects
     """
 
-    def __init__(self, config, container_obj):
+    def __init__(self, config, container_obj, log_dir=None):
         """
         Creates a new container instance.
 
@@ -29,6 +31,9 @@ class Container:
 
         self.config = config
         self.container_obj = container_obj
+        self.last_log_update = int(time.time())
+        self.last_log_file_update = int(time.time())
+        self.log_dir = log_dir if log_dir is not None else ""
 
     @property
     def created_at(self):
@@ -146,26 +151,41 @@ class Container:
                 If the server returns an error.
         """
 
-        # read number of requested GPUs from config
-        n_gpus = self.config.num_gpus
+        # check status
+        if self.status == 'running' or self.status == 'restarting':
+            LOG.warning("Container is already running or restarting (status={}). "
+                        "Calling start has no effect here!".format(self.status))
+            return self
 
-        # gpus required?
-        if n_gpus > 0:
+        # for non-paused containers
+        if self.status != 'paused':
 
-            # get free gpus
-            free_gpus, _ = get_gpus_status()
+            # read number of requested GPUs from config
+            n_gpus = self.config.num_gpus
 
-            # set minors
-            if len(free_gpus) < n_gpus:
+            # gpus required?
+            if n_gpus > 0:
 
-                # report problem
-                raise IOError("Not enough GPUs available to run container "
-                              "(available={}, required={})!".format(len(free_gpus), n_gpus))
+                # get free gpus
+                free_gpus, _ = get_gpus_status()
 
-            # assign
-            self.set_gpu_minors(free_gpus[:n_gpus])
+                # set minors
+                if len(free_gpus) < n_gpus:
 
-        return self.container_obj.start(**kwargs)
+                    # report problem
+                    raise IOError("Not enough GPUs available to run container "
+                                  "(available={}, required={})!".format(len(free_gpus), n_gpus))
+
+                # assign
+                self.set_gpu_minors(free_gpus[:n_gpus])
+
+            # start it
+            return self.container_obj.start(**kwargs)
+
+        else:
+
+            LOG.warning("You should not call start to unpause a paused container!")
+            return self.container_obj.unpause(**kwargs)
 
     def restart(self, **kwargs):
         """
@@ -369,4 +389,63 @@ class Container:
         return self.container_obj.export()
 
     def set_gpu_minors(self, gpu_minors):
+        """
+        Sets the GPU minors in environment according to given list.
+
+        :param gpu_minors: List with GPU minors to assign to container.
+        :return: None
+        """
         self.container_obj.attr['Config']['Env'] += ['NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
+
+    def append_new_logs(self):
+        """
+        Retrieves all updates since last check and writes it to log.
+        :return: Number of new bytes
+        """
+
+        # get new logs
+        new_logs = self.logs(stdout=True, stderr=True, since=self.last_log_update)
+
+        # update
+        self.last_log_update = int(time.time())
+
+        # leave
+        if len(new_logs) == 0:
+            return 0
+
+        # add to log
+        LOG.info("Container '{}' status: ".format(self.name(), new_logs))
+
+        # return the number of new bytes
+        return len(new_logs)
+
+    def append_new_logs_to_file(self, file_path=None):
+        """
+        Appends the newly created log data to given file path.
+
+        :param file_path: Path for container log (if none, a name will be generated)
+        :return: Number of new bytes
+        """
+
+        # if no file path has been given
+        if file_path is None:
+
+            # build file path
+            file_path = os.path.join(self.log_dir, "{}_{}.log".format(self.name(), self.created_at))
+
+        # get new logs
+        new_logs = self.logs(stdout=True, stderr=True, since=self.last_log_file_update)
+
+        # update
+        self.last_log_file_update = int(time.time())
+
+        # leave
+        if len(new_logs) == 0:
+            return 0
+
+        # open in append mode and add
+        with open(file_path, 'a+') as file_h:
+            file_h.write(new_logs)
+
+        # return the number of new bytes
+        return len(new_logs)
