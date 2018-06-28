@@ -6,11 +6,17 @@ container.py
 Provides a wrapper for container objects
 """
 
-# from docker.models.containers import Container as DockerContainer
+from docker.models.containers import Container as DockerContainer
 # from core.containerconfig import ContainerConfig
 import os
 import time
-from utils.gpu import get_gpus_status
+
+from datetime import datetime
+from dateutil import parser
+
+import psutil
+
+from utils.gpu import get_gpus_status, get_gpu_infos
 from utils import log
 
 LOG = log.get_module_log(__name__)
@@ -44,6 +50,36 @@ class Container:
         return self.container_obj.attrs['Created']
 
     @property
+    def start_time(self):
+        """
+        wrapper for getting the creation time of the container object
+        :return: creation date and time as unicode
+        """
+        state_val = self.container_obj.attrs.get('State')
+        if state_val is not None:
+            start_val = state_val.get('StartedAt')
+            if start_val is not None:
+                return parser.parse(start_val)
+
+        # fall back
+        return datetime.utcnow()
+
+    @property
+    def finish_time(self):
+        """
+        wrapper for getting the creation time of the container object
+        :return: creation date and time as unicode
+        """
+        state_val = self.container_obj.attrs.get('State')
+        if state_val is not None:
+            start_val = state_val.get('FinishedAt')
+            if start_val is not None:
+                return parser.parse(start_val)
+
+        # fall back
+        return datetime.utcnow().replace(day=1, month=1, year=1, hour=0, minute=0, second=0, microsecond=0)
+
+    @property
     def use_gpu(self):
         """
         helper for seeing if the container requires gpu
@@ -59,9 +95,43 @@ class Container:
         """
         return self.config.executor_name
 
+    @property
+    def run_time(self):
+        """
+        Returns the runtime in hours.
+        :return: Run time in hours
+        """
+
+        # try to get finish time, replace with now if not yet finished.
+        end_time = self.finish_time
+        if end_time.year == 1:
+            end_time = datetime.utcnow()
+
+        # calc delta
+        time_delta = end_time-self.start_time
+        return time_delta.total_seconds()/3600
+
+    @property
     def name(self):
         """
-        The name of the container.
+        Provides the real name for the container (the one which is provided by user through config)
+        :return: Name of the container
+        """
+        return self.config.name
+
+    @property
+    def executor(self):
+        """
+        Returns the person who started the container.
+        :return: Name of the person who started the container.
+        """
+        return self.config.executor_name
+
+    @property
+    def docker_name(self):
+        """
+        Provides the name of the container given by docker
+        :return: Name of the container given by docker
         """
         return self.container_obj.name()
 
@@ -375,6 +445,17 @@ class Container:
         """
         return self.container_obj.logs(**kwargs)
 
+    def recent_logs(self, stdout=True, stderr=True, lines=3):
+        """
+        Returns the most recent logs (given number of lines).
+
+        :param stdout: Whether to show standart output (flag)
+        :param stderr: Whether to show standard error output (flag)
+        :param lines: Number of lines to show.
+        :return: Recent log bytes.
+        """
+        return self.logs(stdout=stdout, stderr=stderr, tail=lines)
+
     def export(self):
         """
         Export the contents of the container's filesystem as a tar archive.
@@ -395,7 +476,21 @@ class Container:
         :param gpu_minors: List with GPU minors to assign to container.
         :return: None
         """
-        self.container_obj.attr['Config']['Env'] += ['NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
+        self.container_obj.attrs['Config']['Env'] += ['NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
+
+    def get_gpu_minors(self):
+        """
+        Provides the GPU minors for given container object
+
+        :return: Returns a list with GPU minors.
+        """
+        config = self.container_obj.attrs['Config']
+        if config is not None:
+            env = config.get('Env')
+            for env_i in env:
+                if env_i.startswith('NVIDIA_VISIBLE_DEVICES'):
+                    env_value = env_i.split('=')[1]
+                    return [el_i.strip() for el_i in env_value.split(",")]
 
     def append_new_logs(self):
         """
@@ -449,3 +544,48 @@ class Container:
 
         # return the number of new bytes
         return len(new_logs)
+
+    def container_stats(self, runtime_stats=True):
+        """
+        Provides information about container including also runtime info (if flag is set).
+
+        :param runtime_stats: If true also actual hardware runtime info will be added.
+        :return: String with container info.
+        """
+
+        # get stats
+        stats_dict = self.stats(decode=True, stream=False)
+
+        # build base info
+        base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time}
+
+        # also show runtime info?
+        if runtime_stats:
+
+            # TODO: Extract cpu usage percentage (which seems to be a bit tricky..)
+            # cpu_stats = stats_dict['cpu_stats']
+            cpu_usage_percentage = psutil.cpu_percent()
+
+            # calc memory usage
+            mem_stats = stats_dict['memory_stats']
+            mem_usage = mem_stats['usage'] * 100.0 / mem_stats['limit']
+
+            # add base runtime info
+            base_info.update({'cpu': cpu_usage_percentage, 'memory': mem_usage})
+
+            # add gpu info, if required
+            if self.use_gpu:
+                gpu_info = get_gpu_infos(self.get_gpu_minors())
+                base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
+                                    for gpu_dt in gpu_info.values]
+
+        return stats_dict
+
+    def history_info(self):
+        """
+        Returns information about the container, dedicated to build a history.
+        :return: Container information string.
+        """
+
+        # version without hardware runtime information
+        return self.container_stats(runtime_stats=False)

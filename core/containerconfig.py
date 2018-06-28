@@ -16,7 +16,8 @@ LOG = log.get_module_log(__name__)
 
 class ContainerConfig:
 
-    def __init__(self, executor_name, num_gpus, num_slots, required_memory, build_flag=True, run_params=None):
+    def __init__(self, name, executor_name, num_gpus, num_slots, required_memory, build_flag=True, run_params=None):
+        self.name = name
         self.executor_name = executor_name
         self.required_memory = required_memory
         self.num_gpus = num_gpus
@@ -32,6 +33,7 @@ class ContainerConfig:
         :param config_dict: Dictionary to build config from.
         :return: ContainerConfig instance if valid config is provided, otherwise None
         """
+        name = config_dict.get('name')
         executor_name = config_dict.get('executor_name')
         required_memory = config_dict.get('required_memory', '20g')
         num_gpus = config_dict.get('num_gpus', 1)
@@ -39,14 +41,18 @@ class ContainerConfig:
         build_flag = config_dict.get('build_flag', True)
         run_params = config_dict.get('run_params')
 
-        # ensure that the executor name is available
-        if executor_name is None:
-            LOG.error("The name of the executor has to be provided! Anonymous execution is prohibited!")
-            return None
+        # check name and executor
+        for param_i, param_val_i in [('container name', name),
+                                     ('executor name', executor_name)]:
 
-        if len(executor_name) < 3:
-            LOG.error("The name of the executor has to be at least 3 characters long!")
-            return None
+            # ensure that the executor name is available
+            if param_val_i is None:
+                LOG.error("'{}' has to be provided!".format(param_i))
+                return None
+
+            if len(param_val_i) < 3:
+                LOG.error("'{}' has to be at least 3 characters long!".format(param_i))
+                return None
 
         # check if we have enough system GPUs to run this container
         num_sys_gpus = get_system_gpus()
@@ -56,8 +62,8 @@ class ContainerConfig:
             return None
 
         # create instance
-        return ContainerConfig(executor_name=executor_name, required_memory=required_memory, num_gpus=num_gpus,
-                               num_slots=num_slots, build_flag=build_flag, run_params=run_params)
+        return ContainerConfig(name=name, executor_name=executor_name, required_memory=required_memory,
+                               num_gpus=num_gpus, num_slots=num_slots, build_flag=build_flag, run_params=run_params)
 
     @classmethod
     def from_string(cls, json_str):

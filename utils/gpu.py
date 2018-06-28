@@ -9,6 +9,7 @@ Helpers for GPU information retrieval
 import os
 import re
 import docker
+import GPUtil
 
 
 def get_system_gpus():
@@ -85,3 +86,27 @@ def get_gpus_status(client=None):
             free_gpus.append(gpu_minor)
 
     return free_gpus, assigned_gpus
+
+
+def get_gpu_infos(device_ids=None):
+    """
+    Provides a dictionary mapping each GPU minor (or requested) to all relevant information.
+
+    :param device_ids: List or single GPU minor to include or None if all shall be shown.
+    :return: Dictionary mapping each GPU minor to its information.
+    """
+
+    # cast to set if int
+    if isinstance(device_ids, int):
+        device_ids = {device_ids}
+    if isinstance(device_ids, str) or isinstance(device_ids, unicode):
+        if device_ids == 'all':
+            device_ids = None
+
+    gpu_list = GPUtil.getGPUs()
+    if device_ids is None:
+        gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
+    else:
+        gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list if gpu_i.id in device_ids])
+
+    return gpu_dict
