@@ -37,14 +37,20 @@ def unzip_docker_files(filename, target_dir):
         return os.path.join(target_dir, dockerfile)
 
 
-def build_image(filename, unzip_dir="", logger=LOG):
+def build_image(filename, unzip_dir="", tag=None, logger=LOG):
     """
     build docker image form zipfile
     :param filename: name of the zipfile
-    :param logger: instance of logging
     :param unzip_dir: directory where files are extracted to temporarily
+    :param tag: string which identifies the docker container to be build.
+    :param logger: instance of logging
     :return: docker image
     """
+
+    if tag is None:
+        tag = filename.lower()
+        LOG.warning("Please explicitly provide a tag for the building process. If None is given the "
+                    "lower case of filename will be used, which is deprecated!")
 
     # construct paths if none are passed
     if not unzip_dir:
@@ -62,13 +68,13 @@ def build_image(filename, unzip_dir="", logger=LOG):
         filename = "".join(os.path.basename(filename).split('.')[:-1])
         try:
             client = docker.from_env()
-            image = client.images.build(path=os.path.dirname(dockerfile), rm=True, tag=filename.lower())
+            image = client.images.build(path=os.path.dirname(dockerfile), rm=True, tag=tag)
         except (docker.errors.BuildError, docker.errors.APIError) as e:
-            logger.error(time.ctime() + '\terror while building image {}:\n\t\t{}'.format(filename, e))
+            logger.error(time.ctime() + '\terror while building image {} (tag={}):\n\t\t{}'.format(filename, tag, e))
             clear_unzipped(unzip_dir, filename)
             raise e
         else:
-            logger.info(time.ctime() + '\tsuccessfully build image {}'.format(filename))
+            logger.info(time.ctime() + '\tsuccessfully build image {} (tag={})'.format(filename, tag))
             clear_unzipped(unzip_dir)
             return image
 

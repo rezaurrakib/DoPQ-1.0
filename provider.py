@@ -65,11 +65,11 @@ class Provider(hp.HelperProcess):
                 # generate docker image
                 try:
                     if container_config.build_flag:
-                        image = build.build_image(filename, self.paths['unzip'])
+                        image = build.build_image(filename, unzip_dir=self.paths['unzip'], tag=container_config.name)
                     else:
                         self.logger.error(ctime() + '\tloading tarred images is currently not implemented')
                         raise NotImplementedError
-                        #image = build.load_image(filename)
+                        # image = build.load_image(filename)
                 except Exception as e:
                     continue
 
