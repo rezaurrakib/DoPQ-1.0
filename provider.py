@@ -89,7 +89,7 @@ class Provider(hp.HelperProcess):
             self.sleep()
 
     def start(self):
-        super(Provider, self).start(self.provide)
+        super(Provider, self).start(self.provide, 'DoPQ-Provider')
         return self.process.pid
 
     def stop(self):

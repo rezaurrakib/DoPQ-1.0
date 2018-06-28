@@ -2,8 +2,8 @@ import curses
 import time
 import gpu
 
-X_L = 2
-Y_T = 5
+X_L = 4
+Y_T = 6
 HORIZONTAL_RATIO = 0.5
 VERTICAL_RATIO = 0.3
 
@@ -81,7 +81,8 @@ def pick_color(status):
 
 def print_line(screen, key, value, attrs=[], color=False, n_tabs=1):
 
-    screen.addstr('  ' + key + ':')
+    # TODO rewrite to accept process and print out uptime as well
+    screen.addstr(key + ':')
     attrs_or = 0
     attrs = [attrs] if not isinstance(attrs, list) else attrs
     for attr in attrs:
@@ -98,8 +99,16 @@ def print_container():
 
 def print_status(subwindow, dopq):
 
+
+
+    # print status header
+    header = '~~Status~~'
+    height, width = subwindow.getmaxyx()
+    subwindow.move(0, (width - len(header))//2)
+    subwindow.addstr(header, curses.A_BOLD | curses.color_pair(2))
+
     # init cursor position within subwindow
-    subwindow.move(2, 2)
+    move_to_next_line(subwindow, Y_T//2)
 
     # print status of the queue
     queue_status = 'running'#dopq.status
@@ -115,8 +124,8 @@ def print_status(subwindow, dopq):
 
     # print gpu information
     free_gpus, assigned_gpus = gpu.get_gpus_status()
-    #print_line(subwindow, 'free gpus', str(free_gpus), n_tabs=2)
-    #print_line(subwindow, 'assigned gpus', str(assigned_gpus))
+    print_line(subwindow, 'free gpus', str(free_gpus), n_tabs=2)
+    print_line(subwindow, 'assigned gpus', str(assigned_gpus))
 
 
 def read_container_logs(screen, dopq):
@@ -211,11 +220,16 @@ def setup_subwindows(screen):
 
     # get size of the window adjusted for borders
     height, width = screen.getmaxyx()
-    height, width = height-Y_T, width-X_L
+    height, width = height-1.5*Y_T, width-2*X_L
+    horizontal_gap, vertical_gap = X_L, Y_T//4
 
-    status_window = screen.subwin(int(VERTICAL_RATIO*height), int(HORIZONTAL_RATIO*width), Y_T, X_L)
-    container_window = screen.subwin(int((1-VERTICAL_RATIO)*height), int(HORIZONTAL_RATIO*width),
-                                     Y_T + int(VERTICAL_RATIO*height), X_L)
+    # TODO finish gaps
+    status_window = screen.subwin(int(VERTICAL_RATIO * height - vertical_gap//2),
+                                  int(HORIZONTAL_RATIO * width - horizontal_gap//2),
+                                  Y_T, X_L)
+    container_window = screen.subwin(int((1-VERTICAL_RATIO)*height-vertical_gap//2),
+                                     int(HORIZONTAL_RATIO*width-horizontal_gap//2),
+                                     Y_T + int(VERTICAL_RATIO*height + vertical_gap), X_L)
     user_penalty_window = screen.subwin(int(VERTICAL_RATIO*height), int((1-HORIZONTAL_RATIO)*width),
                                      Y_T, X_L + int(HORIZONTAL_RATIO*width))
     history_window = screen.subwin(int((1-VERTICAL_RATIO)*height), int((1-HORIZONTAL_RATIO)*width),
@@ -229,8 +243,13 @@ def setup_subwindows(screen):
 
 
 def print_header(screen):
-    screen.box()
-    move_to_next_line(screen)
+    border_characters = [0]*2 + ['=']*2 + ['#']*4
+    screen.border(*border_characters)
+    y, x = move_to_next_line(screen, n_times=2)
+    banner_length = 29
+    _, width = screen.getmaxyx()
+    start_position = (width - X_L - banner_length)//2
+    screen.move(y, start_position)
     screen.addstr('  Do', curses.color_pair(2) | curses.A_BOLD)
     screen.addstr('cker ', curses.color_pair(2))
     screen.addstr('P', curses.color_pair(2) | curses.A_BOLD)
@@ -239,8 +258,8 @@ def print_header(screen):
     screen.addstr('ueue -- ', curses.color_pair(2))
     screen.addstr('DoP-Q', curses.color_pair(2) | curses.A_BOLD)
     move_to_next_line(screen)
-    screen.hline('~', 50, curses.color_pair(2))
-    move_to_next_line(screen, Y_T-2)
+    screen.hline('~', (width - 2*X_L), curses.color_pair(2))
+    move_to_next_line(screen, Y_T-3)
     screen.refresh()
 
 
@@ -248,6 +267,8 @@ def move_to_next_line(screen, n_times=1, x_l=X_L):
     y, _ = screen.getyx()
     new_y, new_x = y + n_times*1, x_l
     screen.move(new_y, new_x)
+
+    return new_y, new_x
 
 
 if __name__ == '__main__':

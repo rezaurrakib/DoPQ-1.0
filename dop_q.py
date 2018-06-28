@@ -157,7 +157,7 @@ class DopQ(hp.HelperProcess):
                 self.running_containers.pop(i)
 
     def get_user_oh(self, user_name):
-        user_oh = [int(el == user_name.lower()) for el in self.history]
+        user_oh = [int(self.get_user(el) == user_name.lower()) for el in self.history]
         return np.array(user_oh)
 
     def calc_exp_decay(self):
@@ -308,7 +308,7 @@ class DopQ(hp.HelperProcess):
 
     def start(self):
 
-        super(DopQ, self).start(self.run_queue)
+        super(DopQ, self).start(self.run_queue, 'DoPQ')
         try:
             interface.run_interface(self)
         finally:
@@ -372,7 +372,7 @@ class DopQ(hp.HelperProcess):
                                                     .format(container, container.log_pid))
 
                     # update history
-                    self.history = [container.user] + self.history
+                    self.history = [container] + self.history
                     self.history = self.history[:self.config['queue']['max_history']]
 
                     self.sleep()

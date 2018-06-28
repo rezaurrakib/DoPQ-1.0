@@ -8,8 +8,8 @@ class HelperProcess(object):
         self.process = None
         self.term_flag = mp.Value('i', 0)
 
-    def start(self, target):
-        self.process = mp.Process(target=target)
+    def start(self, target, name='HelperProcess'):
+        self.process = mp.Process(target=target, name=name)
         self.process.start()
 
         return self.process.pid
