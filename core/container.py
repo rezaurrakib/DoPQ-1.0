@@ -6,7 +6,7 @@ container.py
 Provides a wrapper for container objects
 """
 
-from docker.models.containers import Container as DockerContainer
+# from docker.models.containers import Container as DockerContainer
 # from core.containerconfig import ContainerConfig
 import os
 import time
