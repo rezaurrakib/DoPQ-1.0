@@ -135,6 +135,8 @@ def read_container_logs(screen, dopq):
 
 
 def reload_config(screen, dopq):
+
+    # TODO this should be implemented as a method in dop-q for better separation
     screen.clear()
     screen.addstr('reloading config', curses.A_BOLD)
     screen.refresh()
@@ -165,6 +167,8 @@ def reload_config(screen, dopq):
 
 
 def shutdown_queue(screen, dopq):
+
+    # TODO same as reload_config, no tampering with class members
     screen.clear()
     print_header(screen)
     max_dots = 10
