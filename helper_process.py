@@ -1,4 +1,8 @@
 import multiprocessing as mp
+import sys
+import datetime
+import time
+import subprocess
 
 
 class HelperProcess(object):
@@ -28,3 +32,48 @@ class HelperProcess(object):
             return 'running'
         else:
             return 'terminated'
+
+    @property
+    def uptime(self):
+
+        pid = self.process.pid
+        # initiate process that find the process by pid and writes uptime to standard output
+        proc = subprocess.Popen(['ps', '-p', '{}'.format(pid), '-o', 'etime='], stdout=subprocess.PIPE)
+        proc.wait()
+
+        # retrive uptime from standard output
+        uptime = proc.stdout.readlines()[0].strip()
+
+        # check if uptime contains days
+        uptime = uptime.split('-')
+        if len(uptime) > 1:
+            days = int(uptime[0])
+            uptime = uptime[1]
+        else:
+            days = 0
+            uptime = uptime[0]
+
+        # split uptime into hours, minutes and seconds
+        uptime = uptime.split(':')
+        if len(uptime) < 3:  # if process has not been running for at least one hour
+            hours = 0
+            minutes = int(uptime[0])
+            seconds = int(uptime[1])
+        else:
+            hours = int(uptime[0])
+            minutes = int(uptime[1])
+            seconds = int(uptime[2])
+
+        # convert information to print format
+        uptime = ''
+        uptime += '{}d'.format(days) if days else ''
+        uptime += '{}h'.format(hours) if hours else ''
+        uptime += '{}m'.format(minutes) if minutes else ''
+        uptime += '{}s'.format(seconds) if not minutes else ''
+
+        # get the start time
+        uptime_in_seconds = days * 24 * 3600 + hours * 3600 + minutes * 60 + seconds
+        starttime = time.time() - uptime_in_seconds
+        starttime = datetime.datetime.fromtimestamp(starttime).strftime("%a %b %d at %I:%M:%S %p")
+
+        return uptime, starttime
