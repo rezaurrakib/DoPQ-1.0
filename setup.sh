@@ -3,4 +3,5 @@
 pip --no-cache-dir install \
          pathos\
          psutil\
-         gputil
+         gputil \
+         dateutil
