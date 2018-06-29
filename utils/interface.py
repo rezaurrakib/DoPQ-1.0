@@ -2,7 +2,7 @@ import curses
 import time
 import gpu
 
-X_L = 4
+X_L = 2
 Y_T = 6
 HORIZONTAL_RATIO = 0.5
 VERTICAL_RATIO = 0.3
@@ -79,7 +79,7 @@ def pick_color(status):
         return 0
 
 
-def print_line(screen, key, value, attrs=[], color=False, n_tabs=1):
+def print_line(screen, key, value, attrs=[], color=False, n_tabs=1, newline=0, x_l=X_L):
 
     # TODO rewrite to accept process and print out uptime as well
     screen.addstr(key + ':')
@@ -90,7 +90,8 @@ def print_line(screen, key, value, attrs=[], color=False, n_tabs=1):
     if color:
         attrs_or = attrs_or | pick_color(value)
     screen.addstr('\t'*n_tabs + value, attrs_or)
-    move_to_next_line(screen)
+    if newline:
+        move_to_next_line(screen, newline, x_l=x_l)
 
 
 def print_container():
@@ -99,8 +100,7 @@ def print_container():
 
 def print_status(subwindow, dopq):
 
-
-
+    x_l = 9
     # print status header
     header = '~~Status~~'
     height, width = subwindow.getmaxyx()
@@ -108,24 +108,45 @@ def print_status(subwindow, dopq):
     subwindow.addstr(header, curses.A_BOLD | curses.color_pair(2))
 
     # init cursor position within subwindow
-    move_to_next_line(subwindow, Y_T//2)
+    move_to_next_line(subwindow, Y_T//2, x_l)
+
+    # get status info
+    queue_status = 'running'#dopq.status
+    if queue_status == 'running':
+        queue_uptime, queue_starttime = '1d 5h 34m', 'Fri Jun 29 at 11:21:44 AM'#dopq.uptime
+    else:
+        queue_uptime, queue_starttime = '', ''
+
+    provider_status = 'running'  # dopq.provider.status
+    if provider_status == 'running':
+        provider_uptime, provider_starttime = '1d 5h 34m', 'Fri Jun 29 at 11:21:44 AM' #dopq.provider.uptime
+    else:
+        provider_uptime, provider_starttime = '', ''
+    free_gpus, assigned_gpus = gpu.get_gpus_status()
 
     # print status of the queue
-    queue_status = 'running'#dopq.status
-    print_line(subwindow, 'queue status', queue_status, curses.A_BOLD, True)
+    print_line(subwindow, 'queue status', queue_status, curses.A_BOLD, True, 2, newline=1, x_l=x_l)
+    if queue_status == 'running':
+        print_line(subwindow, '\t\tuptime', queue_uptime, x_l=x_l)
+        print_line(subwindow, '\t   start time', queue_starttime, newline=2, x_l=x_l)
+    else:
+        move_to_next_line(subwindow, 1, x_l=x_l)
 
     # exit funciton if queue is down
     if queue_status == 'terminated':
-        exit(0)
+        return None
 
     # print status of the provider
-    provider_status = 'running'  # dopq.provider.status
-    print_line(subwindow, 'provider status', provider_status, curses.A_BOLD, True)
+    print_line(subwindow, 'provider status', provider_status, curses.A_BOLD, True, 1, newline=1, x_l=x_l)
+    if provider_status == 'running':
+        print_line(subwindow, '\t\tuptime', provider_uptime, x_l=x_l)
+        print_line(subwindow, '\t   start time', provider_starttime, newline=2, x_l=x_l)
+    else:
+        move_to_next_line(subwindow,1, x_l=x_l)
 
     # print gpu information
-    free_gpus, assigned_gpus = gpu.get_gpus_status()
-    print_line(subwindow, 'free gpus', str(free_gpus), n_tabs=2)
-    print_line(subwindow, 'assigned gpus', str(assigned_gpus))
+    print_line(subwindow, 'free gpus', str(free_gpus), newline=True, x_l=x_l)
+    print_line(subwindow, 'assigned gpus', str(assigned_gpus), x_l=x_l)
 
 
 def read_container_logs(screen, dopq):
@@ -225,25 +246,34 @@ def setup_subwindows(screen):
     # get size of the window adjusted for borders
     height, width = screen.getmaxyx()
     height, width = height-1.5*Y_T, width-2*X_L
-    horizontal_gap, vertical_gap = X_L, Y_T//4
+    horizontal_gap, vertical_gap = X_L//2, Y_T//6
 
     # TODO finish gaps
-    status_window = screen.subwin(int(VERTICAL_RATIO * height - vertical_gap//2),
-                                  int(HORIZONTAL_RATIO * width - horizontal_gap//2),
-                                  Y_T, X_L)
-    container_window = screen.subwin(int((1-VERTICAL_RATIO)*height-vertical_gap//2),
-                                     int(HORIZONTAL_RATIO*width-horizontal_gap//2),
-                                     Y_T + int(VERTICAL_RATIO*height + vertical_gap), X_L)
-    user_penalty_window = screen.subwin(int(VERTICAL_RATIO*height), int((1-HORIZONTAL_RATIO)*width),
-                                     Y_T, X_L + int(HORIZONTAL_RATIO*width))
-    history_window = screen.subwin(int((1-VERTICAL_RATIO)*height), int((1-HORIZONTAL_RATIO)*width),
-                                     Y_T + int(VERTICAL_RATIO*height), X_L + int(HORIZONTAL_RATIO*width))
+    status_window = screen.subwin(int(VERTICAL_RATIO * height - vertical_gap//2),       # height
+                                  int(HORIZONTAL_RATIO * width - horizontal_gap//2),    # width
+                                  Y_T,                                                  # y
+                                  X_L)                                                  # x
+
+    container_window = screen.subwin(int((1-VERTICAL_RATIO)*height-vertical_gap//2),    # height
+                                     int(HORIZONTAL_RATIO*width-horizontal_gap//2),     # width
+                                     Y_T + int(VERTICAL_RATIO*height + vertical_gap),   # y
+                                     X_L)                                               # x
+
+    user_penalty_window = screen.subwin(int(VERTICAL_RATIO*height - vertical_gap//2),         # height
+                                        int((1-HORIZONTAL_RATIO)*width - horizontal_gap//2),  # width
+                                        Y_T,                                                  # y
+                                        X_L + int(HORIZONTAL_RATIO*width + horizontal_gap))   # x
+
+    list_window = screen.subwin(int((1-VERTICAL_RATIO)*height - vertical_gap//2),        # height
+                                int((1-HORIZONTAL_RATIO)*width - horizontal_gap//2),     # width
+                                Y_T + int(VERTICAL_RATIO*height + vertical_gap),         # y
+                                X_L + int(HORIZONTAL_RATIO*width + horizontal_gap))      # x
     status_window.box()
     container_window.box()
     user_penalty_window.box()
-    history_window.box()
+    list_window.box()
 
-    return status_window, container_window, user_penalty_window, history_window
+    return status_window, container_window, user_penalty_window, list_window
 
 
 def print_header(screen):
