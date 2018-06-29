@@ -577,9 +577,9 @@ class Container:
             if self.use_gpu:
                 gpu_info = get_gpu_infos(self.get_gpu_minors())
                 base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
-                                    for gpu_dt in gpu_info.values]
+                                    for gpu_dt in gpu_info.values()]
 
-        return stats_dict
+        return base_info
 
     def history_info(self):
         """
