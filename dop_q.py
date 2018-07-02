@@ -282,8 +282,8 @@ class DopQ(hp.HelperProcess):
         for c in self.container_handler.running_containers:
             containers += c.attrs['Config']['Image'] + '\t'
 
-        # clear std out
-        # os.system('clear')
+        # erase std out
+        # os.system('erase')
 
         # construct status string
         status_str = ('dop-q status:\t' + time.ctime() +
@@ -302,9 +302,10 @@ class DopQ(hp.HelperProcess):
         return status_str
 
     def stop(self):
-
+        self.term_flag.value = 1
         self.provider.stop()
-        self.save('all')
+        if self.process.status == 'running':
+            self.process.join()
 
     def start(self):
 
@@ -312,7 +313,7 @@ class DopQ(hp.HelperProcess):
         try:
             interface.run_interface(self)
         finally:
-            self.term_flag.value = 1
+            self.stop()
 
     def run_queue(self):
         """
@@ -332,7 +333,7 @@ class DopQ(hp.HelperProcess):
 
                 # exit queue process if termination flag is set
                 if self.term_flag.value:
-                    raise RuntimeError(time.ctime() + '\tqueue stopped')
+                    raise RuntimeError(time.ctime() + '\tqueue is shutting down')
 
                 # update container list
                 self.update_container_list()
@@ -381,7 +382,8 @@ class DopQ(hp.HelperProcess):
             self.logger.error(time.ctime() + '{}'.format(e))
 
         finally:
-            self.stop()
+            # save history, container list and running containers whenever the loop is exited for whatever reason
+            self.save('all')
 
 
 if __name__ == '__main__':
