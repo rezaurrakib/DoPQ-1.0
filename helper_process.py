@@ -74,6 +74,6 @@ class HelperProcess(object):
         # get the start time
         uptime_in_seconds = days * 24 * 3600 + hours * 3600 + minutes * 60 + seconds
         starttime = time.time() - uptime_in_seconds
-        starttime = datetime.datetime.fromtimestamp(starttime).strftime("%a %b %d at %I:%M:%S %p")
+        starttime = datetime.datetime.fromtimestamp(starttime).strftime("%a, %d.%b %H:%M")
 
         return uptime, starttime
