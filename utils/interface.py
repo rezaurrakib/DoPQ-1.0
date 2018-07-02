@@ -1,6 +1,7 @@
 import curses
 import time
 import gpu
+import interface_funcs
 
 X_L = 2
 Y_T = 4
@@ -11,6 +12,13 @@ VERTICAL_RATIO = 0.3
 class Window(object):
 
     def __init__(self, screen, offset, indent, header=None):
+        """
+        Window wraps a curses window object to simplify and streamline navigating, formatting and writing in it
+        :param screen: curses window object
+        :param offset: number of blank lines to keep at the top of the window
+        :param indent: number of whitespaces to keep at the left side of every line
+        :param header: title that will be printed at the top of the window
+        """
 
         self.screen = screen
         self.offset = offset
@@ -31,32 +39,66 @@ class Window(object):
 
     @property
     def size(self):
+        """
+        wrapper for getting window height and width
+        :return: tuple(height, width)
+        """
         return self.screen.getmaxyx()
 
     @property
     def yx(self):
+        """
+        wrapper for getting current cursor position
+        :return: tuple(y, x)
+        """
         return self.screen.getyx()
 
     def reset(self):
+        """
+        reset offset and indent to their initial values
+        :return: None
+        """
         self.indent = self.INDENT
         self.offset = self.OFFSET
 
-    def next_line(self, skip_lines=1):
+    def nextline(self, newline=1):
+        """
+        move cursor down one or more lines and start at indent position
+        :param newline: number of lines to move down
+        :return: new coordinates (y, x)
+        """
         y, _ = self.yx
         new_x = self.indent
-        new_y = y + skip_lines
+        new_y = y + newline
 
         return self.navigate(new_y, new_x)
 
     def addstr(self, string, attrs=0, newline=0, indent=None, center=False):
+        """
+        write a string to the window
+        :param string: string to write
+        :param attrs: formatting of the string
+        :param newline: number of lines to move down after writing
+        :param indent: indent to use for this string
+        :param center: if True string will be centered in the window
+        :return: None
+        """
 
         # center string if flag is set otherwise indent if indent is not None
         x = (self.size[1] - len(string)) // 2 if center else indent
         self.navigate(x=x)
         self.screen.addstr(string, attrs)
-        self.next_line(newline)
+        if newline:
+            self.nextline(newline=newline)
 
     def addline(self, string_list, newline=0, center=False):
+        """
+        allows writing a list of strings, each with their own formatting, onto a line in the window
+        :param string_list: list of strings and / or (string, formatting) tuples
+        :param newline: number of lines to move down after writing
+        :param center: if True, line will be centered on the window
+        :return: None
+        """
 
         # protection against generators
         if iter(string_list) is iter(string_list):
@@ -67,7 +109,7 @@ class Window(object):
             total_length = 0
             for string in string_list:
 
-                #account for possibility of string attributes
+                # account for possibility of string attributes
                 try:
                     total_length += len(string[0])
                 except Exception:
@@ -86,9 +128,19 @@ class Window(object):
             except Exception:
                 pass
 
-            self.addstr(string, attr, newline)
+            self.addstr(string, attr)
+
+        if newline:
+            self.nextline(newline=newline)
 
     def addmutliline(self, string_multiline, newline=0, center=False):
+        """
+        allow writing of several lines onto the screen
+        :param string_multiline: matrix of strings and / or (string, formatting) tuples
+        :param newline: number of lines to move down after writing
+        :param center: if True, line will be centered on the window
+        :return: None
+        """
 
         # protection against generators
         if iter(string_multiline) is iter(string_multiline):
@@ -98,6 +150,12 @@ class Window(object):
             self.addline(string_list=line, newline=newline, center=center)
 
     def navigate(self, y=None, x=None):
+        """
+        move cursors to specified position, the unspecified coordinate will remain unchanged
+        :param y: y coordinate to navigate to, will remain unchanged if None is given
+        :param x: x coordinate to navigate to, will remain unchanged if None is given
+        :return: tuple(new y, new x)
+        """
         current_y, current_x = self.yx
         new_y = y if y is not None else current_y
         new_x = x if x is not None else current_x
@@ -106,24 +164,65 @@ class Window(object):
         return new_y, new_x
 
     def refresh(self):
+        """
+        wrapper for refresh method of the curses window object
+        :return: None
+        """
         self.screen.refresh()
 
-    def clear(self):
-        self.screen.clear()
+    def erase(self):
+        """
+        wrapper for erase method of the curses window object
+        :return: None
+        """
+        self.screen.erase()
 
     def getch(self):
+        """
+        wrapper for getch (get character) method of the curses window object
+        :return: None
+        """
         return self.screen.getch()
+
+    def deleteln(self):
+        """
+        wrapper for deleteln (delete line) method of the curses window object
+        :return: None
+        """
+        self.screen.deleteln()
+
+    def print_header(self):
+        """
+        print the window header bold and centered at the top of the window. stored header formatting is also applied
+        :return: None
+        """
+
+        self.addstr(self.header, self.BOLD | self.header_attr, center=True)
+        self.navigate(self.offset, self.indent)
+        self.refresh()
 
 
 class SubWindow(Window):
 
     def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=(lambda *args, **kwargs: None)):
+        """
+        this class represents a subwindow embedded in the parent window and is meant to be used for displaying task specific information
+        :param parent: instance of Window in which this object will be embedded
+        :param height: height of the subwindow
+        :param width: width of the subwindow
+        :param y: y coordinate of the top left corner
+        :param x: x coordinate of the top left corner
+        :param header: header string of subwindow. Subwindow uses the header formatting of the parent
+        :param offset: number of blank lines to keep at the top of the window
+        :param indent: number of whitespaces to keep at the left side of every line
+        :param func: function that is executed when this object is called
+        """
 
         self.parent = parent
-        self.offset = offset if offset is not None else parent.offset
-        self.indent = indent if indent is not None else parent.indent
-        super(SubWindow, self).__init__(parent.screen, self.offset, self.indent)
-        self.screen = self.parent.subwin(height, width, x, y)
+        offset = offset if offset is not None else parent.offset
+        indent = indent if indent is not None else parent.indent
+        screen = self.parent.screen.subwin(height, width, y, x)
+        super(SubWindow, self).__init__(screen, offset, indent)
         self.pos_x = x
         self.pos_y = y
         self.height = height
@@ -135,57 +234,94 @@ class SubWindow(Window):
         self.redraw()
 
     def __call__(self, *args, **kwargs):
+        """
+        execute self.func when this object is called
+        :param args: positional arguments passed to self.func
+        :param kwargs: keyword arguments passed to self.func
+        :return: returnvalue of self.sunc
+        """
 
-        self.func(self.screen, *args, **kwargs)
+        return self.func(self.screen, *args, **kwargs)
 
     def redraw(self):
-        self.screen.clear()
+        """
+        redraws the window borders and header
+        :return: None
+        """
+        self.erase()
         self.screen.box()
-        self.addstr(string=self.header, attrs=self.header_attr, center=True)
-        self.refresh()
+        self.print_header()
 
 
 class Interface(Window):
+    # TODO supress flickering
+    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=0.2):
+        """
+        interface to the docker priority queue object
+        :param dopq: instance of DopQ
+        :param screen: curses window to use as display
+        :param offset: number of blank lines to keep at the top of the window
+        :param indent: number of whitespaces to keep at the left side of every line
+        :param v_ratio: ratio of top subwindow height to total window height
+        :param h_ratio: ratio of left subwindow width to total window width
+        :param interval: update interval in seconds
+        """
 
-    def __init__(self, dopq, functions, screen, offset, indent, header, v_ratio=0.25, h_ratio=0.5, interval=0.2):
-
-        super(Interface, self).__init__(screen, offset, indent, header)
+        super(Interface, self).__init__(screen, offset, indent)
+        self.header_attr = self.CYAN
         self.dopq = dopq
         self.provider = self.dopq.provider
         self.v_ration = v_ratio
         self.h_ration = h_ratio
-        self.functions = functions
+        self.functions = interface_funcs.FUNCTIONS
         self.interval = interval
 
         self.screen.nodelay(True)
         curses.curs_set(0)
-        self.clear()
+        self.erase()
 
         self.subwindows = self.split_screen()
 
-    def __call__(self, *args, **kwargs):
+        # draw all borders and headers
+        self.redraw()
 
-        # fancy print
-        self.print_header()
+    def __call__(self, *args, **kwargs):
+        """
+        infinite loop that displays information and watches for input
+        :param args: not used
+        :param kwargs: not used
+        :return: None
+        """
 
         while True:
 
             # display information in the subwindows
             self.print_information()
 
-            # refresh main window and all subwindows
-            self.refresh()
-
             # get user input char
             key = self.getch()
             curses.flushinp()
 
+            # run the specified function
+            if key in self.functions.keys():
+                self.execute_function(self.functions[key])
+
             time.sleep(self.interval)
 
     def subwin(self, *args, **kwargs):
+        """
+        wrapper for Subwindow.__init__() with self as parent
+        :param args: positional arguments passed to Subwindow()
+        :param kwargs: keyword arguments passed to Subwindow()
+        :return: instance of Subwindow
+        """
         return SubWindow(parent=self, *args, **kwargs)
 
     def split_screen(self):
+        """
+        setup the 5 subwindows that are needed for the interface
+        :return: dict of Subwindow instances
+        """
 
         # get size of the window adjusted for borders
         win_height, win_width = self.size
@@ -235,25 +371,85 @@ class Interface(Window):
         return subwindows
 
     def print_information(self):
+        """
+        wrapper for calling all subwindow functions
+        :return:
+        """
+
+        self.redraw() # TODO write a more elegant way to refresh the screen that does not flicker
 
         for sub in self.subwindows.values():
             sub(self.dopq)
 
+        self.refresh()
+
     def redraw(self):
+        """
+        print window header and redraw all subwindows
+        :return: None
+        """
+
+        self.print_header(self) # print header is a static method
 
         for sub in self.subwindows.values():
             sub.redraw()
 
     def refresh(self):
+        """
+        call refresh on self and all subwindows
+        :return: None
+        """
 
         self.screen.refresh()
         for sub in self.subwindows.values():
             sub.refresh()
 
+    @staticmethod # static because i wanted to use this method with instances of Window as well
     def print_header(self):
-        string_line = [('Do', self.bold | self.cyan),
-                       'cker ',
-                       ]
+        """
+        customised print_header to write interface header followed by a vertical line
+        static, so that it can be called for other windows as well
+        :param self: Window instance
+        :return: None
+        """
+
+        # draw border around the window
+        border_characters = [0] * 2 + ['='] * 2 + ['#'] * 4
+        self.screen.border(*border_characters)
+
+        # print title
+        string_line = [('Do', self.BOLD | self.header_attr),
+                       ('cker ', self.header_attr),
+                       ('P', self.BOLD | self.header_attr),
+                       ('riority ', self.header_attr),
+                       ('Q', self.BOLD | self.header_attr),
+                       ('ueue -- ', self.header_attr),
+                       ('DopQ', self.BOLD | self.header_attr)]
+        self.navigate(y=1)
+        self.addline(string_list=string_line, newline=1, center=True)
+        self.screen.hline('~', self.size[1]-2*self.indent, self.CYAN)
+
+    def execute_function(self, func):
+        """
+        prepares a window in which a control function is executed. window is deleted afterwards
+        :param func: control function to call
+        :return: None
+        """
+
+        # make a new window for executing the function in
+        height, width = self.size
+        new_window = Window(curses.newwin(height, width, 0, 0), self.offset, self.indent)
+
+        # print dopq header in the new window
+        self.print_header(new_window)
+
+        # execute function
+        func(new_window, self.dopq)
+
+        # delete the temporary window
+        del new_window
+
+        self.redraw()
 
 
 def run_interface(dopq):
@@ -266,7 +462,7 @@ def main(screen, dopq):
     # init
     screen.nodelay(True)
     curses.curs_set(0)
-    screen.clear()
+    screen.erase()
 
 
     # define color pairs
@@ -288,6 +484,7 @@ def main(screen, dopq):
 
     while True:
 
+        screen.erase()
         print_status(subwindows['status'], dopq)
         print_containers(subwindows['containers'], dopq)
         print_penalties(subwindows['penalties'], dopq)
@@ -307,14 +504,28 @@ def main(screen, dopq):
         if key in functions.keys():
             subwindows = execute_function(functions[key], screen, dopq)
 
-        time.sleep(0.2)
+        time.sleep(0.5)
+
+# def main(screen, dopq):
+#     # define color pairs
+#     curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
+#     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+#     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+#     curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+#
+#     screen.idcok(False)
+#     screen.idlok(False)
+#
+#     interface = Interface(dopq, screen, offset=4, indent=2)
+#     interface()
+
 
 
 def execute_function(func, screen, dopq):
-    screen.clear()
+    screen.erase()
     print_header(screen)
     func(screen=screen, dopq=dopq)
-    screen.clear()
+    screen.erase()
     print_header(screen)
     return setup_subwindows(screen)
 
@@ -483,7 +694,7 @@ def print_enqueued(subwindow, dopq):
 
 
 def read_container_logs(screen, dopq):
-    screen.clear()
+    screen.erase()
     print_header(screen)
     screen.addsstr('reading container logs is not implemented yet....soon!', curses.A_BOLD)
 
@@ -491,7 +702,7 @@ def read_container_logs(screen, dopq):
 def reload_config(screen, dopq):
 
     # TODO this should be implemented as a method in dop-q for better separation
-    screen.clear()
+    screen.erase()
     screen.addstr('reloading config', curses.A_BOLD)
     screen.refresh()
     dopq.config = dopq.parse_config(dopq.configfile)
@@ -523,7 +734,7 @@ def reload_config(screen, dopq):
 def shutdown_queue(screen, dopq):
 
     # TODO same as reload_config, no tampering with class members
-    screen.clear()
+    screen.erase()
     print_header(screen)
     max_dots = 10
     dopq.term_flag.value = 1
