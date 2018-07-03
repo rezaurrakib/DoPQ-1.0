@@ -701,33 +701,44 @@ def read_container_logs(screen, dopq):
 
 def reload_config(screen, dopq):
 
+    # create function for updates
+    def update_report_fn(msg):
+        screen.erase()
+        screen.addstr(msg, curses.A_BOLD)
+        screen.refresh()
+
+    # let dop-q do the reload of the configuration
+    dopq.reload_config(update_report_fn)
+
     # TODO this should be implemented as a method in dop-q for better separation
-    screen.erase()
-    screen.addstr('reloading config', curses.A_BOLD)
-    screen.refresh()
-    dopq.config = dopq.parse_config(dopq.configfile)
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    dopq.paths = dopq.config['paths']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider = dopq.provider
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.paths = dopq.config['paths']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.fetcher_conf = dopq.config['fetcher']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.builder_conf = dopq.config['builder']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.docker_conf = dopq.config['docker']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    screen.addstr('done!', curses.A_BOLD)
-    screen.refresh()
+    # screen.erase()
+    # screen.addstr('reloading config', curses.A_BOLD)
+    # screen.refresh()
+    # dopq.config = dopq.parse_config(dopq.configfile)
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # dopq.paths = dopq.config['paths']
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # provider = dopq.provider
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # provider.paths = dopq.config['paths']
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # provider.fetcher_conf = dopq.config['fetcher']
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # provider.builder_conf = dopq.config['builder']
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # provider.docker_conf = dopq.config['docker']
+    # screen.addstr('.', curses.A_BOLD)
+    # screen.refresh()
+    # screen.addstr('done!', curses.A_BOLD)
+    # screen.refresh()
+
+    # wait
     time.sleep(2)
 
 

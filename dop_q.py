@@ -301,6 +301,28 @@ class DopQ(hp.HelperProcess):
 
         return status_str
 
+    def reload_config(self, report_fn=None):
+
+        # init report fn if not given
+        if report_fn is None:
+            report_fn = self.logger
+
+        report_fn('reloading config: {:.1f} %'.format(0))
+        self.config = self.parse_config(self.configfile)
+
+        # loading done
+        report_fn('reloading config: {:.1f} %'.format(50))
+
+        # set new config
+        self.paths = self.config['paths']
+        self.provider.paths = self.config['paths']
+        self.provider.fetcher_conf = self.config['fetcher']
+        self.provider.builder_conf = self.config['builder']
+        self.provider.docker_conf = self.config['docker']
+
+        # loading done
+        report_fn('reloading config: {:.1f} %'.format(100))
+
     def stop(self):
         self.term_flag.value = 1
         self.provider.stop()
