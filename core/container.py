@@ -564,7 +564,7 @@ class Container:
 
             # TODO: Extract cpu usage percentage (which seems to be a bit tricky..)
             # cpu_stats = stats_dict['cpu_stats']
-            cpu_usage_percentage = psutil.cpu_percent()
+            cpu_usage_percentage = psutil.cpu_percent(interval=0.1)
 
             # calc memory usage
             mem_stats = stats_dict['memory_stats']
