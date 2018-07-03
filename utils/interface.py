@@ -2,6 +2,8 @@ import curses
 import time
 import gpu
 import interface_funcs
+from math import floor, ceil
+from collections import OrderedDict
 
 X_L = 2
 Y_T = 4
@@ -81,15 +83,21 @@ class Window(object):
         :param newline: number of lines to move down after writing
         :param indent: indent to use for this string
         :param center: if True string will be centered in the window
-        :return: None
+        :return: cursor coordinates after writing the string but before going to newline
         """
 
         # center string if flag is set otherwise indent if indent is not None
         x = (self.size[1] - len(string)) // 2 if center else indent
         self.navigate(x=x)
+        y, x = self.yx
+        coords = {'beginning': {'y': y, 'x': x}}
         self.screen.addstr(string, attrs)
+        y, x = self.yx
+        coords['end'] = {'y': y, 'x': x}
         if newline:
             self.nextline(newline=newline)
+
+        return coords
 
     def addline(self, string_list, newline=0, center=False):
         """
@@ -97,8 +105,10 @@ class Window(object):
         :param string_list: list of strings and / or (string, formatting) tuples
         :param newline: number of lines to move down after writing
         :param center: if True, line will be centered on the window
-        :return: None
+        :return: list of cursor coordinates after writing the strings but before going to newline
         """
+        # initialize coordinates for return
+        coords = []
 
         # protection against generators
         if iter(string_list) is iter(string_list):
@@ -110,44 +120,48 @@ class Window(object):
             for string in string_list:
 
                 # account for possibility of string attributes
-                try:
+                if isinstance(string, tuple):
                     total_length += len(string[0])
-                except Exception:
+                else:
                     total_length += len(string)
             center = (self.size[1] - total_length) // 2
             self.navigate(x=center)
 
         # print the strings in string list sequentially
         for string in string_list:
-            attr = 0
 
-            # check if string hast attributes
-            try:
+            # check if string has attributes
+            if isinstance(string, tuple):
                 attr = string[1]
                 string = string[0]
-            except Exception:
-                pass
+            else:
+                attr = 0
 
-            self.addstr(string, attr)
+            coords.append(self.addstr(string, attr))
 
         if newline:
             self.nextline(newline=newline)
 
-    def addmutliline(self, string_multiline, newline=0, center=False):
+        return coords
+
+    def addmultiline(self, string_multiline, newline=1, center=False):
         """
         allow writing of several lines onto the screen
         :param string_multiline: matrix of strings and / or (string, formatting) tuples
         :param newline: number of lines to move down after writing
-        :param center: if True, line will be centered on the window
+        :param center: if True, each line will be centered on the window
         :return: None
         """
-
+        # initialize coordinate matrix for return
+        coords = []
         # protection against generators
         if iter(string_multiline) is iter(string_multiline):
             raise TypeError('Window.addline expects an iterable, not a generator!')
 
         for line in string_multiline:
-            self.addline(string_list=line, newline=newline, center=center)
+            coords.append(self.addline(string_list=line, newline=newline, center=center))
+
+        return coords
 
     def navigate(self, y=None, x=None):
         """
@@ -204,7 +218,7 @@ class Window(object):
 
 class SubWindow(Window):
 
-    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=(lambda *args, **kwargs: None)):
+    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None):
         """
         this class represents a subwindow embedded in the parent window and is meant to be used for displaying task specific information
         :param parent: instance of Window in which this object will be embedded
@@ -215,7 +229,7 @@ class SubWindow(Window):
         :param header: header string of subwindow. Subwindow uses the header formatting of the parent
         :param offset: number of blank lines to keep at the top of the window
         :param indent: number of whitespaces to keep at the left side of every line
-        :param func: function that is executed when this object is called
+        :param func: DisplayFunction that is executed when this object is called
         """
 
         self.parent = parent
@@ -229,11 +243,16 @@ class SubWindow(Window):
         self.width = width
         self.header = header
         self.header_attr = parent.header_attr
-        self.func = func
+        if isinstance(func, type):
+            self.func = DisplayFunction(self, self.parent.dopq) if func is None else func(self, self.parent.dopq)
+            self.args = []
+        else:
+            self.func = func
+            self.args = [self.screen, self.parent.dopq]
 
         self.redraw()
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, **kwargs):
         """
         execute self.func when this object is called
         :param args: positional arguments passed to self.func
@@ -241,7 +260,7 @@ class SubWindow(Window):
         :return: returnvalue of self.sunc
         """
 
-        return self.func(self.screen, *args, **kwargs)
+        return self.func(*self.args, **kwargs)
 
     def redraw(self):
         """
@@ -251,6 +270,7 @@ class SubWindow(Window):
         self.erase()
         self.screen.box()
         self.print_header()
+        self.func.first_call = True
 
 
 class Interface(Window):
@@ -270,7 +290,6 @@ class Interface(Window):
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
         self.dopq = dopq
-        self.provider = self.dopq.provider
         self.v_ration = v_ratio
         self.h_ration = h_ratio
         self.functions = interface_funcs.FUNCTIONS
@@ -341,7 +360,8 @@ class Interface(Window):
                                   y=self.offset,
                                   x=self.indent,
                                   header='~~Status~~',
-                                  func=print_status),
+                                  func=Status,
+                                  indent=self.indent*4),
             'containers': self.subwin(height=sub_height_lower,
                                        width=sub_width_left,
                                        y=self.offset + sub_height_upper + vertical_gap,
@@ -376,10 +396,10 @@ class Interface(Window):
         :return:
         """
 
-        self.redraw() # TODO write a more elegant way to refresh the screen that does not flicker
+        #self.redraw() # TODO write a more elegant way to refresh the screen that does not flicker
 
         for sub in self.subwindows.values():
-            sub(self.dopq)
+            sub()
 
         self.refresh()
 
@@ -452,73 +472,257 @@ class Interface(Window):
         self.redraw()
 
 
+class DisplayFunction(object):
+
+    def __init__(self, subwindow, dopq):
+        """
+        class for stateful display functions
+        """
+        self.displayed_information = None
+        self.template = None
+        self.first_call = True
+        self.screen = subwindow
+        self.dopq = dopq
+        self.template = ''
+        self.fields = {}
+
+    def __call__(self, *args, **kwargs):
+        """
+        write template to screen if its the first time calling this class, then update the information in the template
+        :param args: not used
+        :param kwargs: not used
+        :return: None
+        """
+
+        if self.first_call:
+            self.write_template()
+            self.update()
+        else:
+            self.update()
+
+    def update(self):
+        pass
+
+    def write_template(self):
+        pass
+
+    def update_field(self, string, field, attrs=0):
+        """
+        fill the field with whitespaces before writing the string
+        :param string: string to write to the field
+        :param field: field as given in self.fields.values()
+        :return: None
+        """
+        (y, x), length = field
+        self.screen.navigate(y, x)
+        self.screen.addstr(' ' * length)
+        self.screen.navigate(y, x)
+        self.screen.addstr(string, attrs)
+
+    def calculate_field_properties(self):
+        """
+        calculates the length of each field and appends this length to the coordinates already stored in the fields dict
+        :return: None
+        """
+        width = self.screen.size[1] - self.screen.indent
+
+        # cycle items in the ordered dict to calculate lengths
+        item_list = self.fields.items()
+        for index, (field, coordinates) in enumerate(item_list[:-1]):
+
+            # get the next field name and its coordinates
+            next_field, next_coordinates = item_list[index + 1]
+
+            start = coordinates['end']['x']
+
+            # find the end by checking where the next field begins
+            if next_coordinates['beginning']['y'] != coordinates['beginning']['y']:
+                # next field is in a different line, use window width as endpoint
+                end = width - self.screen.indent
+            else:
+                # next field is in the same line
+                end = next_coordinates['beginning']['x']
+
+            length = end - start
+
+            self.fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), length)
+
+        else:
+            # account for the last field
+            field, coordinates = item_list[-1]
+            self.fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), width - coordinates['end']['x'])
+
+
+class Status(DisplayFunction):
+
+    def __init__(self, subwindow, dopq):
+
+        super(Status, self).__init__(subwindow, dopq)
+
+        width = self.screen.size[1]
+        width_unit = width // 8
+        self.displayed_information = {'queue status': 1,
+                                      'queue uptime': 2,
+                                      'queue starttime': 3,
+                                      'provider status': 4,
+                                      'provider uptime': 5,
+                                      'provider starttime': 6}
+
+        self.template = [[pad_with_spaces('queue:', width_unit)],
+                           [pad_with_spaces('uptime:  ', 2*width_unit, 'prepend'),
+                            pad_with_spaces('starttime:  ', 2*width_unit, 'prepend')],
+                           [''],
+                           [pad_with_spaces('provider:', width_unit)],
+                           [pad_with_spaces('uptime:  ', 2*width_unit, 'prepend'),
+                            pad_with_spaces('starttime:  ', 2*width_unit, 'prepend')],
+                           ['']]
+
+    def update(self):
+
+        # gather new information
+        information = {}
+        information['queue status'] = self.dopq.status
+        if information['queue status'] == 'running':
+            information['queue uptime'], information['queue starttime'] = self.dopq.uptime
+            information['provider status'] = self.dopq.provider.status
+            information['provider uptime'], information['provider starttime'] = self.dopq.provider.uptime
+        else:
+            information['queue uptime'], information['queue starttime'] = '', ''
+            information['provider status'] = ''
+            information['provider uptime'], information['provider starttime'] = '', ''
+
+        # update displayed information
+        for field, value in information.items():
+
+            # skip if information has not changed
+            if value == self.displayed_information[field]:
+                continue
+
+            # overwrite information that has changed
+            attrs = pick_color(value) | self.screen.BOLD if 'status' in field else 0
+            self.update_field(value, self.fields[field], attrs)
+
+        self.displayed_information = information
+
+    def write_template(self):
+        coordinates = self.screen.addmultiline(self.template)
+        self.fields = {'queue status': coordinates[0][0],
+                       'queue uptime': coordinates[1][0],
+                       'queue starttime': coordinates[1][1],
+                       'provider status': coordinates[3][0],
+                       'provider uptime': coordinates[4][0],
+                       'provider starttime': coordinates[4][1]
+                       }
+
+        def sort_fn(item):
+            return item[1]['beginning']['y'], item[1]['beginning']['x']
+        # TODO fix bug here (indices)
+
+        self.fields = OrderedDict(sorted(self.fields.items(), key=sort_fn))
+        self.calculate_field_properties()
+        self.first_call = False
+
+
+class Containers(DisplayFunction):
+
+    def __init__(self):
+        pass
+
+
+
+def pad_with_spaces(string, total_length, mode='append'):
+    string_length = len(string)
+    difference = total_length - string_length
+    if difference < 0:
+        raise ValueError('total length cannot be smaller than the length of the passed string')
+
+    append, prepend, center = False, False, False
+    if mode == 'append':
+        append = True
+        prepend = False
+        center = False
+    elif mode == 'prepend':
+        append = False
+        prepend = True
+    elif mode == 'center':
+        append = True
+        prepend = True
+        center = True
+    else:
+        raise ValueError('unknown mode: {}'.format(mode))
+
+    padding = (' ' * int(floor(difference / (1+center))), ' ' * int(ceil(difference / (1+center))))
+    padded_string = (prepend * padding[0]) + string + (append * padding[1])
+
+    return padded_string
+
+
 def run_interface(dopq):
     curses.wrapper(main, dopq)
 
 
-def main(screen, dopq):
-
-
-    # init
-    screen.nodelay(True)
-    curses.curs_set(0)
-    screen.erase()
-
-
-    # define color pairs
-    curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-    curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-
-    subwindows = setup_subwindows(screen)
-
-    # fancy print
-    print_header(screen)
-
-    # define a keymapping to all interface funtions
-    functions = {ord('l'): read_container_logs,
-                 ord('r'): reload_config,
-                 ord('s'): shutdown_queue,
-                 ord('h'): display_commands}
-
-    while True:
-
-        screen.erase()
-        print_status(subwindows['status'], dopq)
-        print_containers(subwindows['containers'], dopq)
-        print_penalties(subwindows['penalties'], dopq)
-        print_history(subwindows['history'], dopq)
-        print_enqueued(subwindows['enqueued'], dopq)
-
-        # refresh all subwindows
-        screen.refresh()
-        for subwindow in subwindows.values():
-            subwindow.refresh()
-
-        # get user input char
-        key = screen.getch()
-        curses.flushinp()
-
-        # execute function corresponding to pressed key
-        if key in functions.keys():
-            subwindows = execute_function(functions[key], screen, dopq)
-
-        time.sleep(0.5)
-
 # def main(screen, dopq):
+#
+#
+#     # init
+#     screen.nodelay(True)
+#     curses.curs_set(0)
+#     screen.erase()
+#
+#
 #     # define color pairs
 #     curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
 #     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 #     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
 #     curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
 #
-#     screen.idcok(False)
-#     screen.idlok(False)
+#     subwindows = setup_subwindows(screen)
 #
-#     interface = Interface(dopq, screen, offset=4, indent=2)
-#     interface()
+#     # fancy print
+#     print_header(screen)
+#
+#     # define a keymapping to all interface funtions
+#     functions = {ord('l'): read_container_logs,
+#                  ord('r'): reload_config,
+#                  ord('s'): shutdown_queue,
+#                  ord('h'): display_commands}
+#
+#     while True:
+#
+#         screen.erase()
+#         print_status(subwindows['status'], dopq)
+#         print_containers(subwindows['containers'], dopq)
+#         print_penalties(subwindows['penalties'], dopq)
+#         print_history(subwindows['history'], dopq)
+#         print_enqueued(subwindows['enqueued'], dopq)
+#
+#         # refresh all subwindows
+#         screen.refresh()
+#         for subwindow in subwindows.values():
+#             subwindow.refresh()
+#
+#         # get user input char
+#         key = screen.getch()
+#         curses.flushinp()
+#
+#         # execute function corresponding to pressed key
+#         if key in functions.keys():
+#             subwindows = execute_function(functions[key], screen, dopq)
+#
+#         time.sleep(0.5)
 
+def main(screen, dopq):
+    # define color pairs
+    curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+
+    screen.idcok(False)
+    screen.idlok(False)
+
+    interface = Interface(dopq, screen, offset=4, indent=2)
+    interface()
 
 
 def execute_function(func, screen, dopq):
