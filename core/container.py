@@ -557,7 +557,8 @@ class Container:
         stats_dict = self.stats(decode=True, stream=False)
 
         # build base info
-        base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time}
+        base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time,
+                     'docker name': self.docker_name, 'created': self.created_at, 'status': self.status}
 
         # also show runtime info?
         if runtime_stats:
