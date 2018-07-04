@@ -1,15 +1,18 @@
 import curses
+from curses import panel
 import time
 import gpu
 import interface_funcs
 from math import floor, ceil
 from collections import OrderedDict
 import copy
+import types
 
 X_L = 2
 Y_T = 4
 HORIZONTAL_RATIO = 0.5
 VERTICAL_RATIO = 0.3
+KEY_TAB = 9
 
 
 class Window(object):
@@ -39,6 +42,7 @@ class Window(object):
         self.YELLOW = curses.color_pair(3)
         self.GREEN = curses.color_pair(4)
         self.RED = curses.color_pair(5)
+        self.BLUE = curses.color_pair(6)
 
     @property
     def size(self):
@@ -214,7 +218,6 @@ class Window(object):
 
         self.addstr(self.header, self.BOLD | self.header_attr, center=True)
         self.navigate(self.offset, self.indent)
-        self.refresh()
 
 
 class SubWindow(Window):
@@ -245,11 +248,15 @@ class SubWindow(Window):
         self.header = header
         self.header_attr = parent.header_attr
         if isinstance(func, type):
-            self.func = DisplayFunction(self, self.parent.dopq) if func is None else func(self, self.parent.dopq)
+            self.func = func(self, self.parent.dopq)
             self.args = []
-        else:
+        elif isinstance(func, types.FunctionType):
             self.func = func
             self.args = [self.screen, self.parent.dopq]
+        else:
+            time.sleep(15)
+            self.func = DisplayFunction(self, self.parent.dopq)
+            self.args = []
 
         self.redraw()
 
@@ -271,12 +278,87 @@ class SubWindow(Window):
         self.erase()
         self.screen.box()
         self.print_header()
-        self.func.first_call = True
+        if isinstance(self.func, DisplayFunction):
+            self.func.first_call = True
+
+
+class SubWindowAndPad(SubWindow):
+
+    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None, pad_height_factor=3):
+
+        # initialize regular Subwindow
+        self.pad_initialized = False
+        super(SubWindowAndPad, self).__init__(parent, height, width, y, x, header, offset=0, indent=0, func=func)
+        self.pad_indent = self.parent.indent if indent is None else indent
+        self.pad_offset = self.parent.offset if offset is None else offset
+
+        # add a scrollable pad with same width and pad_height_factor * height
+        self.pad_heigth = self.height * pad_height_factor
+        pad = curses.newpad(self.pad_heigth, self.width)
+
+        # define some variables with regard to refreshing the pad
+        self.pad_line = 0
+        self.top_left = [self.pos_y + 1 + self.pad_offset, self.pos_x + 1 + self.pad_indent]
+        self.bottom_right = [self.pos_y + self.height - 2, self.pos_x + self.width - 1 - self.pad_indent]
+        self.pad_display_coordinates = self.top_left + self.bottom_right
+
+        # substitute self.screen with pad, move self.screen to self.window
+        self.window = self.screen
+        self.screen = pad
+        self.args[0] = pad
+        self.pad_initialized = True
+
+        # move subwindow underneath pad (panel has to be stored, otherwise it is garbage collected)
+        self.panel = panel.new_panel(self.window)
+        self.panel.bottom()
+
+        # adjust indent and offset due to pad
+        self.indent -= 1 if self.indent > 0 else 0
+        self.offset -= 1 if self.offset > 0 else 0
+
+    def refresh(self):
+        if self.pad_initialized:
+            self.window.refresh()
+
+            self.screen.refresh(self.pad_line, 0, *self.pad_display_coordinates)
+        else:
+            self.screen.refresh()
+
+    def redraw(self):
+        self.erase()
+        if self.pad_initialized:
+            self.window.box()
+        else:
+            self.screen.box()
+        self.print_header()
+        if isinstance(self.func, DisplayFunction):
+            self.func.first_call = True
+
+    def print_header(self):
+        if self.pad_initialized:
+            pad = self.screen
+            self.screen = self.window
+        super(SubWindowAndPad, self).print_header()
+        if self.pad_initialized:
+            self.screen = pad
+
+    def scroll_up(self):
+        self.pad_line -= 1 if self.pad_line > 0 else 0
+
+    def scroll_down(self):
+        self.pad_line += 1 if self.pad_line < self.pad_heigth - self.height + 1 else 0
+
+    def set_focus(self):
+        border_chars = ['|'] * 2 + ['-'] * 2
+        self.window.attron(self.BOLD | self.CYAN)
+        self.window.border(*border_chars)
+        self.window.attroff(self.BOLD | self.CYAN)
+        self.print_header()
 
 
 class Interface(Window):
 
-    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=0.2):
+    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=0.1):
         """
         interface to the docker priority queue object
         :param dopq: instance of DopQ
@@ -302,6 +384,9 @@ class Interface(Window):
 
         self.subwindows = self.split_screen()
 
+        self.scrollable = [self.subwindows['penalties'], self.subwindows['enqueued'], self.subwindows['history']]
+        self.focus = -1
+
         # draw all borders and headers
         self.redraw()
 
@@ -317,6 +402,7 @@ class Interface(Window):
 
             # display information in the subwindows
             self.print_information()
+            self.refresh()
 
             # get user input char
             key = self.getch()
@@ -326,16 +412,41 @@ class Interface(Window):
             if key in self.functions.keys():
                 self.execute_function(self.functions[key])
 
+            if key == KEY_TAB:
+
+                # unset focus for current subwindow
+                if self.focus != -1:
+                    self.scrollable[self.focus].redraw()
+
+                # cycle subwindow focus
+                self.focus += 1 if self.focus < len(self.scrollable) - 1 else -3
+                if self.focus != -1:
+                    self.scrollable[self.focus].set_focus()
+
+            if key == ord('+') and self.focus > -1:
+                subwindow = self.scrollable[self.focus]
+                line = subwindow.pad_line
+                subwindow.pad_line -= 1 if line > 0 else 0
+
+            if key == ord('#') and self.focus > -1:
+                subwindow = self.scrollable[self.focus]
+                line = subwindow.pad_line
+                subwindow.pad_line += 1 if line < subwindow.pad_heigth - subwindow.height + subwindow.pad_offset +1 else 0
+
             time.sleep(self.interval)
 
-    def subwin(self, *args, **kwargs):
+    def subwin(self, pad=False, *args, **kwargs):
         """
         wrapper for Subwindow.__init__() with self as parent
+        :param pad: if True return a SubWindowAndPad instead of SubWindow
         :param args: positional arguments passed to Subwindow()
         :param kwargs: keyword arguments passed to Subwindow()
         :return: instance of Subwindow
         """
-        return SubWindow(parent=self, *args, **kwargs)
+        if pad:
+            return SubWindowAndPad(parent=self, *args, **kwargs)
+        else:
+            return SubWindow(parent=self, *args, **kwargs)
 
     def split_screen(self):
         """
@@ -370,24 +481,30 @@ class Interface(Window):
                                       header='~~Running Containers~~',
                                       func=Containers,
                                       offset=2),
-            'penalties': self.subwin(height=sub_height_upper,
+            'penalties': self.subwin(pad=True,
+                                     height=sub_height_upper,
                                      width=sub_width_right,
                                      y=self.offset,
                                      x=self.indent + sub_width_left + horizontal_gap,
+                                     offset=1,
                                      header='~~User Penalties~~',
                                      func=print_penalties),
-            'history': self.subwin(height=sub_height_lower // 2,
-                                   width= sub_width_right,
-                                   y=self.offset + sub_height_upper + vertical_gap,
-                                   x=self.indent + sub_width_left + horizontal_gap,
-                                   header='~~History~~',
-                                   func=print_history),
-            'enqueued': self.subwin(height=sub_height_lower // 2,
+            'enqueued': self.subwin(pad=True,
+                                    height=sub_height_lower // 2,
                                     width=sub_width_right,
-                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
+                                    y=self.offset + sub_height_upper + vertical_gap,
                                     x=self.indent + sub_width_left + horizontal_gap,
+                                    offset=1,
                                     header='~~Enqueued Containers~~',
-                                    func=print_enqueued)
+                                    func=print_history),
+            'history': self.subwin(pad=True,
+                                   height=sub_height_lower // 2,
+                                   width=sub_width_right,
+                                   y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
+                                   x=self.indent + sub_width_left + horizontal_gap,
+                                   offset=1,
+                                   header='~~History~~',
+                                   func=print_enqueued)
                     }
 
         return subwindows
@@ -402,8 +519,6 @@ class Interface(Window):
 
         for sub in self.subwindows.values():
             sub()
-
-        self.refresh()
 
     def redraw(self):
         """
@@ -447,9 +562,10 @@ class Interface(Window):
                        ('Q', self.BOLD | self.header_attr),
                        ('ueue -- ', self.header_attr),
                        ('DopQ', self.BOLD | self.header_attr)]
-        self.navigate(y=1)
+        self.nextline()
         self.addline(string_list=string_line, newline=1, center=True)
-        self.screen.hline('~', self.size[1]-2*self.indent, self.CYAN)
+
+        self.screen.hline('~', self.size[1]-2*self.indent, self.BOLD | self.header_attr)
 
     def execute_function(self, func):
         """
@@ -878,6 +994,7 @@ def main(screen, dopq):
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
     screen.idcok(False)
     screen.idlok(False)
@@ -913,6 +1030,8 @@ def pick_color(status):
     elif status == 'terminated':
         return curses.color_pair(5)
     elif status == 'exited':
+        return curses.color_pair(5)
+    elif status == 'dead':
         return curses.color_pair(5)
     else:
         return 0
@@ -1037,24 +1156,23 @@ def print_containers(subwindow, dopq):
 
 
 def print_penalties(subwindow, dopq):
+    h, w = subwindow.getmaxyx()
 
-    x_l = 9
+    for i in range(h-1):
+        for j in range(w-1):
+            subwindow.addstr(i,j,str((i*j)%10))
 
-    print_subwindow_header(subwindow, '~~User Penalties~~')
+    return None
 
 
 def print_history(subwindow, dopq):
 
-    x_l = 9
-
-    print_subwindow_header(subwindow, '~~History~~')
+    return None
 
 
 def print_enqueued(subwindow, dopq):
 
-    x_l = 9
-
-    print_subwindow_header(subwindow, '~~Enqueued Containers~~')
+    return None
 
 
 def read_container_logs(screen, dopq):
