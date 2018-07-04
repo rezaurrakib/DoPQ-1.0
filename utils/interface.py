@@ -4,6 +4,7 @@ import gpu
 import interface_funcs
 from math import floor, ceil
 from collections import OrderedDict
+import copy
 
 X_L = 2
 Y_T = 4
@@ -13,7 +14,7 @@ VERTICAL_RATIO = 0.3
 
 class Window(object):
 
-    def __init__(self, screen, offset, indent, header=None):
+    def __init__(self, screen, offset=0, indent=0, header=None):
         """
         Window wraps a curses window object to simplify and streamline navigating, formatting and writing in it
         :param screen: curses window object
@@ -274,7 +275,7 @@ class SubWindow(Window):
 
 
 class Interface(Window):
-    # TODO supress flickering
+
     def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=0.2):
         """
         interface to the docker priority queue object
@@ -363,11 +364,12 @@ class Interface(Window):
                                   func=Status,
                                   indent=self.indent*4),
             'containers': self.subwin(height=sub_height_lower,
-                                       width=sub_width_left,
-                                       y=self.offset + sub_height_upper + vertical_gap,
-                                       x=self.indent,
-                                       header='~~Running Containers~~',
-                                       func=print_containers),
+                                      width=sub_width_left,
+                                      y=self.offset + sub_height_upper + vertical_gap,
+                                      x=self.indent,
+                                      header='~~Running Containers~~',
+                                      func=Containers,
+                                      offset=2),
             'penalties': self.subwin(height=sub_height_upper,
                                      width=sub_width_right,
                                      y=self.offset,
@@ -477,6 +479,8 @@ class DisplayFunction(object):
     def __init__(self, subwindow, dopq):
         """
         class for stateful display functions
+        :param subwindow: instance of Subwindow, passed automatically in Interface.split_screen()
+        :param dopq: Instance of DopQ
         """
         self.displayed_information = None
         self.template = None
@@ -501,25 +505,34 @@ class DisplayFunction(object):
             self.update()
 
     def update(self):
-        pass
+        """
+        update displayed information
+        :return: None
+        """
+        raise NotImplementedError('abstract method')
 
     def write_template(self):
-        pass
+        """
+        write template to display on first function call
+        :return: None
+        """
+        raise NotImplementedError('abstract method')
 
     def update_field(self, string, field, attrs=0):
         """
         fill the field with whitespaces before writing the string
         :param string: string to write to the field
         :param field: field as given in self.fields.values()
+        :param attrs: formatting for the string. defaults to 0 (no formatting)
         :return: None
         """
         (y, x), length = field
         self.screen.navigate(y, x)
         self.screen.addstr(' ' * length)
         self.screen.navigate(y, x)
-        self.screen.addstr(string, attrs)
+        self.screen.addstr(str(string), attrs)
 
-    def calculate_field_properties(self):
+    def calculate_field_properties(self, fields):
         """
         calculates the length of each field and appends this length to the coordinates already stored in the fields dict
         :return: None
@@ -527,7 +540,7 @@ class DisplayFunction(object):
         width = self.screen.size[1] - self.screen.indent
 
         # cycle items in the ordered dict to calculate lengths
-        item_list = self.fields.items()
+        item_list = fields.items()
         for index, (field, coordinates) in enumerate(item_list[:-1]):
 
             # get the next field name and its coordinates
@@ -545,29 +558,41 @@ class DisplayFunction(object):
 
             length = end - start
 
-            self.fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), length)
+            fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), length)
 
         else:
             # account for the last field
             field, coordinates = item_list[-1]
-            self.fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), width - coordinates['end']['x'])
+            fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), width - coordinates['end']['x'])
+
+        return fields
 
 
 class Status(DisplayFunction):
 
     def __init__(self, subwindow, dopq):
+        """
+        initializes template and displayed information
+        :param subwindow: instance of Subwindow
+        :param dopq: instance of DopQ
+        """
 
         super(Status, self).__init__(subwindow, dopq)
 
+        # init fields
+        self.fields = {'queue status': '',
+                       'queue uptime': '',
+                       'queue starttime': '',
+                       'provider status': '',
+                       'provider uptime': '',
+                       'provider starttime': ''}
+
+        # init information dict
+        self.displayed_information = copy.deepcopy(self.fields)
+
+        # init template
         width = self.screen.size[1]
         width_unit = width // 8
-        self.displayed_information = {'queue status': 1,
-                                      'queue uptime': 2,
-                                      'queue starttime': 3,
-                                      'provider status': 4,
-                                      'provider uptime': 5,
-                                      'provider starttime': 6}
-
         self.template = [[pad_with_spaces('queue:', width_unit)],
                            [pad_with_spaces('uptime:  ', 2*width_unit, 'prepend'),
                             pad_with_spaces('starttime:  ', 2*width_unit, 'prepend')],
@@ -578,7 +603,10 @@ class Status(DisplayFunction):
                            ['']]
 
     def update(self):
-
+        """
+        gathers new information and overwrites only the portions int the template that have changed
+        :return: None
+        """
         # gather new information
         information = {}
         information['queue status'] = self.dopq.status
@@ -605,29 +633,162 @@ class Status(DisplayFunction):
         self.displayed_information = information
 
     def write_template(self):
-        coordinates = self.screen.addmultiline(self.template)
-        self.fields = {'queue status': coordinates[0][0],
-                       'queue uptime': coordinates[1][0],
-                       'queue starttime': coordinates[1][1],
-                       'provider status': coordinates[3][0],
-                       'provider uptime': coordinates[4][0],
-                       'provider starttime': coordinates[4][1]
-                       }
+        """
+        writes template to display on first call
+        :return:
+        """
 
+        # get the beginning and end coordinates for every string in the template
+        coordinates = self.screen.addmultiline(self.template)
+        fields = {'queue status': coordinates[0][0],
+                  'queue uptime': coordinates[1][0],
+                  'queue starttime': coordinates[1][1],
+                  'provider status': coordinates[3][0],
+                  'provider uptime': coordinates[4][0],
+                  'provider starttime': coordinates[4][1]
+                  }
+
+        # sort the dict according to y coordinates first and x coordinates second
         def sort_fn(item):
             return item[1]['beginning']['y'], item[1]['beginning']['x']
-        # TODO fix bug here (indices)
 
-        self.fields = OrderedDict(sorted(self.fields.items(), key=sort_fn))
-        self.calculate_field_properties()
+        fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+        self.fields = self.calculate_field_properties(fields)
         self.first_call = False
 
 
 class Containers(DisplayFunction):
 
-    def __init__(self):
-        pass
+    def __init__(self, subwindow, dopq):
 
+        super(Containers, self).__init__(subwindow, dopq)
+
+        width = self.screen.size[1]
+        width_unit = width // 8
+
+        # init fields dict
+        self.fields = [{'name': '',
+                        'status': '',
+                        'docker name': '',
+                        'executor': '',
+                        'run_time': '',
+                        'created': '',
+                        'cpu': '',
+                        'memory': '',
+                        'id': '',
+                        'usage': ''}]
+
+        # init information dict
+        self.displayed_information = copy.deepcopy(self.fields)
+
+        # init template
+        self.template = {'base': [['name:  ', # name
+                                   pad_with_spaces('status:  ', 5 * width_unit, 'prepend')],  # end of first line
+                                  ['-' * (width - 2 * self.screen.indent)],  # hline
+                                  [pad_with_spaces('docker name:  ', 2 * width_unit, 'prepend'),
+                                   pad_with_spaces('executor:  ', 3 * width_unit, 'prepend')], # end of second line
+                                  [pad_with_spaces('uptime:  ', 2 * width_unit, 'prepend'),
+                                   pad_with_spaces('created:  ', 3 * width_unit, 'prepend')],  # end of third line
+                                  [pad_with_spaces('cpu usage:  ', 2 * width_unit, 'prepend'),
+                                   pad_with_spaces('memory usage:  ', 3 * width_unit, 'prepend')]],  # end of fourth line
+
+                         'gpu': [pad_with_spaces('gpu minor:  ', 2 * width_unit, 'prepend'),
+                                 pad_with_spaces('gpu usage:  ', 3 * width_unit, 'prepend')]}
+
+    def update(self):
+
+        # gather new information
+        information = []
+        for container in self.dopq.running_containers:
+            information.append(container.container_stats())
+
+            # reformat gpu info
+            gpu_info = information[-1].pop('gpu', False)
+            if gpu_info:
+                minors, usages = [], []
+                for info in gpu_info:
+                    minors.append(info['id'])
+                    usages.append(info['usage'])
+                information[-1]['id'] = minors
+                information[-1]['usage'] = ''.join([str(usage) + '% ' for usage in usages])
+
+        # check if the containers are the same
+        rewrite_all = False
+        if len(information) != len(self.displayed_information):
+            self.write_template()
+            rewrite_all = True
+        else:
+            for index, container in enumerate(self.dopq.running_containers):
+                if container.name != self.displayed_information[index]['name']:
+                    self.write_template()
+                    rewrite_all = True
+                    break
+
+        # update displayed information
+        for index, container_information in enumerate(information):
+            for field, value in container_information.items():
+
+                if rewrite_all:
+                    attrs = 0
+                    if 'status' in field:
+                        attrs = pick_color(value) | self.screen.BOLD
+                    elif 'name' in field:
+                        attrs = self.screen.BOLD
+                    self.update_field(value, self.fields[index][field], attrs)
+                else:
+                    # skip if information has not changed
+                    if value == self.displayed_information[index][field]:
+                        continue
+
+                    # overwrite information that has changed
+                    attrs = pick_color(value) | self.screen.BOLD if 'status' in field else 0
+                    self.update_field(value, self.fields[index][field], attrs)
+
+        # update stored information
+        if information:
+            self.displayed_information = information
+
+    def write_template(self):
+
+        # combine parts of the template according to number and gpu settings of containers
+        templates, use_gpu = [], []
+        for container in self.dopq.running_containers:
+                if container.use_gpu:
+                    template = copy.deepcopy(self.template['base'])
+                    template.append(self.template['gpu'])
+                    templates.append(template)
+                    use_gpu += [True]
+                else:
+                    templates.append(self.template['base'])
+                    use_gpu += [False]
+
+        # write the template to the display and get fields
+        heigth = (self.screen.size[0] - self.screen.offset) // len(templates)
+        lines = [self.screen.offset + i*heigth for i, _ in enumerate(templates)]
+        fields_list = []
+        for index, (line, template) in enumerate(zip(lines, templates)):
+            self.screen.navigate(y=line, x=self.screen.indent)
+            coordinates = self.screen.addmultiline(template)
+            fields = {'name': coordinates[0][0],
+                      'status': coordinates[0][1],
+                      'docker name': coordinates[2][0],
+                      'executor': coordinates[2][1],
+                      'run_time': coordinates[3][0],
+                      'created': coordinates[3][1],
+                      'cpu': coordinates[4][0],
+                      'memory': coordinates[4][1]}
+            if use_gpu[index]:
+                fields['id'] = coordinates[5][0]
+                fields['usage'] = coordinates[5][1]
+
+            def sort_fn(item):
+                return item[1]['beginning']['y'], item[1]['beginning']['x']
+
+            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields_list.append(self.calculate_field_properties(fields))
+
+        self.fields = fields_list
+        self.first_call = False
 
 
 def pad_with_spaces(string, total_length, mode='append'):
@@ -759,7 +920,6 @@ def pick_color(status):
 
 def print_key_value_pair(screen, key, value, attrs=[], color=False, n_tabs=1, newline=0, x_l=X_L):
 
-    # TODO rewrite to accept process and print out uptime as well
     screen.addstr(key + ':')
     attrs_or = 0
     attrs = [attrs] if not isinstance(attrs, list) else attrs

@@ -3,13 +3,17 @@ from core import container, containerconfig
 import utils.gpu
 import time
 import utils.interface
+import numpy as np
 
 
 class DummyDoPQ(helper_process.HelperProcess):
 
     def __init__(self):
         super(DummyDoPQ, self).__init__()
-        self.running_containers = [DummyContainer()]*3
+        self.running_containers = [DummyContainer([0]),
+                                   DummyContainer([1], 'Sir Dummington'),
+                                   DummyContainer([2, 0], 'lazy_dummy_420', 'paused'),
+                                   DummyContainer([1], 'Much Container! WOW!', 'exited')]
         self.provider = DummyProvider()
 
     def run_queue(self):
@@ -27,32 +31,51 @@ class DummyDoPQ(helper_process.HelperProcess):
 
 
 class DummyContainer(object):
-        def container_stats(self, runtime_stats=True):
-            import psutil
 
-            # build base info
-            base_info = {'name': 'dummy', 'executor': 'dummy the dummy', 'run_time': 'forever'}
+    def __init__(self, minors=[], name='dummy', status='running'):
 
-            # also show runtime info?
-            if runtime_stats:
+        self.minors = minors
+        self.name = name
+        self.status = status
 
-                # cpu_stats = stats_dict['cpu_stats']
-                cpu_usage_percentage = psutil.cpu_percent()
+    @property
+    def use_gpu(self):
+        return bool(self.minors)
 
-                # calc memory usage
-                mem_stats = {'usage': 20, 'limit': 100}
-                mem_usage = mem_stats['usage'] * 100.0 / mem_stats['limit']
+    @property
+    def docker_name(self):
+        return 'mighty_mckenzie'
 
-                # add base runtime info
-                base_info['cpu_mem'] = {'cpu': cpu_usage_percentage, 'memory': mem_usage}
+    def container_stats(self, runtime_stats=True):
+        import psutil
 
-                # add gpu info, if required
-                gpu_info = utils.gpu.get_gpu_infos(0)
-                base_info['gpu'] = [
-                    {'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
-                    for gpu_dt in gpu_info.values()]
+        # build base info
+        base_info = {'name': self.name, 'executor': 'dummy the dummy', 'run_time': 'forever', 'created': 'ancient times',
+                     'docker name': self.docker_name, 'status': self.status}
 
-            return base_info
+        # also show runtime info?
+        if runtime_stats:
+
+            # cpu_stats = stats_dict['cpu_stats']
+            cpu_usage_percentage = psutil.cpu_percent()
+
+            # calc memory usage
+            mem_stats = {'usage': 20, 'limit': 100}
+            mem_usage = mem_stats['usage'] * 100.0 / mem_stats['limit']
+
+            # add base runtime info
+            base_info.update({'cpu': cpu_usage_percentage, 'memory': mem_usage})
+
+            # add gpu info, if required
+            gpu_info = {}
+            for minor in self.minors:
+                gpu_info[str(minor)] = {'id': minor, 'usage': np.random.randint(0, 100)}
+
+            base_info['gpu'] = [
+                {'id': gpu_dt['id'], 'usage': gpu_dt['usage']}
+                for gpu_dt in gpu_info.values()]
+
+        return base_info
 
 
 class DummyProvider(helper_process.HelperProcess):
