@@ -81,6 +81,10 @@ class DopQ(hp.HelperProcess):
         super(DopQ, self).__init__()
 
     @property
+    def user_list(self):
+        return self.config['fetcher']['executors']
+
+    @property
     def users_stats(self):
         users = self.config['fetcher']['executors']
         user_stats = []
