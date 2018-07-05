@@ -80,6 +80,39 @@ class DopQ(hp.HelperProcess):
         # initialize process variable and termination flag
         super(DopQ, self).__init__()
 
+    @property
+    def users_stats(self):
+        users = self.config['fetcher']['executors']
+        user_stats = []
+
+        # get info for all users
+        for user in users:
+
+            single_user_stats = {'user': user,
+                                 'penalty': round(self.calc_penalty(user), 4),
+                                 'containers run': self.find_user_in_containers(user, self.history),
+                                 'containers enqueued': self.find_user_in_containers(user, self.container_list)}
+
+            user_stats.append(single_user_stats)
+
+        return user_stats
+
+    @staticmethod
+    def find_user_in_containers(user, container_list):
+        """
+        small helper for counting how many containers in the list belong to user
+        :param user: name of the user
+        :param container_list: list with Container objects
+        :return: number of user's containers in container_list
+        """
+
+        num_containers = 0
+        for container in container_list:
+            if container.user == user:
+                num_containers += 1
+
+        return num_containers
+
     def restore(self, key):
         """
         restores history, container_list, running_containers, or all three
