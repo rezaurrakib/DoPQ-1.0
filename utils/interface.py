@@ -288,9 +288,9 @@ class SubWindowAndPad(SubWindow):
 
         # initialize regular Subwindow
         self.pad_initialized = False
+        self.pad_indent = 1 if indent is None else indent
+        self.pad_offset = 1 if offset is None else offset
         super(SubWindowAndPad, self).__init__(parent, height, width, y, x, header, offset=0, indent=0, func=func)
-        self.pad_indent = self.parent.indent if indent is None else indent
-        self.pad_offset = self.parent.offset if offset is None else offset
 
         # add a scrollable pad with same width and pad_height_factor * height
         self.pad_heigth = self.height * pad_height_factor
@@ -301,11 +301,13 @@ class SubWindowAndPad(SubWindow):
         self.top_left = [self.pos_y + 1 + self.pad_offset, self.pos_x + 1 + self.pad_indent]
         self.bottom_right = [self.pos_y + self.height - 2, self.pos_x + self.width - 1 - self.pad_indent]
         self.pad_display_coordinates = self.top_left + self.bottom_right
+        self.scroll_limit = self.pad_heigth - self.height + 1
 
         # substitute self.screen with pad, move self.screen to self.window
         self.window = self.screen
         self.screen = pad
-        self.args[0] = pad
+        if self.args:
+            self.args[0] = pad
         self.pad_initialized = True
 
         # move subwindow underneath pad (panel has to be stored, otherwise it is garbage collected)
@@ -346,7 +348,7 @@ class SubWindowAndPad(SubWindow):
         self.pad_line -= 1 if self.pad_line > 0 else 0
 
     def scroll_down(self):
-        self.pad_line += 1 if self.pad_line < self.pad_heigth - self.height + 1 else 0
+        self.pad_line += 1 if self.pad_line < self.scroll_limit else 0
 
     def set_focus(self):
         border_chars = ['|'] * 2 + ['-'] * 2
@@ -358,7 +360,7 @@ class SubWindowAndPad(SubWindow):
 
 class Interface(Window):
 
-    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=0.1):
+    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=1):
         """
         interface to the docker priority queue object
         :param dopq: instance of DopQ
@@ -384,7 +386,7 @@ class Interface(Window):
 
         self.subwindows = self.split_screen()
 
-        self.scrollable = [self.subwindows['penalties'], self.subwindows['enqueued'], self.subwindows['history']]
+        self.scrollable = [self.subwindows['userstats'], self.subwindows['enqueued'], self.subwindows['history']]
         self.focus = -1
 
         # draw all borders and headers
@@ -402,38 +404,43 @@ class Interface(Window):
 
             # display information in the subwindows
             self.print_information()
-            self.refresh()
 
-            # get user input char
-            key = self.getch()
-            curses.flushinp()
+            # loop that catches user interactions with ~0.1 cycle time
+            for _ in range(int(self.interval/0.1)):
+                # get user input char
+                key = self.getch()
+                curses.flushinp()
 
-            # run the specified function
-            if key in self.functions.keys():
-                self.execute_function(self.functions[key])
+                # run the specified function
+                if key in self.functions.keys():
+                    self.execute_function(self.functions[key])
 
-            if key == KEY_TAB:
+                if key == KEY_TAB:
 
-                # unset focus for current subwindow
-                if self.focus != -1:
-                    self.scrollable[self.focus].redraw()
+                    # unset focus for current subwindow
+                    if self.focus != -1:
+                        self.scrollable[self.focus].redraw()
 
-                # cycle subwindow focus
-                self.focus += 1 if self.focus < len(self.scrollable) - 1 else -3
-                if self.focus != -1:
-                    self.scrollable[self.focus].set_focus()
+                        # reprint information, otherwise window will be blank until next overall refresh
+                        self.scrollable[self.focus]()
+                        self.scrollable[self.focus].refresh()
 
-            if key == ord('+') and self.focus > -1:
-                subwindow = self.scrollable[self.focus]
-                line = subwindow.pad_line
-                subwindow.pad_line -= 1 if line > 0 else 0
+                    # cycle subwindow focus
+                    self.focus += 1 if self.focus < len(self.scrollable) - 1 else -3
+                    if self.focus != -1:
+                        self.scrollable[self.focus].set_focus()
 
-            if key == ord('#') and self.focus > -1:
-                subwindow = self.scrollable[self.focus]
-                line = subwindow.pad_line
-                subwindow.pad_line += 1 if line < subwindow.pad_heigth - subwindow.height + subwindow.pad_offset +1 else 0
+                if key == ord('+') and self.focus > -1:
+                    subwindow = self.scrollable[self.focus]
+                    subwindow.scroll_up()
 
-            time.sleep(self.interval)
+                if key == ord('#') and self.focus > -1:
+                    subwindow = self.scrollable[self.focus]
+                    subwindow.scroll_down()
+
+                self.refresh()
+
+                time.sleep(0.1)
 
     def subwin(self, pad=False, *args, **kwargs):
         """
@@ -481,14 +488,14 @@ class Interface(Window):
                                       header='~~Running Containers~~',
                                       func=Containers,
                                       offset=2),
-            'penalties': self.subwin(pad=True,
+            'userstats': self.subwin(pad=True,
                                      height=sub_height_upper,
                                      width=sub_width_right,
                                      y=self.offset,
                                      x=self.indent + sub_width_left + horizontal_gap,
                                      offset=1,
-                                     header='~~User Penalties~~',
-                                     func=print_penalties),
+                                     header='~~User Stats~~',
+                                     func=UserStats),
             'enqueued': self.subwin(pad=True,
                                     height=sub_height_lower // 2,
                                     width=sub_width_right,
@@ -844,7 +851,7 @@ class Containers(DisplayFunction):
         for index, container_information in enumerate(information):
             for field, value in container_information.items():
 
-                if rewrite_all:
+                if rewrite_all or value != self.displayed_information[index][field]:
                     attrs = 0
                     if 'status' in field:
                         attrs = pick_color(value) | self.screen.BOLD
@@ -852,13 +859,7 @@ class Containers(DisplayFunction):
                         attrs = self.screen.BOLD
                     self.update_field(value, self.fields[index][field], attrs)
                 else:
-                    # skip if information has not changed
-                    if value == self.displayed_information[index][field]:
-                        continue
-
-                    # overwrite information that has changed
-                    attrs = pick_color(value) | self.screen.BOLD if 'status' in field else 0
-                    self.update_field(value, self.fields[index][field], attrs)
+                    continue
 
         # update stored information
         if information:
@@ -905,6 +906,84 @@ class Containers(DisplayFunction):
 
         self.fields = fields_list
         self.first_call = False
+
+
+class UserStats(DisplayFunction):
+
+    def __init__(self, subwindow, dopq):
+
+        super(UserStats, self).__init__(subwindow, dopq)
+
+        width = self.screen.size[1]
+        width_unit = width // 8
+
+        # init fields dict
+        self.fields = [{'user': '',
+                        'containers run': '',
+                        'penalty': '',
+                        'containers enqueued': ''}]
+
+        # init information dict
+        self.displayed_information = copy.deepcopy(self.fields)
+
+        # init template
+        self.template = [['user:  '],
+                         ['-' * (width - 2 * self.screen.pad_indent)],  # hline
+                         [pad_with_spaces('penalty:  ', width_unit, 'prepend'),
+                          pad_with_spaces('containers run:  ', 3 * width_unit, 'prepend'),
+                          pad_with_spaces('containers enqueued:  ', 3 * width_unit, 'prepend')]]
+
+    def update(self):
+
+        user_stats = self.dopq.users_stats
+
+        # check if user list has change, if yes, redraw everything
+        redraw_all = False
+        if len(user_stats) != len(self.displayed_information):
+            self.write_template()
+            redraw_all = True
+
+        # cycle users and print their stats if they have changed or if redraw_all
+        for index, user in enumerate(user_stats):
+            for stat, value in user.items():
+                if redraw_all or value != self.displayed_information[index][stat]:
+                    attrs = self.screen.BOLD if 'user' in stat else 0
+                    self.update_field(value, self.fields[index][stat], attrs)
+                else:
+                    continue
+
+        # update displayed information
+        if user_stats:
+            self.displayed_information = user_stats
+
+    def write_template(self):
+
+        # combine parts of the template according to number and gpu settings of containers
+        templates = []
+        for user in self.dopq.user_list:
+            templates.append(self.template)
+
+        # write the template to the display and get fields
+        heigth = len(self.template) + 2  # number of lines in template + 2
+        lines = [self.screen.offset + i * heigth for i, _ in enumerate(templates)]  # starting line for each template
+        fields_list = []
+        for index, (line, template) in enumerate(zip(lines, templates)):
+            self.screen.navigate(y=line, x=self.screen.indent)
+            coordinates = self.screen.addmultiline(template)
+            fields = {'user': coordinates[0][0],
+                      'penalty': coordinates[2][0],
+                      'containers run': coordinates[2][1],
+                      'containers enqueued': coordinates[2][2]}
+
+            def sort_fn(item):
+                return item[1]['beginning']['y'], item[1]['beginning']['x']
+
+            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields_list.append(self.calculate_field_properties(fields))
+
+        self.fields = fields_list
+        self.first_call = False
+        self.screen.scroll_limit = lines[-2]
 
 
 def pad_with_spaces(string, total_length, mode='append'):

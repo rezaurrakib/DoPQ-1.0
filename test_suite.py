@@ -10,11 +10,23 @@ class DummyDoPQ(helper_process.HelperProcess):
 
     def __init__(self):
         super(DummyDoPQ, self).__init__()
-        self.running_containers = [DummyContainer([0]),
-                                   DummyContainer([1], 'Sir Dummington'),
-                                   DummyContainer([2, 0], 'lazy_dummy_420', 'paused'),
-                                   DummyContainer([1], 'Much Container! WOW!', 'exited')]
+        self.running_containers = [DummyContainer('dummy', [0]),
+                                   DummyContainer('dummy', [1], 'Sir Dummington'),
+                                   DummyContainer('dummy', [2, 0], 'lazy_dummy_420', 'paused'),
+                                   DummyContainer('dummy', [1], 'Much Container! WOW!', 'exited')]
         self.provider = DummyProvider()
+        self.user_list = ['dummy the dummy', 'simple dummy', 'Sir Dummington', 'dummy with no name']#,
+                          #'360_no_dummy', 'swag_dummy', 'bla', 'last_one']
+
+        self.history = self.generate_container_list(100)
+        self.container_list = self.generate_container_list(100)
+
+    def generate_container_list(self, n):
+        containers = []
+        for i in range(n):
+            user = self.user_list[np.random.randint(0, len(self.user_list))]
+            containers.append(DummyContainer(user))
+        return containers
 
     def run_queue(self):
         try:
@@ -29,14 +41,47 @@ class DummyDoPQ(helper_process.HelperProcess):
         super(DummyDoPQ, self).start(target=self.run_queue, name='DummyQueue')
         utils.interface.run_interface(self)
 
+    @property
+    def users_stats(self):
+        users = self.user_list
+        user_stats = []
+
+        # get info for all users
+        for user in users:
+            single_user_stats = {'user': user,
+                                 'penalty': round(np.random.randn(1), 4),
+                                 'containers run': self.find_user_in_containers(user, self.history),
+                                 'containers enqueued': self.find_user_in_containers(user, self.container_list)}
+
+            user_stats.append(single_user_stats)
+
+        return user_stats
+
+    @staticmethod
+    def find_user_in_containers(user, container_list):
+        """
+        small helper for counting how many containers in the list belong to user
+        :param user: name of the user
+        :param container_list: list with Container objects
+        :return: number of user's containers in container_list
+        """
+
+        num_containers = 0
+        for container in container_list:
+            if container.user == user:
+                num_containers += 1
+
+        return num_containers
+
 
 class DummyContainer(object):
 
-    def __init__(self, minors=[], name='dummy', status='running'):
+    def __init__(self, user, minors=[], name='dummy', status='running'):
 
         self.minors = minors
         self.name = name
         self.status = status
+        self.user = user
 
     @property
     def use_gpu(self):
@@ -50,7 +95,7 @@ class DummyContainer(object):
         import psutil
 
         # build base info
-        base_info = {'name': self.name, 'executor': 'dummy the dummy', 'run_time': 'forever', 'created': 'ancient times',
+        base_info = {'name': self.name, 'executor': self.user, 'run_time': 'forever', 'created': 'ancient times',
                      'docker name': self.docker_name, 'status': self.status}
 
         # also show runtime info?
