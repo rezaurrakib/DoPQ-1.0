@@ -18,6 +18,7 @@ import psutil
 
 from utils.gpu import get_gpus_status, get_gpu_infos
 from utils import log
+from utils.cpu import CPU
 
 LOG = log.get_module_log(__name__)
 
@@ -565,7 +566,8 @@ class Container:
 
             # TODO: Extract cpu usage percentage (which seems to be a bit tricky..)
             # cpu_stats = stats_dict['cpu_stats']
-            cpu_usage_percentage = psutil.cpu_percent(interval=0.1) # TODO still only shows cpu for one container, gotta think of something to fix this
+            cpu = CPU(interval=0.1)
+            cpu_usage_percentage = cpu.cpu_percent() # changed this because psutil.cpu_percentage with interval is blocking
 
             # calc memory usage
             mem_stats = stats_dict['memory_stats']

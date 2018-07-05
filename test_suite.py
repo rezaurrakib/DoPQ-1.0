@@ -4,7 +4,7 @@ import utils.gpu
 import time
 import utils.interface
 import numpy as np
-
+from utils.cpu import CPU
 
 class DummyDoPQ(helper_process.HelperProcess):
 
@@ -57,7 +57,8 @@ class DummyContainer(object):
         if runtime_stats:
 
             # cpu_stats = stats_dict['cpu_stats']
-            cpu_usage_percentage = psutil.cpu_percent()
+            cpu = CPU(interval=0.1)
+            cpu_usage_percentage = cpu.cpu_percent()
 
             # calc memory usage
             mem_stats = {'usage': 20, 'limit': 100}
