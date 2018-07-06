@@ -18,14 +18,14 @@ class DummyDoPQ(helper_process.HelperProcess):
         self.user_list = ['dummy the dummy', 'simple dummy', 'Sir Dummington', 'dummy with no name']#,
                           #'360_no_dummy', 'swag_dummy', 'bla', 'last_one']
 
-        self.history = self.generate_container_list(100)
-        self.container_list = self.generate_container_list(100)
+        self.history = self.generate_container_list(100, 'exited')
+        self.container_list = self.generate_container_list(100, 'created')
 
-    def generate_container_list(self, n):
+    def generate_container_list(self, n, status):
         containers = []
         for i in range(n):
             user = self.user_list[np.random.randint(0, len(self.user_list))]
-            containers.append(DummyContainer(user))
+            containers.append(DummyContainer(user, status=status))
         return containers
 
     def run_queue(self):
@@ -122,6 +122,9 @@ class DummyContainer(object):
                 for gpu_dt in gpu_info.values()]
 
         return base_info
+
+    def history_info(self):
+        return self.container_stats(False)
 
 
 class DummyProvider(helper_process.HelperProcess):

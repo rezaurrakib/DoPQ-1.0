@@ -80,7 +80,7 @@ class Window(object):
 
         return self.navigate(new_y, new_x)
 
-    def addstr(self, string, attrs=0, newline=0, indent=None, center=False):
+    def addstr(self, string, attrs=0, newline=0, indent=None, center=False, x=None, y=None):
         """
         write a string to the window
         :param string: string to write
@@ -90,6 +90,10 @@ class Window(object):
         :param center: if True string will be centered in the window
         :return: cursor coordinates after writing the string but before going to newline
         """
+
+        # navigate to coordinates
+        if any([coord is not None for coord in (y, x)]):
+            self.navigate(y=y, x=x)
 
         # center string if flag is set otherwise indent if indent is not None
         x = (self.size[1] - len(string)) // 2 if center else indent
@@ -222,7 +226,7 @@ class Window(object):
 
 class SubWindow(Window):
 
-    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None):
+    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None, **kwargs):
         """
         this class represents a subwindow embedded in the parent window and is meant to be used for displaying task specific information
         :param parent: instance of Window in which this object will be embedded
@@ -248,11 +252,11 @@ class SubWindow(Window):
         self.header = header
         self.header_attr = parent.header_attr
         if isinstance(func, type):
-            self.func = func(self, self.parent.dopq)
+            self.func = func(self, self.parent.dopq, **kwargs)
             self.args = []
         elif isinstance(func, types.FunctionType):
             self.func = func
-            self.args = [self.screen, self.parent.dopq]
+            self.args = [self.screen, self.parent.dopq, ]
         else:
             time.sleep(15)
             self.func = DisplayFunction(self, self.parent.dopq)
@@ -284,24 +288,24 @@ class SubWindow(Window):
 
 class SubWindowAndPad(SubWindow):
 
-    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None, pad_height_factor=3):
+    def __init__(self, parent, height, width, y, x, header, offset=None, indent=None, func=None, pad_height_factor=3, **kwargs):
 
         # initialize regular Subwindow
         self.pad_initialized = False
         self.pad_indent = 1 if indent is None else indent
         self.pad_offset = 1 if offset is None else offset
-        super(SubWindowAndPad, self).__init__(parent, height, width, y, x, header, offset=0, indent=0, func=func)
+        super(SubWindowAndPad, self).__init__(parent, height, width, y, x, header, offset=0, indent=0, func=func, **kwargs)
 
         # add a scrollable pad with same width and pad_height_factor * height
-        self.pad_heigth = self.height * pad_height_factor
-        pad = curses.newpad(self.pad_heigth, self.width)
+        self.pad_height = self.height * pad_height_factor
+        pad = curses.newpad(self.pad_height, self.width)
 
         # define some variables with regard to refreshing the pad
         self.pad_line = 0
         self.top_left = [self.pos_y + 1 + self.pad_offset, self.pos_x + 1 + self.pad_indent]
         self.bottom_right = [self.pos_y + self.height - 2, self.pos_x + self.width - 1 - self.pad_indent]
         self.pad_display_coordinates = self.top_left + self.bottom_right
-        self.scroll_limit = self.pad_heigth - self.height + 1
+        self.scroll_limit = self.pad_height - self.height + 1
 
         # substitute self.screen with pad, move self.screen to self.window
         self.window = self.screen
@@ -502,16 +506,20 @@ class Interface(Window):
                                     y=self.offset + sub_height_upper + vertical_gap,
                                     x=self.indent + sub_width_left + horizontal_gap,
                                     offset=1,
+                                    pad_height_factor=10,
                                     header='~~Enqueued Containers~~',
-                                    func=print_history),
+                                    func=ContainerList,
+                                    mode='enqueued'),
             'history': self.subwin(pad=True,
                                    height=sub_height_lower // 2,
                                    width=sub_width_right,
                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
                                    x=self.indent + sub_width_left + horizontal_gap,
                                    offset=1,
+                                   pad_height_factor=10,
                                    header='~~History~~',
-                                   func=print_enqueued)
+                                   func=ContainerList,
+                                   mode='history')
                     }
 
         return subwindows
@@ -521,8 +529,6 @@ class Interface(Window):
         wrapper for calling all subwindow functions
         :return:
         """
-
-        #self.redraw() # TODO write a more elegant way to refresh the screen that does not flicker
 
         for sub in self.subwindows.values():
             sub()
@@ -622,6 +628,7 @@ class DisplayFunction(object):
         """
 
         if self.first_call:
+            self.reset_displayed_information()
             self.write_template()
             self.update()
         else:
@@ -689,6 +696,15 @@ class DisplayFunction(object):
             fields[field] = ((coordinates['end']['y'], coordinates['end']['x']), width - coordinates['end']['x'])
 
         return fields
+
+    def reset_displayed_information(self):
+
+        for index, info in enumerate(self.displayed_information):
+            if isinstance(info, str):
+                self.displayed_information[info] = ''
+            else:
+                for field in info.keys():
+                    self.displayed_information[index][field] = ''
 
 
 class Status(DisplayFunction):
@@ -783,6 +799,11 @@ class Status(DisplayFunction):
 class Containers(DisplayFunction):
 
     def __init__(self, subwindow, dopq):
+        """
+        initializes fields, displayed_information and form template
+        :param subwindow: instance of SubWindowAndPad
+        :param dopq: instance of DopQ
+        """
 
         super(Containers, self).__init__(subwindow, dopq)
 
@@ -819,6 +840,10 @@ class Containers(DisplayFunction):
                                  pad_with_spaces('gpu usage:  ', 3 * width_unit, 'prepend')]}
 
     def update(self):
+        """
+        gets new information from the queue and updates the fields that have changed
+        :return: None
+        """
 
         # gather new information
         information = []
@@ -843,6 +868,7 @@ class Containers(DisplayFunction):
         else:
             for index, container in enumerate(self.dopq.running_containers):
                 if container.name != self.displayed_information[index]['name']:
+                    # rewrite template because gpu settings of the changed container may be different from the previously displayed
                     self.write_template()
                     rewrite_all = True
                     break
@@ -866,6 +892,10 @@ class Containers(DisplayFunction):
             self.displayed_information = information
 
     def write_template(self):
+        """
+        write the form template to the screen and get fields
+        :return: None
+        """
 
         # combine parts of the template according to number and gpu settings of containers
         templates, use_gpu = [], []
@@ -901,6 +931,7 @@ class Containers(DisplayFunction):
             def sort_fn(item):
                 return item[1]['beginning']['y'], item[1]['beginning']['x']
 
+            # sort the fields by their y coordinate first and x coordinate second
             fields = OrderedDict(sorted(fields.items(), key=sort_fn))
             fields_list.append(self.calculate_field_properties(fields))
 
@@ -911,6 +942,11 @@ class Containers(DisplayFunction):
 class UserStats(DisplayFunction):
 
     def __init__(self, subwindow, dopq):
+        """
+        initialize fields, displayed information and form template
+        :param subwindow: instance of SubWindowAndPad
+        :param dopq: instance of DopQ
+        """
 
         super(UserStats, self).__init__(subwindow, dopq)
 
@@ -933,11 +969,18 @@ class UserStats(DisplayFunction):
                           pad_with_spaces('containers run:  ', 3 * width_unit, 'prepend'),
                           pad_with_spaces('containers enqueued:  ', 3 * width_unit, 'prepend')]]
 
-    def update(self):
+        self.height = len(self.template) + 2
 
+    def update(self):
+        """
+        obtains new information and prints the fields that changed
+        :return: NOne
+        """
+
+        # get new information from queue
         user_stats = self.dopq.users_stats
 
-        # check if user list has change, if yes, redraw everything
+        # check if length of the user list has changed, if yes, redraw everything
         redraw_all = False
         if len(user_stats) != len(self.displayed_information):
             self.write_template()
@@ -945,10 +988,10 @@ class UserStats(DisplayFunction):
 
         # cycle users and print their stats if they have changed or if redraw_all
         for index, user in enumerate(user_stats):
-            for stat, value in user.items():
-                if redraw_all or value != self.displayed_information[index][stat]:
-                    attrs = self.screen.BOLD if 'user' in stat else 0
-                    self.update_field(value, self.fields[index][stat], attrs)
+            for field, value in user.items():
+                if redraw_all or value != self.displayed_information[index][field]:
+                    attrs = self.screen.BOLD if 'user' in field else 0
+                    self.update_field(value, self.fields[index][field], attrs)
                 else:
                     continue
 
@@ -957,15 +1000,16 @@ class UserStats(DisplayFunction):
             self.displayed_information = user_stats
 
     def write_template(self):
+        """
+        write form template to the screen and get fields
+        :return: None
+        """
 
         # combine parts of the template according to number and gpu settings of containers
-        templates = []
-        for user in self.dopq.user_list:
-            templates.append(self.template)
+        templates = [self.template] * len(self.dopq.user_list)
 
         # write the template to the display and get fields
-        heigth = len(self.template) + 2  # number of lines in template + 2
-        lines = [self.screen.offset + i * heigth for i, _ in enumerate(templates)]  # starting line for each template
+        lines = [self.screen.offset + i * self.height for i, _ in enumerate(templates)]  # starting line for each template
         fields_list = []
         for index, (line, template) in enumerate(zip(lines, templates)):
             self.screen.navigate(y=line, x=self.screen.indent)
@@ -983,6 +1027,145 @@ class UserStats(DisplayFunction):
 
         self.fields = fields_list
         self.first_call = False
+
+        # limit scrolling, so that it stops on the last displayed container
+        self.screen.scroll_limit = lines[-2]
+
+
+class ContainerList(DisplayFunction):
+
+    def __init__(self, subwindow, dopq, mode):
+        """
+                initializes fields, displayed_information and form template
+                :param subwindow: instance of SubWindowAndPad
+                :param dopq: instance of DopQ
+                """
+
+        super(ContainerList, self).__init__(subwindow, dopq)
+
+        # store which list to fetch on update
+        self.mode = mode
+
+        width = self.screen.size[1]
+        width_unit = width // 8
+
+        # init fields dict
+        self.fields = [{'position': '',
+                        'name': '',
+                        'status': '',
+                        'docker name': '',
+                        'executor': '',
+                        'run time': '',
+                        'created': ''}]
+
+        # init information dict
+        self.displayed_information = copy.deepcopy(self.fields)
+
+        # init template
+        self.template = [['', '   .', # position
+                          '  name:  ',  # name
+                          pad_with_spaces('status:  ', 5 * width_unit, 'prepend')],  # end of first line
+                         ['-' * (width - 2 * self.screen.indent)],  # hline
+                         [pad_with_spaces('docker name:  ', 2 * width_unit, 'prepend'),
+                          pad_with_spaces('executor:  ', 3 * width_unit, 'prepend')],  # end of second line
+                         [pad_with_spaces('uptime:  ', 2 * width_unit, 'prepend'),
+                          pad_with_spaces('created:  ', 3 * width_unit, 'prepend')]]  # end of third line
+
+        self.height = len(self.template) + 2
+        self.max_containers = self.screen.height // self.height
+
+    def get_list(self):
+        """
+        obtains the relevant container list from the queue depending on the set mode
+        :return: list of Container objects
+        """
+
+        if self.mode == 'history':
+            container_list = self.dopq.history
+        elif self.mode == 'enqueued':
+            container_list = self.dopq.container_list
+        else:
+            raise ValueError('invalid mode of operation: {}'.format(self.mode))
+
+        if len(container_list) > self.max_containers:
+            container_list = container_list[:self.max_containers]
+
+        return container_list
+
+    def update(self):
+        """
+        gets new information from the queue and updates the fields that have changed
+        :return: None
+        """
+
+        # gather new information
+        container_list = self.get_list()
+        information = [container.history_info() for container in container_list]
+
+        # check if the container list length is the same
+        rewrite_all = False
+        if len(information) != len(self.displayed_information):
+            self.write_template()
+            rewrite_all = True
+
+        # update displayed information
+        for index, container_information in enumerate(information):
+            container_information['position'] = index
+            for field, value in container_information.items():
+
+                # only rewrite field if it has changed
+                if rewrite_all or value != self.displayed_information[index][field]:
+                    attrs = 0
+                    if 'status' in field:
+                        attrs = pick_color(value) | self.screen.BOLD
+                    elif 'name' in field or 'position' in field:
+                        attrs = self.screen.BOLD
+                    self.update_field(value, self.fields[index][field], attrs)
+                else:
+                    continue
+
+        # update stored information
+        if information:
+            self.displayed_information = information
+
+    def write_template(self):
+        """
+        write the form template to the screen and get fields
+        :return: None
+        """
+
+        # update number of max containers on display
+        self.max_containers = self.screen.pad_height // self.height
+
+        # combine templates according to number of containers in the list
+        n_containers = len(self.get_list())
+        templates = [self.template] * n_containers
+
+        # write the template to the display and get fields
+        lines = [self.screen.offset + i * self.height for i, _ in enumerate(templates)]
+        fields_list = []
+        for index, (line, template) in enumerate(zip(lines, templates)):
+            self.screen.navigate(y=line, x=self.screen.indent)
+            coordinates = self.screen.addmultiline(template)
+            fields = {'position': coordinates[0][0],
+                      'name': coordinates[0][2],
+                      'status': coordinates[0][3],
+                      'docker name': coordinates[2][0],
+                      'executor': coordinates[2][1],
+                      'run_time': coordinates[3][0],
+                      'created': coordinates[3][1]}
+
+            def sort_fn(item):
+                return item[1]['beginning']['y'], item[1]['beginning']['x']
+
+            # sort the fields by their y coordinate first and x coordinate second
+            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields_list.append(self.calculate_field_properties(fields))
+
+        self.fields = fields_list
+        self.first_call = False
+
+        # limit scrolling, so that it stops on the last displayed container
         self.screen.scroll_limit = lines[-2]
 
 
@@ -1082,15 +1265,6 @@ def main(screen, dopq):
     interface()
 
 
-def execute_function(func, screen, dopq):
-    screen.erase()
-    print_header(screen)
-    func(screen=screen, dopq=dopq)
-    screen.erase()
-    print_header(screen)
-    return setup_subwindows(screen)
-
-
 def pick_color(status):
     """
     helper for choosing an appropriate color for a status string
@@ -1116,134 +1290,6 @@ def pick_color(status):
         return 0
 
 
-def print_key_value_pair(screen, key, value, attrs=[], color=False, n_tabs=1, newline=0, x_l=X_L):
-
-    screen.addstr(key + ':')
-    attrs_or = 0
-    attrs = [attrs] if not isinstance(attrs, list) else attrs
-    for attr in attrs:
-        attrs_or = attrs_or | attr
-    if color:
-        attrs_or = attrs_or | pick_color(value)
-    screen.addstr('\t'*n_tabs + value, attrs_or)
-    if newline:
-        move_to_next_line(screen, newline, x_l=x_l)
-
-
-def print_status(subwindow, dopq):
-
-    x_l = 9
-    # print status header
-    print_subwindow_header(subwindow, '~~Status~~', y_t=Y_T//2)
-
-    # init cursor position within subwindow
-    move_to_next_line(subwindow, 0, x_l)
-
-    # get status info # TODO remove testing dummies!!!
-    queue_status = 'running'#dopq.status
-    if queue_status == 'running':
-        queue_uptime, queue_starttime = '1d 5h 34m', 'Fri Jun 29 at 11:21:44 AM'#dopq.uptime
-    else:
-        queue_uptime, queue_starttime = '', ''
-
-    provider_status = 'running'  # dopq.provider.status
-    if provider_status == 'running':
-        provider_uptime, provider_starttime = '1d 5h 34m', 'Fri Jun 29 at 11:21:44 AM' #dopq.provider.uptime
-    else:
-        provider_uptime, provider_starttime = '', ''
-    free_gpus, assigned_gpus = gpu.get_gpus_status()
-
-    # print status of the queue
-    print_key_value_pair(subwindow, 'queue status', queue_status, curses.A_BOLD, True, 2, newline=1, x_l=x_l)
-    if queue_status == 'running':
-        print_key_value_pair(subwindow, '\t\tuptime', queue_uptime, x_l=x_l)
-        print_key_value_pair(subwindow, '\t   start time', queue_starttime, newline=2, x_l=x_l)
-    else:
-        move_to_next_line(subwindow, 1, x_l=x_l)
-
-    # exit funciton if queue is down
-    if queue_status == 'terminated':
-        return None
-
-    # print status of the provider
-    print_key_value_pair(subwindow, 'provider status', provider_status, curses.A_BOLD, True, 1, newline=1, x_l=x_l)
-    if provider_status == 'running':
-        print_key_value_pair(subwindow, '\t\tuptime', provider_uptime, x_l=x_l)
-        print_key_value_pair(subwindow, '\t   start time', provider_starttime, newline=2, x_l=x_l)
-    else:
-        move_to_next_line(subwindow,1, x_l=x_l)
-
-    # print gpu information
-    print_key_value_pair(subwindow, 'free gpus', str(free_gpus), newline=True, x_l=x_l)
-    print_key_value_pair(subwindow, 'assigned gpus', str(assigned_gpus), x_l=x_l)
-
-
-def print_containers(subwindow, dopq):
-
-    x_l = 1
-    y_t = 2
-
-    print_subwindow_header(subwindow, '~~Running Containers~~', x_l)
-
-    class DummyContainer():
-        def container_stats(self, runtime_stats=True):
-            import psutil
-
-            # build base info
-            base_info = {'name': 'dummy', 'executor': 'dummy the dummy', 'run_time': 'forever'}
-
-            # also show runtime info?
-            if runtime_stats:
-
-                # cpu_stats = stats_dict['cpu_stats']
-                cpu_usage_percentage = psutil.cpu_percent()
-
-                # calc memory usage
-                mem_stats = {'usage': 20, 'limit': 100}
-                mem_usage = mem_stats['usage'] * 100.0 / mem_stats['limit']
-
-                # add base runtime info
-                base_info['cpu_mem'] = {'cpu': cpu_usage_percentage, 'memory': mem_usage}
-
-                # add gpu info, if required
-                gpu_info = gpu.get_gpu_infos(0)
-                base_info['gpu'] = [
-                    {'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
-                    for gpu_dt in gpu_info.values()]
-
-            return base_info
-
-    running_containers = [DummyContainer()]*3#dopq.running_containers
-    n_running_containers = len(running_containers)
-
-    # subdivide window
-    height, width = subwindow.getmaxyx()
-    step = int(height // n_running_containers)
-
-    def print_single_container(y, container, subwindow=subwindow, x_l=x_l):
-        _, x = subwindow.getyx()
-        subwindow.move(y, x_l)
-        info = container.container_stats()
-        addstr(subwindow, info['name'], attrs=curses.A_BOLD)
-        subwindow.hline('-', width-2*x_l)
-        move_to_next_line(subwindow, x_l=x_l)
-        #addstr(subwindow, )
-
-    offset, _ = subwindow.getyx()
-    for i, container in enumerate(running_containers):
-        print_single_container(i*step+offset, container)
-
-
-def print_penalties(subwindow, dopq):
-    h, w = subwindow.getmaxyx()
-
-    for i in range(h-1):
-        for j in range(w-1):
-            subwindow.addstr(i,j,str((i*j)%10))
-
-    return None
-
-
 def print_history(subwindow, dopq):
 
     return None
@@ -1255,8 +1301,6 @@ def print_enqueued(subwindow, dopq):
 
 
 def read_container_logs(screen, dopq):
-    screen.erase()
-    print_header(screen)
     screen.addsstr('reading container logs is not implemented yet....soon!', curses.A_BOLD)
 
 
@@ -1271,34 +1315,6 @@ def reload_config(screen, dopq):
     # let dop-q do the reload of the configuration
     dopq.reload_config(update_report_fn)
 
-    # TODO this should be implemented as a method in dop-q for better separation
-    # screen.erase()
-    # screen.addstr('reloading config', curses.A_BOLD)
-    # screen.refresh()
-    # dopq.config = dopq.parse_config(dopq.configfile)
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # dopq.paths = dopq.config['paths']
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # provider = dopq.provider
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # provider.paths = dopq.config['paths']
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # provider.fetcher_conf = dopq.config['fetcher']
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # provider.builder_conf = dopq.config['builder']
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # provider.docker_conf = dopq.config['docker']
-    # screen.addstr('.', curses.A_BOLD)
-    # screen.refresh()
-    # screen.addstr('done!', curses.A_BOLD)
-    # screen.refresh()
-
     # wait
     time.sleep(2)
 
@@ -1306,8 +1322,6 @@ def reload_config(screen, dopq):
 def shutdown_queue(screen, dopq):
 
     # TODO same as reload_config, no tampering with class members
-    screen.erase()
-    print_header(screen)
     max_dots = 10
     dopq.term_flag.value = 1
     while dopq.status == 'running' or dopq.provider.status == 'running':
@@ -1352,65 +1366,6 @@ def addstr_multiline(screen, string_list, n_newlines=1, x_l=X_L):
 
     for string in string_list:
         addstr(screen, string, n_newlines, x_l)
-
-
-def setup_subwindows(screen):
-
-    # get size of the window adjusted for borders
-    win_height, win_width = screen.getmaxyx()
-    win_height, win_width = win_height-1.5*Y_T, win_width-2*X_L
-    horizontal_gap, vertical_gap = X_L//2, Y_T//6
-
-    # calculate subwindow sizes
-    sub_height_upper = int(VERTICAL_RATIO * win_height - vertical_gap // 2)
-    sub_height_lower = int((1 - VERTICAL_RATIO) * win_height - vertical_gap // 2)
-    sub_width_left = int(HORIZONTAL_RATIO * win_width - horizontal_gap // 2)
-    sub_width_right = int((1 - HORIZONTAL_RATIO) * win_width - horizontal_gap // 2)
-
-    # create subwindows
-    subwindows = {}
-    subwindows['status'] = screen.subwin(sub_height_upper, sub_width_left, Y_T, X_L)
-    subwindows['containers'] = screen.subwin(sub_height_lower, sub_width_left, Y_T + sub_height_upper + vertical_gap, X_L)
-    subwindows['penalties'] = screen.subwin(sub_height_upper, sub_width_right, Y_T, X_L + sub_width_left + horizontal_gap)
-    subwindows['history'] = screen.subwin(sub_height_lower // 2, sub_width_right,
-                                   Y_T + sub_height_upper + vertical_gap, X_L + sub_width_left + horizontal_gap)
-    subwindows['enqueued'] = screen.subwin(sub_height_lower // 2, sub_width_right,
-                                Y_T + sub_height_upper + sub_height_lower//2 + vertical_gap, X_L + sub_width_left + horizontal_gap)
-
-    # draw boxes in subwindows
-    for subwindow in subwindows.values():
-        subwindow.box()
-
-    return subwindows
-
-
-def print_header(screen):
-    border_characters = [0]*2 + ['=']*2 + ['#']*4
-    screen.border(*border_characters)
-    y, x = move_to_next_line(screen, n_times=2)
-    banner_length = 29
-    _, width = screen.getmaxyx()
-    start_position = (width - X_L - banner_length)//2
-    screen.move(y, start_position)
-    screen.addstr('  Do', curses.color_pair(2) | curses.A_BOLD)
-    screen.addstr('cker ', curses.color_pair(2))
-    screen.addstr('P', curses.color_pair(2) | curses.A_BOLD)
-    screen.addstr('riority ', curses.color_pair(2))
-    screen.addstr('Q', curses.color_pair(2) | curses.A_BOLD)
-    screen.addstr('ueue -- ', curses.color_pair(2))
-    screen.addstr('DoP-Q', curses.color_pair(2) | curses.A_BOLD)
-    move_to_next_line(screen)
-    screen.hline('~', (width - 2*X_L), curses.color_pair(2))
-    move_to_next_line(screen, Y_T-3)
-    screen.refresh()
-
-
-def print_subwindow_header(subwindow, header, x_l=X_L, y_t=Y_T):
-
-    height, width = subwindow.getmaxyx()
-    subwindow.move(0, (width - len(header)) // 2)
-    subwindow.addstr(header, curses.A_BOLD | curses.color_pair(2))
-    move_to_next_line(subwindow, n_times=y_t, x_l=x_l)
 
 
 def move_to_next_line(screen, n_times=1, x_l=X_L):
