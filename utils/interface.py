@@ -80,7 +80,7 @@ class Window(object):
 
         return self.navigate(new_y, new_x)
 
-    def addstr(self, string, attrs=0, newline=0, indent=None, center=False, x=None, y=None):
+    def addstr(self, string, attrs=0, newline=0, indent=None, center=False, y=None, x=None):
         """
         write a string to the window
         :param string: string to write
@@ -108,7 +108,7 @@ class Window(object):
 
         return coords
 
-    def addline(self, string_list, newline=0, center=False):
+    def addline(self, string_list, newline=0, center=False, y=None, x=None):
         """
         allows writing a list of strings, each with their own formatting, onto a line in the window
         :param string_list: list of strings and / or (string, formatting) tuples
@@ -118,6 +118,10 @@ class Window(object):
         """
         # initialize coordinates for return
         coords = []
+
+        # navigate to coordinates
+        if any([coord is not None for coord in (y, x)]):
+            self.navigate(y=y, x=x)
 
         # protection against generators
         if iter(string_list) is iter(string_list):
@@ -153,7 +157,7 @@ class Window(object):
 
         return coords
 
-    def addmultiline(self, string_multiline, newline=1, center=False):
+    def addmultiline(self, string_multiline, newline=1, center=False, y=None, x=None):
         """
         allow writing of several lines onto the screen
         :param string_multiline: matrix of strings and / or (string, formatting) tuples
@@ -161,8 +165,14 @@ class Window(object):
         :param center: if True, each line will be centered on the window
         :return: None
         """
+
         # initialize coordinate matrix for return
         coords = []
+
+        # navigate to coordinates
+        if any([coord is not None for coord in (y, x)]):
+            self.navigate(y=y, x=x)
+
         # protection against generators
         if iter(string_multiline) is iter(string_multiline):
             raise TypeError('Window.addline expects an iterable, not a generator!')
@@ -220,7 +230,7 @@ class Window(object):
         :return: None
         """
 
-        self.addstr(self.header, self.BOLD | self.header_attr, center=True)
+        self.addstr(self.header, self.BOLD | self.header_attr, center=True, y=0, x=0)
         self.navigate(self.offset, self.indent)
 
 
@@ -498,6 +508,7 @@ class Interface(Window):
                                      y=self.offset,
                                      x=self.indent + sub_width_left + horizontal_gap,
                                      offset=1,
+                                     indent=4,
                                      header='~~User Stats~~',
                                      func=UserStats),
             'enqueued': self.subwin(pad=True,
@@ -506,6 +517,7 @@ class Interface(Window):
                                     y=self.offset + sub_height_upper + vertical_gap,
                                     x=self.indent + sub_width_left + horizontal_gap,
                                     offset=1,
+                                    indent=4,
                                     pad_height_factor=10,
                                     header='~~Enqueued Containers~~',
                                     func=ContainerList,
@@ -516,6 +528,7 @@ class Interface(Window):
                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
                                    x=self.indent + sub_width_left + horizontal_gap,
                                    offset=1,
+                                   indent=4,
                                    pad_height_factor=10,
                                    header='~~History~~',
                                    func=ContainerList,
@@ -576,9 +589,12 @@ class Interface(Window):
                        ('ueue -- ', self.header_attr),
                        ('DopQ', self.BOLD | self.header_attr)]
         self.nextline()
-        self.addline(string_list=string_line, newline=1, center=True)
+        self.addline(string_list=string_line, newline=1, center=True, y=1, x=0)
 
         self.screen.hline('~', self.size[1]-2*self.indent, self.BOLD | self.header_attr)
+        self.nextline(newline=3)
+
+        return self.yx
 
     def execute_function(self, func):
         """
@@ -589,10 +605,10 @@ class Interface(Window):
 
         # make a new window for executing the function in
         height, width = self.size
-        new_window = Window(curses.newwin(height, width, 0, 0), self.offset, self.indent)
+        new_window = Window(curses.newwin(height, width, 0, 0), self.offset, self.indent, header=('', self.CYAN))
 
         # print dopq header in the new window
-        self.print_header(new_window)
+        new_window.navigate(*self.print_header(new_window))
 
         # execute function
         func(new_window, self.dopq)
@@ -601,6 +617,7 @@ class Interface(Window):
         del new_window
 
         self.redraw()
+        self.print_information()
 
 
 class DisplayFunction(object):
@@ -1062,10 +1079,10 @@ class ContainerList(DisplayFunction):
         self.displayed_information = copy.deepcopy(self.fields)
 
         # init template
-        self.template = [['', '   .', # position
-                          '  name:  ',  # name
+        self.template = [['', '  ', # position
+                          'name:  ',  # name
                           pad_with_spaces('status:  ', 5 * width_unit, 'prepend')],  # end of first line
-                         ['-' * (width - 2 * self.screen.indent)],  # hline
+                         ['-' * (width - 2 * self.screen.indent -1 )],  # hline
                          [pad_with_spaces('docker name:  ', 2 * width_unit, 'prepend'),
                           pad_with_spaces('executor:  ', 3 * width_unit, 'prepend')],  # end of second line
                          [pad_with_spaces('uptime:  ', 2 * width_unit, 'prepend'),
@@ -1196,75 +1213,6 @@ def pad_with_spaces(string, total_length, mode='append'):
     return padded_string
 
 
-def run_interface(dopq):
-    curses.wrapper(main, dopq)
-
-
-# def main(screen, dopq):
-#
-#
-#     # init
-#     screen.nodelay(True)
-#     curses.curs_set(0)
-#     screen.erase()
-#
-#
-#     # define color pairs
-#     curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-#     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-#     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
-#     curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-#
-#     subwindows = setup_subwindows(screen)
-#
-#     # fancy print
-#     print_header(screen)
-#
-#     # define a keymapping to all interface funtions
-#     functions = {ord('l'): read_container_logs,
-#                  ord('r'): reload_config,
-#                  ord('s'): shutdown_queue,
-#                  ord('h'): display_commands}
-#
-#     while True:
-#
-#         screen.erase()
-#         print_status(subwindows['status'], dopq)
-#         print_containers(subwindows['containers'], dopq)
-#         print_penalties(subwindows['penalties'], dopq)
-#         print_history(subwindows['history'], dopq)
-#         print_enqueued(subwindows['enqueued'], dopq)
-#
-#         # refresh all subwindows
-#         screen.refresh()
-#         for subwindow in subwindows.values():
-#             subwindow.refresh()
-#
-#         # get user input char
-#         key = screen.getch()
-#         curses.flushinp()
-#
-#         # execute function corresponding to pressed key
-#         if key in functions.keys():
-#             subwindows = execute_function(functions[key], screen, dopq)
-#
-#         time.sleep(0.5)
-
-def main(screen, dopq):
-    # define color pairs
-    curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-    curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
-
-    screen.idcok(False)
-    screen.idlok(False)
-
-    interface = Interface(dopq, screen, offset=4, indent=2)
-    interface()
-
-
 def pick_color(status):
     """
     helper for choosing an appropriate color for a status string
@@ -1290,18 +1238,23 @@ def pick_color(status):
         return 0
 
 
-def print_history(subwindow, dopq):
-
-    return None
-
-
-def print_enqueued(subwindow, dopq):
-
-    return None
+def run_interface(dopq):
+    curses.wrapper(main, dopq)
 
 
-def read_container_logs(screen, dopq):
-    screen.addsstr('reading container logs is not implemented yet....soon!', curses.A_BOLD)
+def main(screen, dopq):
+    # define color pairs
+    curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
+
+    screen.idcok(False)
+    screen.idlok(False)
+
+    interface = Interface(dopq, screen, offset=4, indent=2)
+    interface()
 
 
 def reload_config(screen, dopq):
@@ -1317,63 +1270,6 @@ def reload_config(screen, dopq):
 
     # wait
     time.sleep(2)
-
-
-def shutdown_queue(screen, dopq):
-
-    # TODO same as reload_config, no tampering with class members
-    max_dots = 10
-    dopq.term_flag.value = 1
-    while dopq.status == 'running' or dopq.provider.status == 'running':
-        screen.deleteln()
-        screen.addstr('shutting down queue', curses.A_BOLD)
-        screen.refresh()
-        dots = 0
-        while dots <= max_dots:
-            screen.addstr('.', curses.A_BOLD)
-            screen.refresh()
-            dots += 1
-            time.sleep(0.1)
-        move_to_next_line(screen, 0)    # move to beginning of the same line
-    screen.addstr('done!', curses.A_BOLD)
-    move_to_next_line(screen)
-    time.sleep(2)
-
-
-def display_commands(screen, dopq):
-    help_str = ['\tl:\tread container logs',
-                '\tr:\treload config',
-                '\ts:\tshutdown queue']
-    addstr(screen, 'possible commands:', 2)
-    addstr_multiline(screen, help_str)
-    move_to_next_line(screen, 3)
-    screen.addstr('press q to return to the interface', curses.A_BOLD)
-
-    key = 0
-    while key != ord('q'):
-        key = screen.getch()
-        curses.flushinp()
-        time.sleep(0.1)
-
-
-def addstr(screen, string, n_newlines=1, x_l=X_L, attrs=0):
-    screen.addstr(string, attrs)
-    move_to_next_line(screen, n_newlines, x_l)
-    screen.refresh()
-
-
-def addstr_multiline(screen, string_list, n_newlines=1, x_l=X_L):
-
-    for string in string_list:
-        addstr(screen, string, n_newlines, x_l)
-
-
-def move_to_next_line(screen, n_times=1, x_l=X_L):
-    y, _ = screen.getyx()
-    new_y, new_x = y + n_times*1, x_l
-    screen.move(new_y, new_x)
-
-    return new_y, new_x
 
 
 if __name__ == '__main__':
