@@ -1,51 +1,42 @@
 import curses
 import time
+import os
 
 X_L = 2
 Y_T = 4
 
+
 def reload_config(screen, dopq):
 
-    # TODO this should be implemented as a method in dop-q for better separation
-    screen.erase()
-    screen.addstr('reloading config', curses.A_BOLD)
-    screen.refresh()
-    dopq.config = dopq.parse_config(dopq.configfile)
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    dopq.paths = dopq.config['paths']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider = dopq.provider
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.paths = dopq.config['paths']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.fetcher_conf = dopq.config['fetcher']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.builder_conf = dopq.config['builder']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    provider.docker_conf = dopq.config['docker']
-    screen.addstr('.', curses.A_BOLD)
-    screen.refresh()
-    screen.addstr('done!', curses.A_BOLD)
-    screen.refresh()
+    # create function for updates
+    def update_report_fn(msg):
+        screen.erase()
+        screen.addstr(msg, curses.A_BOLD)
+        screen.refresh()
+
+    # let dop-q do the reload of the configuration
+    dopq.reload_config(update_report_fn)
+
+    # wait
     time.sleep(2)
 
 
 def shutdown_queue(screen, dopq):
 
-    # TODO same as reload_config, no tampering with class members
+    screen.indent = 10
+    screen.navigate(x=screen.indent)
     max_dots = 10
     dopq.term_flag.value = 1
+
+    screen.addstr('shutting down queue', curses.A_BOLD)
+    y, x = screen.yx
+    screen.refresh()
+
     while dopq.status == 'running' or dopq.provider.status == 'running':
-        screen.deleteln()
-        screen.addstr('shutting down queue', curses.A_BOLD)
-        screen.refresh()
         dots = 0
+        screen.navigate(y=y, x=x)
+        screen.addstr(' '*(max_dots+1))
+        screen.navigate(y=y, x=x)
         while dots <= max_dots:
             screen.addstr('.', curses.A_BOLD)
             screen.refresh()
@@ -53,15 +44,18 @@ def shutdown_queue(screen, dopq):
             time.sleep(0.1)
         screen.navigate(x=screen.indent)    # move to beginning of the same line
     screen.addstr('done!', curses.A_BOLD)
+    time.sleep(15)
 
 
 
 def display_commands(screen, *args):
+    screen.indent = 10
+    screen.navigate(x=screen.indent)
     help_str = [['\tl:\tread container logs'],
                 ['\tr:\treload config'],
                 ['\ts:\tshutdown queue']]
     screen.addstr('possible commands:', newline=2)
-    screen.addmultiline(screen, help_str)
+    screen.addmultiline(help_str)
     screen.nextline(newline=3)
     screen.addstr('press q to return to the interface', screen.BOLD)
 
@@ -72,12 +66,25 @@ def display_commands(screen, *args):
         time.sleep(0.1)
 
 
-def read_container_logs(screen, dopq):
+def show_container_logs(screen, dopq):
 
-    screen.addsstr('reading container logs is not implemented yet....soon!', curses.A_BOLD)
+    screen.addstr('reading container logs is not implemented yet....soon!', curses.A_BOLD)
 
 
-FUNCTIONS = {ord('l'): read_container_logs,
+def show_queue_log(screen, dopq):
+
+    logfile = os.path.join(dopq.paths['log'], 'queue.log')
+    with open(logfile, 'r') as logfile:
+        n_lines = len(logfile.readline())
+
+        # set up scrollable pad in window
+        pass
+
+
+
+
+
+FUNCTIONS = {ord('l'): show_queue_log,
                  ord('r'): reload_config,
                  ord('s'): shutdown_queue,
                  ord('h'): display_commands}
