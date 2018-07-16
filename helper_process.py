@@ -20,7 +20,7 @@ class HelperProcess(object):
 
     def stop(self):
         self.term_flag.value = 1
-        if type(self.process) is mp.Process:
+        if isinstance(self.process, mp.Process) and self.status == 'running':
             self.process.terminate()
 
     @property
