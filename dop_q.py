@@ -25,6 +25,7 @@ import ConfigParser  # python 2
 import provider
 import gpu_handler as gh
 from pathos.helpers import mp
+import threading
 import dill
 import helper_process as hp
 # import multiprocessing as mp  # cannot pass our container objects through the queue
@@ -32,6 +33,7 @@ import helper_process as hp
 import json
 from utils import log
 from utils import interface
+import datetime
 
 
 class DopQ(hp.HelperProcess):
@@ -46,7 +48,7 @@ class DopQ(hp.HelperProcess):
             self.write_default_config(configfile)
 
         # init member variables
-        self.reference = mp.Manager().Queue(maxsize=1)
+        self.starttime = None
         self.client = docker.from_env()
         self.debug = debug
         self.configfile = configfile
@@ -78,6 +80,42 @@ class DopQ(hp.HelperProcess):
 
         # initialize process variable and termination flag
         super(DopQ, self).__init__()
+
+        # initialize interface as a thread (so that members of the queue are accessible by the interface)
+        self.thread = threading.Thread(target=self.run_queue)
+
+    @property
+    def uptime(self):
+        if self.starttime is None:
+            return '0s'
+
+        diff = time.time() - self.starttime
+
+        # break down diff into seconds, minutes, hours and days
+        diff, seconds = divmod(int(diff), 60)
+        diff, minutes = divmod(diff, 60)
+        days, hours = divmod(diff, 24)
+
+        # convert information to print format
+        uptime = ''
+        uptime += '{}d '.format(days) if days else ''
+        uptime += '{}h '.format(hours) if hours else ''
+        uptime += '{}m '.format(minutes) if minutes else ''
+        uptime += '{}s'.format(seconds) if not minutes else ''
+
+        starttime = datetime.datetime.fromtimestamp(self.starttime).strftime("%a, %d.%b %H:%M")
+
+        return uptime, starttime
+
+    @property
+    def status(self):
+
+        if self.starttime is None:
+            return 'not started'
+        elif self.thread.isAlive():
+            return 'running'
+        else:
+            return 'terminated'
 
     @property
     def user_list(self):
@@ -187,8 +225,9 @@ class DopQ(hp.HelperProcess):
         self.container_list = sorted(self.container_list, key=self.sort_fn)
 
     def update_running_containers(self):
+        running_containers = self.client.containers.list()
         for i, container in enumerate(self.running_containers):
-            if container.status != 'running':
+            if container not in running_containers:
                 self.running_containers.pop(i)
 
     def get_user_oh(self, user_name):
@@ -308,34 +347,6 @@ class DopQ(hp.HelperProcess):
 
         return parsed_config
 
-    def print_status(self):
-        pass
-        # TODO needs reworking
-
-        # extract image names of running containers
-        containers = ""
-        for c in self.container_handler.running_containers:
-            containers += c.attrs['Config']['Image'] + '\t'
-
-        # erase std out
-        # os.system('erase')
-
-        # construct status string
-        status_str = ('dop-q status:\t' + time.ctime() +
-                      '\n\n\tfetcher status:\t' + self.fetcher.status +
-                      '\n\tbuilder status:\t' + self.builder.status +
-                      '\n\trunning containers:\t' + containers +
-                      '\n\tused gpu minors:\t' + str(self.gpu_handler.assigned_minors) +
-                      '\n\tfree gpu minors:\t' + str(self.gpu_handler.free_minors))
-        if self.debug:
-            status_str += '\n\timage list:\t' + str(self.container_list) + \
-                          '\n\thistory:\t' + str(self.history)
-
-        # print status message
-        print(status_str)
-
-        return status_str
-
     def reload_config(self, report_fn=None):
 
         # init report fn if not given
@@ -362,19 +373,14 @@ class DopQ(hp.HelperProcess):
         self.term_flag.value = 1
         self.provider.stop()
         if self.status == 'running':
-            self.process.join()
+            self.thread.join()
 
     def start(self):
 
-        super(DopQ, self).start(self.run_queue, 'DoPQ')
-
-        # start provider
-        p = self.provider.start()
-        self.logger.info(time.ctime() + '\t started provider process, PID={}'.format(p))
-        time.sleep(5)
-
         try:
-            interface.run_interface(self.reference)
+            self.starttime = time.time()
+            self.thread.start()
+            interface.run_interface(self)
         finally:
             self.stop()
 
@@ -387,7 +393,6 @@ class DopQ(hp.HelperProcess):
 
         try:
             # run this until forced to quit
-            self.reference.put(self)
             while True:
 
                 # exit queue process if termination flag is set
@@ -427,9 +432,9 @@ class DopQ(hp.HelperProcess):
 
                     # add to running containers and write log message
                     self.running_containers.append(container)
-                    # self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
-                    #                                 '\n\tcontainer logs are acquired in process {}'
-                    #                                 .format(container, container.log_pid))
+                    self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
+                                                    '\n\tcontainer logs are acquired in process {}'
+                                                    .format(container, container.log_pid))
 
                     # update history
                     self.history = [container] + self.history

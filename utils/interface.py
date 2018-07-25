@@ -375,7 +375,7 @@ class SubWindowAndPad(SubWindow):
 
 class Interface(Window):
 
-    def __init__(self, dopq_ref, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=1):
+    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=1):
         """
         interface to the docker priority queue object
         :param dopq_ref: instance of DopQ
@@ -389,9 +389,7 @@ class Interface(Window):
 
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
-        while not dopq_ref.full():
-            time.sleep(1)
-        self.dopq = dopq_ref.get()
+        self.dopq = dopq
         self.v_ration = v_ratio
         self.h_ration = h_ratio
         self.functions = interface_funcs.FUNCTIONS
@@ -917,6 +915,9 @@ class Containers(DisplayFunction):
         :return: None
         """
 
+        # clear screen
+        self.screen.redraw()
+
         # combine parts of the template according to number and gpu settings of containers
         templates, use_gpu = [], []
         for container in self.dopq.running_containers:
@@ -1154,6 +1155,9 @@ class ContainerList(DisplayFunction):
         :return: None
         """
 
+        # clear screen
+        self.screen.redraw()
+
         # update number of max containers on display
         self.max_containers = self.screen.pad_height // self.height
 
@@ -1186,7 +1190,7 @@ class ContainerList(DisplayFunction):
         self.first_call = False
 
         # limit scrolling, so that it stops on the last displayed container
-        self.screen.scroll_limit = lines[-2] if lines else self.height
+        self.screen.scroll_limit = lines[-2] if isinstance(lines, list) and len(lines) >= 2 else self.height
 
 
 def pad_with_spaces(string, total_length, mode='append'):

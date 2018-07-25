@@ -5,22 +5,60 @@ import time
 import utils.interface
 import numpy as np
 from utils.cpu import CPU
+import threading
+import datetime
+
 
 class DummyDoPQ(helper_process.HelperProcess):
 
     def __init__(self):
         super(DummyDoPQ, self).__init__()
-        self.running_containers = [DummyContainer('dummy', [0]),
-                                   DummyContainer('dummy', [1], 'Sir Dummington'),
-                                   DummyContainer('dummy', [2, 0], 'lazy_dummy_420', 'paused'),
-                                   DummyContainer('dummy', [1], 'Much Container! WOW!', 'exited')]
+        self.starttime = None
+        self.running_containers = []
         self.provider = DummyProvider()
         self.user_list = ['dummy the dummy', 'simple dummy', 'Sir Dummington', 'dummy with no name']#,
                           #'360_no_dummy', 'swag_dummy', 'bla', 'last_one']
 
-        self.history = self.generate_container_list(100, 'exited')
-        self.container_list = self.generate_container_list(100, 'created')
+        self.history = self.generate_container_list(10, 'exited')
+        self.container_list = [DummyContainer('dummy', [0]),
+                               DummyContainer('dummy', [1], 'Sir Dummington'),
+                               DummyContainer('dummy', [2, 0], 'lazy_dummy_420', 'paused'),
+                               DummyContainer('dummy', [1], 'Much Container! WOW!', 'exited')]
         self.paths = {'log': '.'}
+        self.thread = threading.Thread(target=self.run_queue)
+
+    @property
+    def uptime(self):
+        if self.starttime is None:
+            return '0s'
+
+        diff = time.time() - self.starttime
+
+        # break down diff into seconds, minutes, hours and days
+        diff, seconds = divmod(int(diff), 60)
+        diff, minutes = divmod(diff, 60)
+        days, hours = divmod(diff, 24)
+
+        # convert information to print format
+        uptime = ''
+        uptime += '{}d '.format(days) if days else ''
+        uptime += '{}h '.format(hours) if hours else ''
+        uptime += '{}m '.format(minutes) if minutes else ''
+        uptime += '{}s'.format(seconds) if not minutes else ''
+
+        starttime = datetime.datetime.fromtimestamp(self.starttime).strftime("%a, %d.%b %H:%M")
+
+        return uptime, starttime
+
+    @property
+    def status(self):
+
+        if self.starttime is None:
+            return 'not started'
+        elif self.thread.isAlive():
+            return 'running'
+        else:
+            return 'terminated'
 
     def generate_container_list(self, n, status):
         containers = []
@@ -51,13 +89,19 @@ class DummyDoPQ(helper_process.HelperProcess):
             while not self.term_flag.value:
 
                 time.sleep(10)
+                if self.container_list:
+                    self.running_containers += [self.container_list.pop(0)]
         finally:
             self.provider.stop()
             self.stop()
 
     def start(self):
-        super(DummyDoPQ, self).start(target=self.run_queue, name='DummyQueue')
-        utils.interface.run_interface(self)
+        try:
+            self.starttime = time.time()
+            self.thread.start()
+            utils.interface.run_interface(self)
+        finally:
+            self.stop()
 
     @property
     def users_stats(self):
