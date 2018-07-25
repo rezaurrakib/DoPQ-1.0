@@ -20,6 +20,7 @@ class DummyDoPQ(helper_process.HelperProcess):
 
         self.history = self.generate_container_list(100, 'exited')
         self.container_list = self.generate_container_list(100, 'created')
+        self.paths = {'log': '.'}
 
     def generate_container_list(self, n, status):
         containers = []
@@ -27,6 +28,23 @@ class DummyDoPQ(helper_process.HelperProcess):
             user = self.user_list[np.random.randint(0, len(self.user_list))]
             containers.append(DummyContainer(user, status=status))
         return containers
+
+    def reload_config(self, report_fn=None):
+
+        # init report fn if not given
+        if report_fn is None:
+            report_fn = self.logger
+
+        report_fn('reloading config: {:.1f} %'.format(0))
+        time.sleep(3)
+
+        # loading done
+        report_fn('reloading config: {:.1f} %'.format(50))
+        time.sleep(3)
+
+        # loading done
+        report_fn('reloading config: {:.1f} %'.format(100))
+        time.sleep(3)
 
     def run_queue(self):
         try:
