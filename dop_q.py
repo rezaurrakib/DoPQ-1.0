@@ -363,7 +363,7 @@ class DopQ(hp.HelperProcess):
     def stop(self):
         self.term_flag.value = 1
         self.provider.stop()
-        if self.process.status == 'running':
+        if self.status == 'running':
             self.process.join()
 
     def start(self):

@@ -1183,7 +1183,7 @@ class ContainerList(DisplayFunction):
         self.first_call = False
 
         # limit scrolling, so that it stops on the last displayed container
-        self.screen.scroll_limit = lines[-2]
+        self.screen.scroll_limit = lines[-2] if lines else self.height
 
 
 def pad_with_spaces(string, total_length, mode='append'):

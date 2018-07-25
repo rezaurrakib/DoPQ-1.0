@@ -55,7 +55,7 @@ def init_log(file_name='dopq.log', log_level=logging.DEBUG, file_log_level=loggi
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     handler.setLevel(log_level)
-    logger.addHandler(handler)
+    #logger.addHandler(handler)
 
     format_string = '%(asctime)s %(levelname)s in %(name)s: %(message)s'
     file_handler = logging.FileHandler(file_name)

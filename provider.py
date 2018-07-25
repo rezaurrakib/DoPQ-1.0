@@ -82,9 +82,9 @@ class Provider(hp.HelperProcess):
                 queue_container = Container(container_config, container)
                 self.queue.put(queue_container)
 
-                # leave the loop if terminate flag is set
-                if self.term_flag.value:
-                    exit(0)
+            # leave the loop if terminate flag is set
+            if self.term_flag.value:
+                break
 
             self.sleep()
 

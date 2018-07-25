@@ -20,13 +20,13 @@ class HelperProcess(object):
 
     def stop(self):
         self.term_flag.value = 1
-        if isinstance(self.process, mp.Process) and self.status == 'running':
+        if self.status == 'running':
             self.process.terminate()
 
     @property
     def status(self):
 
-        if not type(self.process) is mp.Process: return 'not started'
+        if not isinstance(self.process, mp.Process): return 'not started'
 
         if self.process.exitcode is None:
             return 'running'
