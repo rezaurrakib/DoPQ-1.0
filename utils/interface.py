@@ -7,13 +7,14 @@ from math import floor, ceil
 from collections import OrderedDict
 import copy
 import types
+import log
 
 X_L = 2
 Y_T = 4
 HORIZONTAL_RATIO = 0.5
 VERTICAL_RATIO = 0.3
 KEY_TAB = 9
-
+LOG = log.get_module_log(__name__)
 
 class Window(object):
 
@@ -388,7 +389,7 @@ class Interface(Window):
 
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
-        self.dopq = dopq
+        self.dopq = dopq.get()
         self.v_ration = v_ratio
         self.h_ration = h_ratio
         self.functions = interface_funcs.FUNCTIONS

@@ -46,6 +46,7 @@ class DopQ(hp.HelperProcess):
             self.write_default_config(configfile)
 
         # init member variables
+        self.reference = mp.Queue(maxsize=1)
         self.client = docker.from_env()
         self.debug = debug
         self.configfile = configfile
@@ -186,9 +187,8 @@ class DopQ(hp.HelperProcess):
         self.container_list = sorted(self.container_list, key=self.sort_fn)
 
     def update_running_containers(self):
-        running_containers = self.client.containers.list()
         for i, container in enumerate(self.running_containers):
-            if container not in running_containers:
+            if container.status != 'running':
                 self.running_containers.pop(i)
 
     def get_user_oh(self, user_name):
@@ -374,7 +374,7 @@ class DopQ(hp.HelperProcess):
         time.sleep(5)
 
         try:
-            interface.run_interface(self)
+            interface.run_interface(self.reference)
         finally:
             self.stop()
 
@@ -387,6 +387,7 @@ class DopQ(hp.HelperProcess):
 
         try:
             # run this until forced to quit
+            self.reference.put(self)
             while True:
 
                 # exit queue process if termination flag is set
@@ -426,9 +427,9 @@ class DopQ(hp.HelperProcess):
 
                     # add to running containers and write log message
                     self.running_containers.append(container)
-                    self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
-                                                    '\n\tcontainer logs are acquired in process {}'
-                                                    .format(container, container.log_pid))
+                    # self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
+                    #                                 '\n\tcontainer logs are acquired in process {}'
+                    #                                 .format(container, container.log_pid))
 
                     # update history
                     self.history = [container] + self.history
