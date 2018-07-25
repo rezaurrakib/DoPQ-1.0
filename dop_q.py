@@ -46,7 +46,7 @@ class DopQ(hp.HelperProcess):
             self.write_default_config(configfile)
 
         # init member variables
-        self.reference = mp.Queue(maxsize=1)
+        self.reference = mp.Manager().Queue(maxsize=1)
         self.client = docker.from_env()
         self.debug = debug
         self.configfile = configfile
