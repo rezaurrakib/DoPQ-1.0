@@ -389,7 +389,7 @@ class Interface(Window):
 
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
-        self.dopq = dopq.get()
+        self.dopq = dopq.get(block=True)
         self.v_ration = v_ratio
         self.h_ration = h_ratio
         self.functions = interface_funcs.FUNCTIONS
