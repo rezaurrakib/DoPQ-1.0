@@ -369,6 +369,12 @@ class DopQ(hp.HelperProcess):
     def start(self):
 
         super(DopQ, self).start(self.run_queue, 'DoPQ')
+
+        # start provider
+        p = self.provider.start()
+        self.logger.info(time.ctime() + '\t started provider process, PID={}'.format(p))
+        time.sleep(5)
+
         try:
             interface.run_interface(self)
         finally:
@@ -380,12 +386,6 @@ class DopQ(hp.HelperProcess):
 
         :return: None
         """
-
-        # start fetcher and builder
-        p = self.provider.start()
-        print(__name__)
-        self.logger.info(time.ctime() + '\t started provider process, PID={}'.format(p))
-        time.sleep(5)
 
         try:
             # run this until forced to quit
