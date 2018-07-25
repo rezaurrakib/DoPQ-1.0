@@ -927,7 +927,7 @@ class Containers(DisplayFunction):
                     use_gpu += [False]
 
         # write the template to the display and get fields
-        heigth = (self.screen.size[0] - self.screen.offset) // len(templates)
+        heigth = (self.screen.size[0] - self.screen.offset) // len(templates) if templates else 0
         lines = [self.screen.offset + i*heigth for i, _ in enumerate(templates)]
         fields_list = []
         for index, (line, template) in enumerate(zip(lines, templates)):
