@@ -40,8 +40,6 @@ class DopQ(hp.HelperProcess):
 
         # init logging
         self.logger = log.init_log(logfile)
-        self.logger.info(time.ctime() + '\tinitializing dop-q' +
-                         '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
         # get settings from config
         if not os.path.isfile(configfile):
