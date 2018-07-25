@@ -36,7 +36,12 @@ from utils import interface
 
 class DopQ(hp.HelperProcess):
 
-    def __init__(self, configfile, logfile, debug=False):
+    def __init__(self, configfile='config.ini', logfile='dopq.log', debug=False):
+
+        # init logging
+        self.logger = log.init_log(logfile)
+        self.logger.info(time.ctime() + '\tinitializing dop-q' +
+                         '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
         # get settings from config
         if not os.path.isfile(configfile):
@@ -64,11 +69,6 @@ class DopQ(hp.HelperProcess):
         self.queue = mp.Queue()
         self.gpu_handler = gh.GPUHandler()
         self.provider = provider.Provider(self.config, self.queue)
-
-        # init logging
-        self.logger = log.init_log()
-        self.logger.info(time.ctime() + '\tinitializing dop-q' +
-                         '\n\t\tpassed config:' + '\n\t\t' + json.dumps(self.config, indent=4))
 
         # build all non-existent directories, except the network container share
         keys = self.paths.keys()
@@ -450,14 +450,11 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="priority queue for running docker containers")
-    parser.add_argument('-l', '--logfile', type=str, dest='logfile', metavar='filename', default='queue.log')
+    parser.add_argument('-l', '--logfile', type=str, dest='logfile', metavar='filename', default='dopq.log')
     parser.add_argument('-c', '--config', type=str, dest='configfile', metavar='filename', default='config.ini')
     parser.add_argument('--debug', action='store_true')
 
     args = vars(parser.parse_args())
-
-    # init logging
-    log.init_log()
 
     dop_q = DopQ(**args)
     dop_q.start()

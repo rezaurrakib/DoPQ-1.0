@@ -61,7 +61,7 @@ def show_container_logs(screen, dopq):
 
 def show_queue_log(screen, dopq):
 
-    logfile = os.path.join(dopq.paths['log'], 'dopq.log')
+    logfile = dopq.logfile
     with open(logfile, 'r') as logfile:
         n_lines = len(logfile.readline())
 
