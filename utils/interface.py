@@ -375,10 +375,10 @@ class SubWindowAndPad(SubWindow):
 
 class Interface(Window):
 
-    def __init__(self, dopq, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=1):
+    def __init__(self, dopq_ref, screen, offset, indent, v_ratio=0.25, h_ratio=0.5, interval=1):
         """
         interface to the docker priority queue object
-        :param dopq: instance of DopQ
+        :param dopq_ref: instance of DopQ
         :param screen: curses window to use as display
         :param offset: number of blank lines to keep at the top of the window
         :param indent: number of whitespaces to keep at the left side of every line
@@ -389,7 +389,9 @@ class Interface(Window):
 
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
-        self.dopq = dopq.get(block=True)
+        while not dopq_ref.full():
+            time.sleep(1)
+        self.dopq = dopq_ref.get()
         self.v_ration = v_ratio
         self.h_ration = h_ratio
         self.functions = interface_funcs.FUNCTIONS
