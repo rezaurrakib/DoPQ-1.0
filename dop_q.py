@@ -403,7 +403,7 @@ class DopQ(hp.HelperProcess):
 
                 # get next container
                 container = self.container_list.pop(0)
-                gpu = container.use_gpu()
+                gpu = container.use_gpu
 
                 # keep cycling if container requires gpu but none are available
                 free_minors = self.gpu_handler.free_minors

@@ -124,7 +124,7 @@ def clear_unzipped(unzip_dir, filename=None, logger=LOG):
     :return: None
     """
     # log a fail message
-    if filename is None:
+    if filename is not None:
         logger.warn(time.ctime() + '\t{} could not be build'.format(filename))
 
     if os.path.isdir(unzip_dir):
