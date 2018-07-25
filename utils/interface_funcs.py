@@ -25,25 +25,13 @@ def shutdown_queue(screen, dopq):
 
     screen.indent = 10
     screen.navigate(x=screen.indent)
-    max_dots = 10
-    dopq.term_flag.value = 1
 
-    screen.addstr('shutting down queue', curses.A_BOLD)
-    y, x = screen.yx
+    screen.addstr('shutting down queue...', curses.A_BOLD)
     screen.refresh()
 
-    while dopq.status == 'running' or dopq.provider.status == 'running':
-        dots = 0
-        screen.navigate(y=y, x=x)
-        screen.addstr(' '*(max_dots+1))
-        screen.navigate(y=y, x=x)
-        while dots <= max_dots:
-            screen.addstr('.', curses.A_BOLD)
-            screen.refresh()
-            dots += 1
-            time.sleep(0.1)
-        screen.navigate(x=screen.indent)    # move to beginning of the same line
+    dopq.stop()
     screen.addstr('done!', curses.A_BOLD)
+
     time.sleep(15)
 
 
