@@ -248,7 +248,8 @@ class Container:
                                   "(available={}, required={})!".format(len(free_gpus), n_gpus))
 
                 # assign
-                self.set_gpu_minors(free_gpus[:n_gpus])
+                minors = [str(m) for m in free_gpus[:n_gpus]]
+                self.set_gpu_minors(minors)
 
             # start it
             return self.container_obj.start(**kwargs)
