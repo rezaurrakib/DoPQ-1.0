@@ -66,10 +66,10 @@ class HelperProcess(object):
 
         # convert information to print format
         uptime = ''
-        uptime += '{}d'.format(days) if days else ''
-        uptime += '{}h'.format(hours) if hours else ''
-        uptime += '{}m'.format(minutes) if minutes else ''
-        uptime += '{}s'.format(seconds) if not minutes else ''
+        uptime += '{}d '.format(days) if days else ''
+        uptime += '{}h '.format(hours) if hours else ''
+        uptime += '{}m '.format(minutes) if minutes else ''
+        uptime += '{}s '.format(seconds) if not minutes else ''
 
         # get the start time
         uptime_in_seconds = days * 24 * 3600 + hours * 3600 + minutes * 60 + seconds
