@@ -383,6 +383,7 @@ class DopQ(hp.HelperProcess):
 
         # start fetcher and builder
         p = self.provider.start()
+        print(__name__)
         self.logger.info(time.ctime() + '\t started provider process, PID={}'.format(p))
         time.sleep(5)
 
@@ -459,4 +460,4 @@ if __name__ == '__main__':
     log.init_log()
 
     dop_q = DopQ(**args)
-    dop_q.run_queue()
+    dop_q.start()

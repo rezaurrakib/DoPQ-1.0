@@ -4,4 +4,5 @@ pip --no-cache-dir install \
          pathos\
          psutil\
          gputil \
-         dateutil
+         python-dateutil\
+         colorlog
