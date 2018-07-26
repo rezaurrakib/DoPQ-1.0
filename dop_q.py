@@ -380,6 +380,7 @@ class DopQ(hp.HelperProcess):
         try:
             self.starttime = time.time()
             self.thread.start()
+            self.provider.start()
             interface.run_interface(self)
         finally:
             self.stop()
