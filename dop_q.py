@@ -398,7 +398,7 @@ class DopQ(hp.HelperProcess):
 
                 # exit queue process if termination flag is set
                 if self.term_flag.value:
-                    raise RuntimeError(time.ctime() + '\tqueue is shutting down')
+                    raise RuntimeError('\tqueue is shutting down')
 
                 # update container list
                 self.update_container_list()
@@ -433,9 +433,9 @@ class DopQ(hp.HelperProcess):
 
                     # add to running containers and write log message
                     self.running_containers.append(container)
-                    self.logger.info(time.ctime() + '\tsuccessfully ran a container from {}'
-                                                    '\n\tcontainer logs are acquired in process {}'
-                                                    .format(container, container.log_pid))
+                    self.logger.info('\tsuccessfully ran a container from {}'
+                                     '\n\tcontainer logs are acquired in process {}'
+                                     .format(container, container.log_pid))
 
                     # update history
                     self.history = [container] + self.history
@@ -444,7 +444,7 @@ class DopQ(hp.HelperProcess):
                     self.sleep()
 
         except Exception as e:
-            self.logger.error(time.ctime() + '{}'.format(e))
+            self.logger.error('{}'.format(e))
 
         finally:
             # save history, container list and running containers whenever the loop is exited for whatever reason

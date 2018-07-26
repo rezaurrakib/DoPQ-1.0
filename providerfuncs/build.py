@@ -60,7 +60,7 @@ def build_image(filename, unzip_dir="", tag=None, logger=LOG):
     try:
         dockerfile = unzip_docker_files(filename, unzip_dir)
     except Exception as e:
-        logger.error(time.ctime() + '\terror while unzipping file {}:\n\t\t{}'.format(filename, e))
+        logger.error('\terror while unzipping file {}:\n\t\t{}'.format(filename, e))
         raise e
 
     # build docker image after successful unzip
@@ -70,11 +70,11 @@ def build_image(filename, unzip_dir="", tag=None, logger=LOG):
             client = docker.from_env()
             image = client.images.build(path=os.path.dirname(dockerfile), rm=True, tag=tag)
         except (docker.errors.BuildError, docker.errors.APIError) as e:
-            logger.error(time.ctime() + '\terror while building image {} (tag={}):\n\t\t{}'.format(filename, tag, e))
+            logger.error('\terror while building image {} (tag={}):\n\t\t{}'.format(filename, tag, e))
             clear_unzipped(unzip_dir, filename)
             raise e
         else:
-            logger.info(time.ctime() + '\tsuccessfully build image {} (tag={})'.format(filename, tag))
+            logger.info('\tsuccessfully build image {} (tag={})'.format(filename, tag))
             clear_unzipped(unzip_dir)
             return image
 
@@ -106,11 +106,11 @@ def load_image(filename, failed_dir="", rm_invalid=False, logger=LOG):
         else:
             os.remove(filename)
             image = client.images.get(output['stream'][len('Loaded image: '):-1])
-            logger.info(time.ctime() + '\tsuccessfully loaded image {}'.format(filename))
+            logger.info('\tsuccessfully loaded image {}'.format(filename))
             return image  # image.attrs['RepoTags'][0]
 
     except Exception as e:
-        logger.error(time.ctime() + '\t{}'.format(e))
+        logger.error('\t{}'.format(e))
         clear_unzipped(filename, failed_dir, rm_invalid)
         raise e
 
@@ -125,7 +125,7 @@ def clear_unzipped(unzip_dir, filename=None, logger=LOG):
     """
     # log a fail message
     if filename is not None:
-        logger.warn(time.ctime() + '\t{} could not be build'.format(filename))
+        logger.warn('\t{} could not be build'.format(filename))
 
     if os.path.isdir(unzip_dir):
         # remove unzipped files

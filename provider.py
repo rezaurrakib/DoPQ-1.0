@@ -5,7 +5,6 @@ from providerfuncs import parse, fetch, build
 from core.container import Container
 import zipfile
 from utils import log
-from time import ctime
 import time
 
 
@@ -67,7 +66,7 @@ class Provider(hp.HelperProcess):
                     if container_config.build_flag:
                         image = build.build_image(filename, unzip_dir=self.paths['unzip'], tag=container_config.name)
                     else:
-                        self.logger.error(ctime() + '\tloading tarred images is currently not implemented')
+                        self.logger.error('\tloading tarred images is currently not implemented')
                         raise NotImplementedError
                         # image = build.load_image(filename)
                 except Exception as e:

@@ -29,9 +29,8 @@ def get_free_space(path, logger=LOG):
         total_space = stat.f_frsize * stat.f_blocks
         free_space_rel = float(free_space_abs) / float(total_space)
 
-    logger.info(
-        time.ctime() + "\tFree space on hard drive: " + str(int(free_space_abs / 1024 / 1024)) + "MB which is " + \
-        str(round(free_space_rel * 100, 2)) + "%")
+    logger.info("\tFree space on hard drive: " + str(int(free_space_abs / 1024 / 1024)) + "MB which is " +
+                str(round(free_space_rel * 100, 2)) + "%")
 
     return free_space_abs, free_space_rel
 
@@ -49,7 +48,7 @@ def move_container(filename, target_dir, logger=LOG):
     shutil.move(filename, target_dir)
 
     # log containers that has been moved
-    logger.info(time.ctime() + ":\tMoved container {} to {}".format(os.path.basename(filename), target_dir))
+    logger.info(":\tMoved container {} to {}".format(os.path.basename(filename), target_dir))
 
     # write LF to log for better readability
     logger.info("\n")
@@ -70,14 +69,12 @@ def handle_invalid_container(filename, rm_invalid=False, json_error=False, no_sp
     source_dir = os.path.dirname(filename)
 
     if no_space:
-        logger.info(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
+        logger.info("\tnot enough space to fetch container {}".format(filename))
     elif json_error:
-        logger.warning(time.ctime() + ":\t"
-                                      "The container_config.json could not be read for this container:\n {}".format(filename))
+        logger.warning("\tThe container_config.json could not be read for this container:\n {}".format(filename))
     else:
-        logger.warning(time.ctime() + ":\t"
-                                      "The following container is provided by a person, who is not authorized to run "
-                                      "containers on this machine:\n {}".format(filename))
+        logger.warning("\t""The following container is provided by a person, who is not authorized to run "
+                       "containers on this machine:\n {}".format(filename))
 
     if rm_invalid:
         os.remove(filename)
@@ -103,7 +100,7 @@ def fetch(filename, target_dir, logger=LOG, rm_invalid=True):
     free_space_abs, free_space_rel = get_free_space(target_dir)
     if free_space_abs < os.stat(filename).st_size:
         handle_invalid_container(filename, logger, rm_invalid, no_space=True)
-        raise IOError(time.ctime() + "\tnot enough space to fetch container {}".format(filename))
+        raise IOError("\tnot enough space to fetch container {}".format(filename))
     else:
         # move containers
         filename = move_container(filename, target_dir, logger)
