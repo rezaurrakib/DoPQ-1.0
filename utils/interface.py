@@ -770,7 +770,10 @@ class Status(DisplayFunction):
         if information['queue status'] == 'running':
             information['queue uptime'], information['queue starttime'] = self.dopq.uptime
             information['provider status'] = self.dopq.provider.status
-            information['provider uptime'], information['provider starttime'] = self.dopq.provider.uptime
+            if information['provider status'] == 'running':
+                information['provider uptime'], information['provider starttime'] = self.dopq.provider.uptime
+            else:
+                information['provider uptime'], information['provider starttime'] = '', ''
         else:
             information['queue uptime'], information['queue starttime'] = '', ''
             information['provider status'] = ''
