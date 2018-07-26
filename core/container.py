@@ -56,11 +56,12 @@ class Container:
         wrapper for getting the creation time of the container object
         :return: creation date and time as unicode
         """
+        self.container_obj.reload()
         state_val = self.container_obj.attrs.get('State')
         if state_val is not None:
             start_val = state_val.get('StartedAt')
             if start_val is not None:
-                return parser.parse(start_val)
+                return parser.parse(start_val).replace(tzinfo=None)
 
         # fall back
         return datetime.utcnow()
@@ -71,11 +72,12 @@ class Container:
         wrapper for getting the creation time of the container object
         :return: creation date and time as unicode
         """
+        self.container_obj.reload()
         state_val = self.container_obj.attrs.get('State')
         if state_val is not None:
             start_val = state_val.get('FinishedAt')
             if start_val is not None:
-                return parser.parse(start_val)
+                return parser.parse(start_val).replace(tzinfo=None)
 
         # fall back
         return datetime.utcnow().replace(day=1, month=1, year=1, hour=0, minute=0, second=0, microsecond=0)
@@ -147,6 +149,7 @@ class Container:
         """
         The status of the container. For example, ``running``, or ``exited``.
         """
+        self.container_obj.reload()
         return self.container_obj.status
 
     def attach(self, **kwargs):
@@ -548,6 +551,7 @@ class Container:
         return len(new_logs)
 
     def container_stats(self, runtime_stats=True):
+        self.container_obj.reload()
         """
         Provides information about container including also runtime info (if flag is set).
 
