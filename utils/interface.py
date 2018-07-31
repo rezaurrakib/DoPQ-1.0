@@ -8,6 +8,7 @@ from collections import OrderedDict
 import copy
 import types
 import log
+import traceback
 
 X_L = 2
 Y_T = 4
@@ -1249,7 +1250,10 @@ def pick_color(status):
 
 
 def run_interface(dopq):
-    curses.wrapper(main, dopq)
+    try:
+        curses.wrapper(main, dopq)
+    except:
+        LOG.error(traceback.format_exc())
 
 
 def main(screen, dopq):

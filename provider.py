@@ -6,6 +6,7 @@ from core.container import Container
 import zipfile
 from utils import log
 import time
+import traceback
 
 
 class Provider(hp.HelperProcess):
@@ -30,62 +31,72 @@ class Provider(hp.HelperProcess):
 
         while 1:
 
-            network_files = os.listdir(self.paths['network_containers'])
+            try:
 
-            # exclude failed dir if its inside the network dir
-            if 'invalid' in network_files:
-                network_files.remove('invalid')
+                network_files = os.listdir(self.paths['network_containers'])
 
-            for filename in network_files:
+                # exclude failed dir if its inside the network dir
+                if 'invalid' in network_files:
+                    network_files.remove('invalid')
 
-                filename = os.path.join(self.paths['network_containers'], filename)
+                for filename in network_files:
 
-                # get config from json
-                try:
-                    container_config = parse.parse_zipped_config(filename)
-                except (RuntimeError, zipfile.BadZipfile) as e:
-                    fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'], json_error=True)
-                    continue
-                if container_config is None:
-                    fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'], json_error=True)
-                    continue
+                    filename = os.path.join(self.paths['network_containers'], filename)
 
-                # check for valid executor
-                if container_config.executor_name in self.fetcher_conf['executors']:
-                    # move file to local drive
+                    # get config from json
                     try:
-                        filename = fetch.fetch(filename, self.paths['local_containers'])
-                    except IOError as e:
+                        container_config = parse.parse_zipped_config(filename)
+                    except (RuntimeError, zipfile.BadZipfile) as e:
+                        fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'], json_error=True)
+                        self.logger.error(traceback.format_exc())
                         continue
-                else:
-                    fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'])
-                    continue
+                    if container_config is None:
+                        fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'], json_error=True)
+                        continue
 
-                # generate docker image
-                try:
-                    if container_config.build_flag:
-                        image = build.build_image(filename, unzip_dir=self.paths['unzip'], tag=container_config.name)
+                    # check for valid executor
+                    if container_config.executor_name in self.fetcher_conf['executors']:
+                        # move file to local drive
+                        try:
+                            filename = fetch.fetch(filename, self.paths['local_containers'])
+                        except IOError:
+                            self.logger.error(traceback.format_exc())
+                            continue
                     else:
-                        self.logger.error('\tloading tarred images is currently not implemented')
-                        raise NotImplementedError
-                        # image = build.load_image(filename)
-                except Exception as e:
-                    continue
+                        fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'])
+                        continue
 
-                # create docker container
-                try:
-                    container = build.create_container(image, container_config, self.docker_conf['mounts'])
-                except docker.errors.APIError as e:
-                    continue
+                    # generate docker image
+                    try:
+                        if container_config.build_flag:
+                            image = build.build_image(filename, unzip_dir=self.paths['unzip'], tag=container_config.name)
+                        else:
+                            self.logger.error('\tloading tarred images is currently not implemented')
+                            raise NotImplementedError
+                            # image = build.load_image(filename)
+                    except Exception:
+                        self.logger.error(traceback.format_exc())
+                        continue
 
-                queue_container = Container(container_config, container)
-                self.queue.put(queue_container)
+                    # create docker container
+                    try:
+                        container = build.create_container(image, container_config, self.docker_conf['mounts'])
+                    except docker.errors.APIError as e:
+                        continue
 
-            # leave the loop if terminate flag is set
-            if self.term_flag.value:
-                break
+                    queue_container = Container(container_config, container)
+                    self.queue.put(queue_container)
 
-            self.sleep()
+                # leave the loop if terminate flag is set
+                if self.term_flag.value:
+                    break
+
+                self.sleep()
+
+            except Exception:
+                self.logger.error(traceback.format_exc())
+                self.stop()
+
 
     def start(self):
         super(Provider, self).start(self.provide, 'DoPQ-Provider')
@@ -93,6 +104,7 @@ class Provider(hp.HelperProcess):
 
     def stop(self):
         self.term_flag.value = 1
+        self.queue.close()
         if self.status == 'running':
             self.process.join(timeout=None)
 
