@@ -15,7 +15,7 @@ import time
 
 class GPU(object):
 
-    class _GPU(object):
+    class __GPU(object):
 
         def __init__(self, interval=1):
             self.last_call = 0
