@@ -845,7 +845,7 @@ class Containers(DisplayFunction):
                         'usage': ''}]
 
         # init information dict
-        self.displayed_information = copy.deepcopy(self.fields)
+        self.displayed_information = []
 
         # init template
         self.template = {'base': [['name:  ', # name
@@ -1085,7 +1085,7 @@ class ContainerList(DisplayFunction):
                         'created': ''}]
 
         # init information dict
-        self.displayed_information = copy.deepcopy(self.fields)
+        self.displayed_information = []
 
         # init template
         self.template = [['', '  ', # position
