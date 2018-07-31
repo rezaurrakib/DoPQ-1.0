@@ -33,7 +33,7 @@ class GPU(object):
 
     instance = None
 
-    def __init__(self, interval):
+    def __init__(self, interval=1):
 
         if GPU.instance is None:
             GPU.instance = GPU.__GPU(interval)
