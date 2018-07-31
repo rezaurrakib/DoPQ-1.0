@@ -914,7 +914,7 @@ class Containers(DisplayFunction):
         if information:
             self.displayed_information = information
 
-    def write_template(self, containers):
+    def write_template(self, containers=[]):
         """
         write the form template to the screen and get fields
         :return: None
@@ -1154,7 +1154,7 @@ class ContainerList(DisplayFunction):
         if information:
             self.displayed_information = information
 
-    def write_template(self, n_containers):
+    def write_template(self, n_containers=0):
         """
         write the form template to the screen and get fields
         :return: None
