@@ -41,7 +41,7 @@ class Container:
         self.last_log_update = int(time.time())
         self.last_log_file_update = int(time.time())
         self.log_dir = log_dir if log_dir is not None else ""
-        self._stats = self.container_obj.stats(decode=True, stream=True)
+        self._stats = None
 
     @property
     def created_at(self):
@@ -271,11 +271,13 @@ class Container:
                 self.set_gpu_minors(minors)
 
             # start it
+            self._stats = self.container_obj.stats(decode=True, stream=True)
             return self.container_obj.start(**kwargs)
 
         else:
 
             LOG.warning("You should not call start to unpause a paused container!")
+            self._stats = self.container_obj.stats(decode=True, stream=True)
             return self.container_obj.unpause(**kwargs)
 
     def restart(self, **kwargs):
@@ -389,6 +391,9 @@ class Container:
         """
         wrapper that return the next item of the stats stream that is created in init
         """
+        if iter(self._stats) is iter(self._stats):
+            self._stats = self.container_obj.stats(decode=True, stream=True)
+
         return next(self._stats)
 
     def top(self, **kwargs):
