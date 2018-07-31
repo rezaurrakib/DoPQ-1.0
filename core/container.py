@@ -41,6 +41,7 @@ class Container:
         self.last_log_update = int(time.time())
         self.last_log_file_update = int(time.time())
         self.log_dir = log_dir if log_dir is not None else ""
+        self._stats = self.container_obj.stats(decode=True, stream=True)
 
     @property
     def created_at(self):
@@ -77,7 +78,12 @@ class Container:
         if state_val is not None:
             start_val = state_val.get('FinishedAt')
             if start_val is not None:
-                return parser.parse(start_val).replace(tzinfo=None)
+                finish_time = parser.parse(start_val).replace(tzinfo=None)
+                if finish_time == datetime(2001,1,1,0,0):
+                    # container is still running
+                    return datetime.utcnow()
+                else:
+                    return finish_time
 
         # fall back
         return datetime.utcnow().replace(day=1, month=1, year=1, hour=0, minute=0, second=0, microsecond=0)
@@ -136,7 +142,7 @@ class Container:
         Provides the name of the container given by docker
         :return: Name of the container given by docker
         """
-        return self.container_obj.name()
+        return self.container_obj.name
 
     def image(self):
         """
@@ -215,7 +221,6 @@ class Container:
                                            socket, environment)
 
     def start(self, **kwargs):
-        # TODO extend start method. container can run itself since it contains all the necessary information
         """
         Start this container. Similar to the ``docker start`` command, but
         doesn't support attach options.
@@ -368,16 +373,12 @@ class Container:
         """
         return self.container_obj.remove(**kwargs)
 
-    def stats(self, **kwargs):
+    @property
+    def stats(self):
         """
-        Stream statistics for this container. Similar to the
-        ``docker stats`` command.
-
-        Raises:
-            :py:class:`docker.errors.APIError`
-                If the server returns an error.
+        wrapper that return the next item of the stats stream that is created in init
         """
-        return self.container_obj.stats(**kwargs)
+        return next(self._stats)
 
     def top(self, **kwargs):
         """
@@ -559,15 +560,15 @@ class Container:
         :return: String with container info.
         """
 
-        # get stats
-        stats_dict = self.stats(decode=True, stream=False)
-
         # build base info
         base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time,
                      'docker name': self.docker_name, 'created': self.created_at, 'status': self.status}
 
         # also show runtime info?
         if runtime_stats:
+
+            # get stats
+            stats_dict = self.stats
 
             # TODO: Extract cpu usage percentage (which seems to be a bit tricky..)
             # cpu_stats = stats_dict['cpu_stats']

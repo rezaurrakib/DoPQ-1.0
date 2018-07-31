@@ -34,6 +34,7 @@ import json
 from utils import log
 from utils import interface
 import datetime
+import traceback
 
 
 class DopQ(hp.HelperProcess):
@@ -433,9 +434,7 @@ class DopQ(hp.HelperProcess):
 
                     # add to running containers and write log message
                     self.running_containers.append(container)
-                    self.logger.info('\tsuccessfully ran a container from {}'
-                                     '\n\tcontainer logs are acquired in process {}'
-                                     .format(container, container.log_pid))
+                    self.logger.info('\tsuccessfully ran a container from {}'.format(container))
 
                     # update history
                     self.history = [container] + self.history
@@ -444,7 +443,7 @@ class DopQ(hp.HelperProcess):
                     self.sleep()
 
         except Exception as e:
-            self.logger.error('{}'.format(e))
+            self.logger.error(traceback.format_exc())
 
         finally:
             # save history, container list and running containers whenever the loop is exited for whatever reason
