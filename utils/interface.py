@@ -869,6 +869,7 @@ class Containers(DisplayFunction):
 
         # gather new information
         information = []
+        containers = copy.copy(self.dopq.running_containers)
         for container in self.dopq.running_containers:
             information.append(container.container_stats())
 
@@ -885,7 +886,7 @@ class Containers(DisplayFunction):
         # check if the containers are the same
         rewrite_all = False
         if len(information) != len(self.displayed_information):
-            self.write_template()
+            self.write_template(containers)
             rewrite_all = True
         else:
             for index, container in enumerate(self.dopq.running_containers):
@@ -913,7 +914,7 @@ class Containers(DisplayFunction):
         if information:
             self.displayed_information = information
 
-    def write_template(self):
+    def write_template(self, containers):
         """
         write the form template to the screen and get fields
         :return: None
@@ -924,7 +925,7 @@ class Containers(DisplayFunction):
 
         # combine parts of the template according to number and gpu settings of containers
         templates, use_gpu = [], []
-        for container in self.dopq.running_containers:
+        for container in containers:
                 if container.use_gpu:
                     template = copy.deepcopy(self.template['base'])
                     template.append(self.template['gpu'])
@@ -1130,7 +1131,7 @@ class ContainerList(DisplayFunction):
         # check if the container list length is the same
         rewrite_all = False
         if len(information) != len(self.displayed_information):
-            self.write_template()
+            self.write_template(len(container_list))
             rewrite_all = True
 
         # update displayed information
@@ -1153,7 +1154,7 @@ class ContainerList(DisplayFunction):
         if information:
             self.displayed_information = information
 
-    def write_template(self):
+    def write_template(self, n_containers):
         """
         write the form template to the screen and get fields
         :return: None
@@ -1166,7 +1167,6 @@ class ContainerList(DisplayFunction):
         self.max_containers = self.screen.pad_height // self.height
 
         # combine templates according to number of containers in the list
-        n_containers = len(self.get_list())
         templates = [self.template] * n_containers
 
         # write the template to the display and get fields
@@ -1190,7 +1190,7 @@ class ContainerList(DisplayFunction):
             fields = OrderedDict(sorted(fields.items(), key=sort_fn))
             fields_list.append(self.calculate_field_properties(fields))
 
-        self.fields = fields_list
+        self.fields = fields_list if fields_list else self.fields
         self.first_call = False
 
         # limit scrolling, so that it stops on the last displayed container
