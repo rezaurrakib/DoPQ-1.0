@@ -387,10 +387,9 @@ class Container:
         return self.container_obj.remove(**kwargs)
 
     def reload(self):
-
-        if self.container_obj.status == 'runnning' or self.container_obj.status == 'paused':
+        try:
             self.container_obj.reload()
-        else:
+        except Exception:
             pass
 
     @property
