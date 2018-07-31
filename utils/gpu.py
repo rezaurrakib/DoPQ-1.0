@@ -11,6 +11,7 @@ import re
 import docker
 import GPUtil
 import time
+import threading
 
 
 class GPU(object):
@@ -20,14 +21,23 @@ class GPU(object):
         def __init__(self, interval=1):
             self.last_call = 0
             self.stats = 0
+            self._stats = 0
             self.interval = interval
+            self.thread = threading.Thread(target=self.update_stats)
+
+        def update_stats(self):
+            self.stats = GPUtil.getGPUs()
 
         def gpu_stats(self):
             current_time = time.time()
 
-            if current_time - self.last_call > self.interval:
-                self.stats = GPUtil.getGPUs()
+            if current_time - self.last_call > self.interval and not self.thread.isAlive():
+                self.thread = threading.Thread(target=self.update_stats)
+                self.thread.start()
                 self.last_call = current_time
+
+            if self.stats == 0:
+                self.thread.join()
 
             return self.stats
 
@@ -120,11 +130,12 @@ def get_gpus_status(client=None):
     return free_gpus, assigned_gpus
 
 
-def get_gpu_infos(device_ids=None):
+def get_gpu_infos(device_ids=None, interval=2):
     """
     Provides a dictionary mapping each GPU minor (or requested) to all relevant information.
 
     :param device_ids: List or single GPU minor to include or None if all shall be shown.
+    :param interval: integer representing the seconds that GPU waits before fetching the data again
     :return: Dictionary mapping each GPU minor to its information.
     """
 
@@ -138,7 +149,7 @@ def get_gpu_infos(device_ids=None):
         if device_ids == ['all']:
             device_ids = None
 
-    gpu = GPU()
+    gpu = GPU(interval=interval)
     gpu_list = gpu.gpu_stats()
     if device_ids is None:
         gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
