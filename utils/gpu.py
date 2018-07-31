@@ -10,6 +10,38 @@ import os
 import re
 import docker
 import GPUtil
+import time
+
+
+class GPU(object):
+
+    class _GPU(object):
+
+        def __init__(self, interval=1):
+            self.last_call = 0
+            self.stats = 0
+            self.interval = interval
+
+        def gpu_stats(self):
+            current_time = time.time()
+
+            if current_time - self.last_call > self.interval:
+                self.stats = GPUtil.getGPUs(None)
+                self.last_call = current_time
+
+            return self.stats
+
+    instance = None
+
+    def __init__(self, interval):
+
+        if GPU.instance is None:
+            GPU.instance = GPU.__GPU(interval)
+        else:
+            GPU.instance.interval = interval
+
+    def gpu_stats(self):
+        return GPU.instance.gpu_stats()
 
 
 def get_system_gpus():
@@ -100,10 +132,11 @@ def get_gpu_infos(device_ids=None):
     if isinstance(device_ids, int):
         device_ids = {device_ids}
     if isinstance(device_ids, str) or isinstance(device_ids, unicode):
-        if device_ids == 'all':
+        if device_ids == ['all']:
             device_ids = None
 
-    gpu_list = GPUtil.getGPUs()
+    gpu = GPU()
+    gpu_list = gpu.gpu_stats()
     if device_ids is None:
         gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
     else:

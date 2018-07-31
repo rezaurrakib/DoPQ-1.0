@@ -107,8 +107,8 @@ class Container:
     @property
     def run_time(self):
         """
-        Returns the runtime in hours.
-        :return: Run time in hours
+        Returns the runtime string.
+        :return: Run time as {hours}h {minutes}m {seconds}s
         """
 
         # try to get finish time, replace with now if not yet finished.
@@ -118,7 +118,17 @@ class Container:
 
         # calc delta
         time_delta = end_time-self.start_time
-        return time_delta.total_seconds()/3600
+        time_delta = int(time_delta.total_seconds())
+
+        minutes, seconds = divmod(time_delta, 60)
+        hours, minutes = divmod(minutes, 60)
+
+        runtime = ''
+        runtime += '{} h '.format(hours) if hours > 0 else ''
+        runtime += '{} m '.format(minutes) if minutes > 0 else ''
+        runtime += '{} s '.format(seconds) if minutes == 0 else ''
+
+        return runtime
 
     @property
     def name(self):
