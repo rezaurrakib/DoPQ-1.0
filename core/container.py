@@ -73,13 +73,14 @@ class Container:
         wrapper for getting the creation time of the container object
         :return: creation date and time as unicode
         """
+
         self.container_obj.reload()
         state_val = self.container_obj.attrs.get('State')
         if state_val is not None:
             start_val = state_val.get('FinishedAt')
             if start_val is not None:
                 finish_time = parser.parse(start_val).replace(tzinfo=None)
-                if finish_time == datetime(2001,1,1,0,0):
+                if finish_time == datetime(2001,1,1,0,0) and self.status != 'created':
                     # container is still running
                     return datetime.utcnow()
                 else:
@@ -124,9 +125,9 @@ class Container:
         hours, minutes = divmod(minutes, 60)
 
         runtime = ''
-        runtime += '{} h '.format(hours) if hours > 0 else ''
-        runtime += '{} m '.format(minutes) if minutes > 0 else ''
-        runtime += '{} s '.format(seconds) if minutes == 0 else ''
+        runtime += '{}h '.format(hours) if hours > 0 else ''
+        runtime += '{}m '.format(minutes) if minutes > 0 else ''
+        runtime += '{}s '.format(seconds) if minutes == 0 else ''
 
         return runtime
 
@@ -587,7 +588,9 @@ class Container:
 
             # calc memory usage
             mem_stats = stats_dict['memory_stats']
-            mem_usage = mem_stats['usage'] * 100.0 / mem_stats['limit']
+            mem_usage = mem_stats.get('usage')
+            if mem_usage is not None:
+                mem_usage = mem_usage * 100.0 / mem_stats['limit']
 
             # add base runtime info
             base_info.update({'cpu': cpu_usage_percentage, 'memory': mem_usage})
