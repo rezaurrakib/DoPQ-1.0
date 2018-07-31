@@ -26,7 +26,7 @@ class GPU(object):
             current_time = time.time()
 
             if current_time - self.last_call > self.interval:
-                self.stats = GPUtil.getGPUs(None)
+                self.stats = GPUtil.getGPUs()
                 self.last_call = current_time
 
             return self.stats
@@ -131,7 +131,10 @@ def get_gpu_infos(device_ids=None):
     # cast to set if int
     if isinstance(device_ids, int):
         device_ids = {device_ids}
-    if isinstance(device_ids, str) or isinstance(device_ids, unicode):
+    elif isinstance(device_ids, str) or isinstance(device_ids, unicode):
+        if device_ids == 'all':
+            device_ids = None
+    elif isinstance(device_ids, list) and (isinstance(device_ids[0], str) or isinstance(device_ids[0], unicode)):
         if device_ids == ['all']:
             device_ids = None
 
