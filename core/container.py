@@ -397,10 +397,13 @@ class Container:
         """
         wrapper that return the next item of the stats stream that is created in init
         """
-        if iter(self._stats) is iter(self._stats):
+        if self._stats is None or not iter(self._stats) is iter(self._stats):
             self._stats = self.container_obj.stats(decode=True, stream=True)
 
         return next(self._stats)
+
+    def stop_stats_stream(self):
+        self._stats = None
 
     def top(self, **kwargs):
         """
