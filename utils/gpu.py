@@ -101,6 +101,8 @@ def get_assigned_gpus(client=None):
                         if minor_str.lower() == 'all':
                             for gpu_minor in minors:
                                 assigned_gpus.append(gpu_minor)
+                        elif minor_str.lower() in ['none', 'void']:
+                            pass
                         else:
                             minor_list = minor_str.split(",")
                             for gpu_minor in minor_list:

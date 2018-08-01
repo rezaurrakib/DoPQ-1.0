@@ -268,6 +268,7 @@ class Container:
 
                 # assign
                 minors = [str(m) for m in free_gpus[:n_gpus]]
+                print(minors)
                 self.set_gpu_minors(minors)
 
             # start it
@@ -509,6 +510,7 @@ class Container:
         """
         # get first occurence
         index = next((i for i, env_var in enumerate(self.container_obj.attrs[u'Config'][u'Env']) if 'NVIDIA_VISIBLE_DEVICES' in env_var), None)
+        print(index)
         if index is not None:
             self.container_obj.attrs[u'Config'][u'Env'][index] = u'NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))
         else:
