@@ -1254,6 +1254,8 @@ def run_interface(dopq):
         curses.wrapper(main, dopq)
     except:
         LOG.error(traceback.format_exc())
+    finally:
+        gpu.GPU.stop_hardware_monitor()
 
 
 def main(screen, dopq):

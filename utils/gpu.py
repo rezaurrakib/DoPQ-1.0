@@ -16,6 +16,13 @@ import threading
 
 class GPU(object):
 
+    @classmethod
+    def stop_hardware_monitor(cls):
+        if cls.instance is None:
+            pass
+        elif cls.instance.thread.isAlive():
+            cls.instance.thread._Thread__stop()
+
     class __GPU(object):
 
         def __init__(self):
@@ -145,7 +152,6 @@ def get_gpu_infos(device_ids=None, interval=2):
             device_ids = None
 
     gpu = GPU()
-    print(gpu)
     gpu_list = gpu.gpu_stats()
     if device_ids is None:
         gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
