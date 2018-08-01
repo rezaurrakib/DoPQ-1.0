@@ -408,19 +408,19 @@ class DopQ(hp.HelperProcess):
                 # update container list
                 self.update_container_list()
 
-                # check if there are containers in the queue
-                if len(self.container_list) == 0:
-                    self.sleep()
-                    continue
-
-                # TODO implement slot system
-
                 # clean up running containers
                 for container in self.running_containers:
                     if container.status == 'exited':
                         container.stop_stats_stream()
                         self.history.append(container)
                         self.running_containers.remove(container)
+
+                # check if there are containers in the queue
+                if len(self.container_list) == 0:
+                    self.sleep()
+                    continue
+
+                # TODO implement slot system
 
                 # get next container
                 container = self.container_list.pop(0)
