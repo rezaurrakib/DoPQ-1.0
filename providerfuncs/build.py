@@ -181,7 +181,7 @@ def create_container(image, config, mounts, logger=LOG):
     mounts = create_mounts(mounts, config.executor_name)
     client = docker.from_env()
     try:
-        create_conf = config.docker_params(image=image, detach=True, mounts=mounts)
+        create_conf = config.docker_params(image=image, detach=True, mounts=mounts, environment=["NVIDIA_VISIBLE_DEVICES=none"])
         container = client.containers.create(**create_conf)
     except docker.errors.APIError as e:
         logger.error(e)

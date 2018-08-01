@@ -507,7 +507,12 @@ class Container:
         :param gpu_minors: List with GPU minors to assign to container.
         :return: None
         """
-        self.container_obj.attrs['Config']['Env'] += ['NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
+        # get first occurence
+        index = next((i for i, env_var in enumerate(self.container_obj.attrs[u'Config'][u'Env']) if 'NVIDIA_VISIBLE_DEVICES' in env_var), None)
+        if index is not None:
+            self.container_obj.attrs[u'Config'][u'Env'][index] = u'NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))
+        else:
+            self.container_obj.attrs[u'Config'][u'Env'] += [u'NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
 
     def get_gpu_minors(self):
         """
