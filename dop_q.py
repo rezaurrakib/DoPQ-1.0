@@ -35,6 +35,7 @@ from utils import log
 from utils import interface
 import datetime
 import traceback
+from utils.gpu import GPU
 
 
 class DopQ(hp.HelperProcess):
@@ -201,6 +202,8 @@ class DopQ(hp.HelperProcess):
             :return: None
             """
             filename = os.path.join(path, file)
+            for container in member:
+                container.stop_stats_stream()
             with open(filename, 'wb') as f:
                 dill.dump(member, f)
 
@@ -372,6 +375,7 @@ class DopQ(hp.HelperProcess):
 
     def stop(self):
         self.term_flag.value = 1
+        GPU.stop_hardware_monitor()
         self.provider.stop()
         if self.status == 'running':
             self.thread.join()
@@ -409,6 +413,15 @@ class DopQ(hp.HelperProcess):
                     self.sleep()
                     continue
 
+                # TODO implement slot system
+
+                # clean up running containers
+                for container in self.running_containers:
+                    if container.status == 'exited':
+                        container.stop_stats_stream()
+                        self.history.append(container)
+                        self.running_containers.remove(container)
+
                 # get next container
                 container = self.container_list.pop(0)
                 gpu = container.use_gpu
@@ -420,8 +433,8 @@ class DopQ(hp.HelperProcess):
                     self.sleep()
                     continue
 
+                # start the container, write to log and append it to running containers
                 try:
-                    # TODO implement container logging and make sure starting the container returns the logging process
                     container.start()
 
                 except IOError as e:
@@ -435,10 +448,6 @@ class DopQ(hp.HelperProcess):
                     # add to running containers and write log message
                     self.running_containers.append(container)
                     self.logger.info('\tsuccessfully ran a container from {}'.format(container))
-
-                    # update history
-                    self.history = [container] + self.history
-                    self.history = self.history[:self.config['queue']['max_history']]
 
                     self.sleep()
 
