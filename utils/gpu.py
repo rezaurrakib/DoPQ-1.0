@@ -18,37 +18,32 @@ class GPU(object):
 
     class __GPU(object):
 
-        def __init__(self, interval=1):
-            self.last_call = 0
+        def __init__(self):
             self.stats = 0
             self._stats = 0
-            self.interval = interval
             self.thread = threading.Thread(target=self.update_stats)
 
         def update_stats(self):
-            self.stats = GPUtil.getGPUs()
+            while True:
+                self.stats = GPUtil.getGPUs()
 
         def gpu_stats(self):
-            current_time = time.time()
 
-            if current_time - self.last_call > self.interval and not self.thread.isAlive():
+            if not self.thread.isAlive():
                 self.thread = threading.Thread(target=self.update_stats)
                 self.thread.start()
-                self.last_call = current_time
 
-            if self.stats == 0:
-                self.thread.join()
+            while self.stats == 0:
+                time.sleep(0.1)
 
             return self.stats
 
     instance = None
 
-    def __init__(self, interval=1):
+    def __init__(self):
 
         if GPU.instance is None:
-            GPU.instance = GPU.__GPU(interval)
-        else:
-            GPU.instance.interval = interval
+            GPU.instance = GPU.__GPU()
 
     def gpu_stats(self):
         return GPU.instance.gpu_stats()
@@ -149,7 +144,8 @@ def get_gpu_infos(device_ids=None, interval=2):
         if device_ids == ['all']:
             device_ids = None
 
-    gpu = GPU(interval=interval)
+    gpu = GPU()
+    print(gpu)
     gpu_list = gpu.gpu_stats()
     if device_ids is None:
         gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
