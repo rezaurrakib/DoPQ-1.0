@@ -156,6 +156,6 @@ def get_gpu_infos(device_ids=None, interval=2):
     if device_ids is None:
         gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list])
     else:
-        gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list if gpu_i.id in device_ids])
+        gpu_dict = dict([(gpu_i.id, gpu_i.__dict__) for gpu_i in gpu_list if str(gpu_i.id) in device_ids])
 
     return gpu_dict
