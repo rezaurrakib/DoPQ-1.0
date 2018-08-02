@@ -434,11 +434,8 @@ class Interface(Window):
 
                     # unset focus for current subwindow
                     if self.focus != -1:
-                        self.scrollable[self.focus].redraw()
-
-                        # reprint information, otherwise window will be blank until next overall refresh
-                        self.scrollable[self.focus]()
-                        self.scrollable[self.focus].refresh()
+                        self.scrollable[self.focus].window.box()
+                        self.scrollable[self.focus].print_header()
 
                     # cycle subwindow focus
                     self.focus += 1 if self.focus < len(self.scrollable) - 1 else -3
@@ -632,6 +629,7 @@ class DisplayFunction(object):
         self.displayed_information = None
         self.template = None
         self.first_call = True
+        self.rewrite_all = False
         self.screen = subwindow
         self.dopq = dopq
         self.template = ''
@@ -918,7 +916,6 @@ class Containers(DisplayFunction):
         write the form template to the screen and get fields
         :return: None
         """
-
         # clear screen
         self.screen.redraw()
 
@@ -1006,15 +1003,15 @@ class UserStats(DisplayFunction):
         user_stats = self.dopq.users_stats
 
         # check if length of the user list has changed, if yes, redraw everything
-        redraw_all = False
+
         if len(user_stats) != len(self.displayed_information):
             self.write_template()
-            redraw_all = True
+            self.rewrite_all = True
 
         # cycle users and print their stats if they have changed or if redraw_all
         for index, user in enumerate(user_stats):
             for field, value in user.items():
-                if redraw_all or value != self.displayed_information[index][field]:
+                if self.rewrite_all or value != self.displayed_information[index][field]:
                     attrs = self.screen.BOLD if 'user' in field else 0
                     self.update_field(value, self.fields[index][field], attrs)
                 else:
@@ -1023,6 +1020,8 @@ class UserStats(DisplayFunction):
         # update displayed information
         if user_stats:
             self.displayed_information = user_stats
+
+        self.rewrite_all = False
 
     def write_template(self):
         """
@@ -1126,7 +1125,6 @@ class ContainerList(DisplayFunction):
         # gather new information
         container_list = self.get_list()
         information = [container.history_info() for container in container_list]
-
         # check if the container list length is the same
         rewrite_all = False
         if len(information) != len(self.displayed_information):
