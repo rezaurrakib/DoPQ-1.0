@@ -48,6 +48,7 @@ class Container:
         self.log_dir = log_dir if log_dir is not None else ""
         self._stats = None
         self._gpu_minors = None
+        self.created_at = datetime.fromtimestamp(time.time()).strftime("%a, %d.%b %H:%M")
         try:
             iter(mounts)
         except TypeError:
@@ -55,14 +56,6 @@ class Container:
         else:
             self.mounts = mounts
         self.mounts = self.create_mounts()
-
-    @property
-    def created_at(self):
-        """
-        wrapper for getting the creation time of the container object
-        :return: creation date and time as unicode
-        """
-        return self.container_obj.attrs['Created']
 
     @property
     def start_time(self):
