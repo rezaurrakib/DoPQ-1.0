@@ -78,13 +78,13 @@ class Provider(hp.HelperProcess):
                         self.logger.error(traceback.format_exc())
                         continue
 
-                    # create docker container
-                    try:
-                        container = build.create_container(image, container_config, self.docker_conf['mounts'])
-                    except docker.errors.APIError as e:
-                        continue
+                    # # create docker container
+                    # try:
+                    #     container = build.create_container(image, container_config, self.docker_conf['mounts'])
+                    # except docker.errors.APIError as e:
+                    #     continue
 
-                    queue_container = Container(container_config, container)
+                    queue_container = Container(container_config, image, mounts=self.docker_conf['mounts'])
                     self.queue.put(queue_container)
 
                 # leave the loop if terminate flag is set

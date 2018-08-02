@@ -20,6 +20,7 @@ import os
 import numpy as np
 import time
 import docker
+from docker.errors import APIError
 # import configparser # python 3
 import ConfigParser  # python 2
 import provider
@@ -441,6 +442,9 @@ class DopQ(hp.HelperProcess):
 
                     # put container back in the queue if not enough gpus are available
                     self.container_list.insert(0, container)
+                    continue
+
+                except APIError:
                     continue
 
                 else:

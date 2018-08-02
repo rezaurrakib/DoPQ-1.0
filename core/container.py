@@ -19,6 +19,10 @@ import psutil
 from utils.gpu import get_gpus_status, get_gpu_infos
 from utils import log
 from utils.cpu import CPU
+import traceback
+
+import docker
+from docker.errors import APIError
 
 LOG = log.get_module_log(__name__)
 
@@ -28,7 +32,7 @@ class Container:
     Wrapper for docker container objects
     """
 
-    def __init__(self, config, container_obj, log_dir=None):
+    def __init__(self, config, image, log_dir=None, mounts=None):
         """
         Creates a new container instance.
 
@@ -37,11 +41,20 @@ class Container:
         """
 
         self.config = config
-        self.container_obj = container_obj
+        self.container_obj = None
+        self.image = image
         self.last_log_update = int(time.time())
         self.last_log_file_update = int(time.time())
         self.log_dir = log_dir if log_dir is not None else ""
         self._stats = None
+        self._gpu_minors = None
+        try:
+            iter(mounts)
+        except TypeError:
+            self.mounts = ['']
+        else:
+            self.mounts = mounts
+        self.mounts = self.create_mounts()
 
     @property
     def created_at(self):
@@ -166,8 +179,11 @@ class Container:
         """
         The status of the container. For example, ``running``, or ``exited``.
         """
-        self.reload()
-        return self.container_obj.status
+        if self.container_obj is None:
+            return 'not created'
+        else:
+            self.reload()
+            return self.container_obj.status
 
     def attach(self, **kwargs):
         """
@@ -268,8 +284,14 @@ class Container:
 
                 # assign
                 minors = [str(m) for m in free_gpus[:n_gpus]]
-                print(minors)
-                self.set_gpu_minors(minors)
+                self.gpu_minors = minors
+
+                # create the container
+                try:
+                    self.create_container()
+                except APIError as e:
+                    LOG.error(traceback.format_exc())
+                    raise e
 
             # start it
             self._stats = self.container_obj.stats(decode=True, stream=True)
@@ -501,34 +523,22 @@ class Container:
         """
         return self.container_obj.export()
 
-    def set_gpu_minors(self, gpu_minors):
-        """
-        Sets the GPU minors in environment according to given list.
-
-        :param gpu_minors: List with GPU minors to assign to container.
-        :return: None
-        """
-        # get first occurence
-        index = next((i for i, env_var in enumerate(self.container_obj.attrs[u'Config'][u'Env']) if 'NVIDIA_VISIBLE_DEVICES' in env_var), None)
-        print(index)
-        if index is not None:
-            self.container_obj.attrs[u'Config'][u'Env'][index] = u'NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))
-        else:
-            self.container_obj.attrs[u'Config'][u'Env'] += [u'NVIDIA_VISIBLE_DEVICES={}'.format(",".join(gpu_minors))]
-
-    def get_gpu_minors(self):
+    @property
+    def gpu_minors(self):
         """
         Provides the GPU minors for given container object
 
         :return: Returns a list with GPU minors.
         """
-        config = self.container_obj.attrs['Config']
-        if config is not None:
-            env = config.get('Env')
-            for env_i in env:
-                if env_i.startswith('NVIDIA_VISIBLE_DEVICES'):
-                    env_value = env_i.split('=')[1]
-                    return [el_i.strip() for el_i in env_value.split(",")]
+        return self._gpu_minors
+
+    @gpu_minors.setter
+    def gpu_minors(self, minors):
+
+        assert isinstance(minors, list), 'gpu minors must be provided as a list'
+        assert all([isinstance(m, int) for m in minors]), 'gpu minors must have integer values'
+
+        self._gpu_minors = minors
 
     def append_new_logs(self):
         """
@@ -584,7 +594,6 @@ class Container:
         return len(new_logs)
 
     def container_stats(self, runtime_stats=True):
-        self.reload()
         """
         Provides information about container including also runtime info (if flag is set).
 
@@ -592,9 +601,15 @@ class Container:
         :return: String with container info.
         """
 
+        self.reload()
+
         # build base info
-        base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time,
-                     'docker name': self.docker_name, 'created': self.created_at, 'status': self.status}
+        if self.container_obj is None:
+            base_info = {'name': self.name, 'executor': self.executor, 'run_time': '',
+                         'docker name': '', 'created': '', 'status': 'not built'}
+        else:
+            base_info = {'name': self.name, 'executor': self.executor, 'run_time': self.run_time,
+                         'docker name': self.docker_name, 'created': self.created_at, 'status': self.status}
 
         # also show runtime info?
         if runtime_stats:
@@ -618,7 +633,7 @@ class Container:
 
             # add gpu info, if required
             if self.use_gpu:
-                gpu_info = get_gpu_infos(self.get_gpu_minors())
+                gpu_info = get_gpu_infos(self.gpu_minors)
                 base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
                                     for gpu_dt in gpu_info.values()]
 
@@ -632,3 +647,67 @@ class Container:
 
         # version without hardware runtime information
         return self.container_stats(runtime_stats=False)
+
+    def create_mounts(self):
+        """
+        converts string to docker.type.Mount objects, also automatically adds user folder to /outdir
+        :param mount_list: list of docker mount strings (as given in the config.ini)
+        :param user: user for whom the mounts are created
+        :return: list of docker.types.Mount objects, same len as mount_list
+        """
+        mount_list = self.mounts
+
+        if mount_list == ['']:
+            return None
+
+        mounts = []
+        for mount in mount_list:
+
+            # split mount string in source and target
+            mount = mount.split(':')
+
+            # append user folder to source if target is outdir
+            if mount[1] == '/outdir':
+                mount[0] = os.path.join(mount[0], self.executor)
+            if not os.path.exists(mount[0]):
+                os.makedirs(mount[0])
+
+            # create Mount object and append to list
+            mount = docker.types.Mount(source=mount[0], target=mount[1], type='bind')
+            mounts.append(mount)
+
+        return mounts
+
+    def create_container(self):
+        """
+        create a docker container using a passed ContainerConfig object
+        :param image: docker image on which the container will be based
+        :param config: ContainerConfig object
+        :param mounts: list of mount pairs (/dir:/dir)
+        :param logger: instance of logging or colorlog
+        :return: docker container
+        """
+
+        client = docker.from_env()
+        create_conf = self.config.docker_params(image=self.image, detach=True, mounts=self.mounts,
+                                           environment=["NVIDIA_VISIBLE_DEVICES=" + str(','.join(self.gpu_minors))])
+        container = client.containers.create(**create_conf)
+        self.container_obj = container
+
+if __name__ == '__main__':
+    from containerconfig import ContainerConfig
+    import docker
+
+    client = docker.from_env()
+    json_str = '{"num_slots": 1, "num_gpus": 1, "required_memory": "32g", "run_params": {}, "executor_name": "ilja", "build_flag": true, "name": "3d-ae-naive"}'
+    config = ContainerConfig.from_string(json_str)
+    docker_container = client.containers.create('pt-base', 'sleep 60', environment=["NVIDIA_VISIBLE_DEVICES=none"])
+    container = Container(config, docker_container)
+    # container.set_gpu_minors(['0'])
+    print(container.gpu_minors)
+    import time
+    time.sleep(1)
+    container.start()
+    print(container.gpu_minors)
+
+    stats = container.container_stats()
