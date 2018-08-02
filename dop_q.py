@@ -64,9 +64,6 @@ class DopQ(hp.HelperProcess):
         self.container_list = []
         self.running_containers = []
         self.history = []
-        self.mapping = {'history': (self.history_file, self.history),
-                        'list': (self.container_list_file, self.container_list),
-                        'running': (self.running_containers_file, self.running_containers)}
         self.restore('all')
 
         # init helper processes and classes
@@ -86,6 +83,14 @@ class DopQ(hp.HelperProcess):
 
         # initialize interface as a thread (so that members of the queue are accessible by the interface)
         self.thread = threading.Thread(target=self.run_queue)
+
+    @property
+    def mapping(self):
+        return {
+            'history': [self.history_file, self.history],
+            'list': [self.container_list_file, self.container_list],
+            'running': [self.running_containers_file, self.running_containers]
+        }
 
     @property
     def uptime(self):
@@ -164,59 +169,61 @@ class DopQ(hp.HelperProcess):
         :return: None
         """
 
-        def restore_single(path, file, member):
+        def restore_single(path, assignment_tuple):
             """
             helper for loading a single queue list
             :param path: directory of the dill file
-            :param file: name of the dill file
-            :param member: member that will be assigned the list
+            :param assignment_tuple: tuple of (name of the dill file, member that will be assigned the list)
             :return: None
             """
-            filename = os.path.join(path, file)
-            if os.path.isfile(filename):
-                with open(filename, 'rb') as f:
-                    member = dill.load(f)
+            file_name = assignment_tuple[0]
+            full_path = os.path.join(path, file_name)
+            if os.path.isfile(full_path):
+                with open(full_path, 'rb') as f:
+                    self.logger.debug("Restoring '{}'..".format(full_path))
+                    assignment_tuple[1] = dill.load(f)
             else:
-                member = []
+                assignment_tuple[1] = []
 
         if key == 'all':
             for item in self.mapping.values():
-                restore_single(self.paths['history'], *item)
+                restore_single(self.paths['history'], item)
         else:
-            restore_single(self.paths['history'], *self.mapping[key])
+            restore_single(self.paths['history'], self.mapping[key])
             if key == 'running':
                 self.update_running_containers()
 
     def save(self, key):
         """
-        restores history, container_list, running_containers, or all three
+        saves history, container_list, running_containers, or all three
         :param key: dictionary key of self.mapping or 'all'
         :return: None
         """
 
-        def save_single(path, file, member):
+        def save_single(path, assignment_tuple):
             """
             helper for saving a single queue list
             :param path: directory of the dill file
-            :param file: name of the dill file
-            :param member: member that will be assigned the list
+            :param assignment_tuple: tuple of (name of the dill file, member that will be assigned the list)
             :return: None
             """
-            filename = os.path.join(path, file)
+            file_name, member = assignment_tuple
+            full_path = os.path.join(path, file_name)
             for container in member:
                 container.stop_stats_stream()
-            with open(filename, 'wb') as f:
+            with open(full_path, 'wb') as f:
+                self.logger.debug("Dumping '{}'..".format(full_path))
                 dill.dump(member, f)
 
         if key == 'all':
             for item in self.mapping.values():
-                save_single(self.paths['history'], *item)
+                save_single(self.paths['history'], item)
         else:
             if key == 'running':
                 self.update_running_containers()
             elif key == 'list':
                 self.update_container_list()
-            save_single(self.paths['history'], *self.mapping[key])
+            save_single(self.paths['history'], self.mapping[key])
 
     def update_container_list(self):
         update_list = []
