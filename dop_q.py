@@ -61,12 +61,12 @@ class DopQ(hp.HelperProcess):
         self.history_file = 'history.dill'
         self.container_list_file = 'container_list.dill'
         self.running_containers_file = 'running_containers.dill'
-        self.container_list = []
-        self.running_containers = []
-        self.history = []
-        self.mapping = {'history': (self.history_file, self.history),
-                        'list': (self.container_list_file, self.container_list),
-                        'running': (self.running_containers_file, self.running_containers)}
+        # self.container_list = []
+        # self.running_containers = []
+        # self.history = []
+        self.mapping = {'history': [self.history_file, list()],
+                        'list': [self.container_list_file, list()],
+                        'running': [self.running_containers_file, list()]}
         self.restore('all')
 
         # init helper processes and classes
@@ -86,6 +86,18 @@ class DopQ(hp.HelperProcess):
 
         # initialize interface as a thread (so that members of the queue are accessible by the interface)
         self.thread = threading.Thread(target=self.run_queue)
+
+    @property
+    def container_list(self):
+        return self.mapping['list'][1]
+
+    @property
+    def running_containers(self):
+        return self.mapping['running'][1]
+
+    @property
+    def history(self):
+        return self.mapping['history'][1]
 
     @property
     def uptime(self):
@@ -164,26 +176,26 @@ class DopQ(hp.HelperProcess):
         :return: None
         """
 
-        def restore_single(path, file, member):
+        def restore_single(path, assignment_tuple):
             """
             helper for loading a single queue list
             :param path: directory of the dill file
-            :param file: name of the dill file
-            :param member: member that will be assigned the list
+            :param assignment_tuple: tuple of (name of the dill file, member that will be assigned the list)
             :return: None
             """
-            filename = os.path.join(path, file)
-            if os.path.isfile(filename):
-                with open(filename, 'rb') as f:
-                    member = dill.load(f)
+            file_name = assignment_tuple[0]
+            full_path = os.path.join(path, file_name)
+            if os.path.isfile(full_path):
+                with open(full_path, 'rb') as f:
+                    assignment_tuple[1] = dill.load(f)
             else:
-                member = []
+                assignment_tuple[1] = []
 
         if key == 'all':
             for item in self.mapping.values():
-                restore_single(self.paths['history'], *item)
+                restore_single(self.paths['history'], item)
         else:
-            restore_single(self.paths['history'], *self.mapping[key])
+            restore_single(self.paths['history'], self.mapping[key])
             if key == 'running':
                 self.update_running_containers()
 
