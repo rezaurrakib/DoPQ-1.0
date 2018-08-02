@@ -19,7 +19,7 @@ class DummyDoPQ(helper_process.HelperProcess):
         self.user_list = ['dummy the dummy', 'simple dummy', 'Sir Dummington', 'dummy with no name']#,
                           #'360_no_dummy', 'swag_dummy', 'bla', 'last_one']
 
-        self.history = self.generate_container_list(10, 'exited')
+        self.history = []
         self.container_list = [DummyContainer('dummy', [0]),
                                DummyContainer('dummy', [1], 'Sir Dummington'),
                                DummyContainer('dummy', [2, 0], 'lazy_dummy_420', 'paused'),
@@ -87,10 +87,15 @@ class DummyDoPQ(helper_process.HelperProcess):
     def run_queue(self):
         try:
             while not self.term_flag.value:
+                for container in self.container_list:
+                    time.sleep(5)
+                    self.running_containers += [container]
+                    self.container_list.remove(container)
 
-                time.sleep(10)
-                if self.container_list:
-                    self.running_containers += [self.container_list.pop(0)]
+                for container in self.running_containers:
+                    time.sleep(5)
+                    self.history += [container]
+                    self.running_containers.remove(container)
         finally:
             self.provider.stop()
             self.stop()

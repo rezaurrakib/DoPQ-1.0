@@ -294,7 +294,7 @@ class SubWindow(Window):
         self.erase()
         self.screen.box()
         self.print_header()
-        if isinstance(self.func, DisplayFunction):
+        if isinstance(self.func, DisplayFunction) or issubclass(self.func, DisplayFunction):
             self.func.first_call = True
 
 
@@ -337,7 +337,6 @@ class SubWindowAndPad(SubWindow):
     def refresh(self):
         if self.pad_initialized:
             self.window.refresh()
-
             self.screen.refresh(self.pad_line, 0, *self.pad_display_coordinates)
         else:
             self.screen.refresh()
@@ -349,7 +348,7 @@ class SubWindowAndPad(SubWindow):
         else:
             self.screen.box()
         self.print_header()
-        if isinstance(self.func, DisplayFunction):
+        if isinstance(self.func, DisplayFunction) or issubclass(self.func, DisplayFunction):
             self.func.first_call = True
 
     def print_header(self):
