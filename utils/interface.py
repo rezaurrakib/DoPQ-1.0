@@ -525,7 +525,7 @@ class Interface(Window):
                                     func=ContainerList,
                                     mode='enqueued'),
             'history': self.subwin(pad=True,
-                                   height=sub_height_lower // 2,
+                                   height=sub_height_lower // 2 + vertical_gap // 2,
                                    width=sub_width_right,
                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
                                    x=self.indent + sub_width_left + horizontal_gap,

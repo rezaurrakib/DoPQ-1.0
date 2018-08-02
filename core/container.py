@@ -614,12 +614,13 @@ class Container:
             # cpu_stats = stats_dict['cpu_stats']
             cpu = CPU(interval=0.1)
             cpu_usage_percentage = cpu.cpu_percent() # changed this because psutil.cpu_percentage with interval is blocking
+            cpu_usage_percentage = '{}%'.format(cpu_usage_percentage)
 
             # calc memory usage
             mem_stats = stats_dict['memory_stats']
             mem_usage = mem_stats.get('usage')
             if mem_usage is not None:
-                mem_usage = mem_usage * 100.0 / mem_stats['limit']
+                mem_usage = '{}%'.format(round(mem_usage * 100.0 / mem_stats['limit'],1))
 
             # add base runtime info
             base_info.update({'cpu': cpu_usage_percentage, 'memory': mem_usage})
@@ -627,7 +628,7 @@ class Container:
             # add gpu info, if required
             if self.use_gpu:
                 gpu_info = get_gpu_infos(self.gpu_minors)
-                base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal']}
+                base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': round(gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal'], 1)}
                                     for gpu_dt in gpu_info.values()]
 
         return base_info
