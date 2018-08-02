@@ -58,9 +58,9 @@ class DopQ(hp.HelperProcess):
         self.logfile = logfile
         self.config = self.parse_config(configfile)
         self.paths = self.config['paths']
-        self.history_file = os.path.join(self.paths['history'], 'history.dill')
-        self.container_list_file = os.path.join(self.paths['history'], 'container_list.dill')
-        self.running_containers_file = os.path.join(self.paths['history'], 'running_containers.dill')
+        self.history_file = 'history.dill'
+        self.container_list_file = 'container_list.dill'
+        self.running_containers_file = 'running_containers.dill'
         self.container_list = []
         self.running_containers = []
         self.history = []
