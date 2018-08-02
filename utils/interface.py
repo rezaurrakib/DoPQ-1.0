@@ -903,7 +903,10 @@ class Containers(DisplayFunction):
                         attrs = pick_color(value) | self.screen.BOLD
                     elif 'name' in field:
                         attrs = self.screen.BOLD
-                    self.update_field(value, self.fields[index][field], attrs)
+                    try:
+                        self.update_field(value, self.fields[index][field], attrs)
+                    except:
+                        pass
                 else:
                     continue
 
