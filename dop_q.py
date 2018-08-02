@@ -175,6 +175,7 @@ class DopQ(hp.HelperProcess):
             full_path = os.path.join(path, file_name)
             if os.path.isfile(full_path):
                 with open(full_path, 'rb') as f:
+                    self.logger.debug("Restoring '{}'..".format(full_path))
                     assignment_tuple[1] = dill.load(f)
             else:
                 assignment_tuple[1] = []
@@ -194,29 +195,30 @@ class DopQ(hp.HelperProcess):
         :return: None
         """
 
-        def save_single(path, file, member):
+        def save_single(path, assignment_tuple):
             """
             helper for saving a single queue list
             :param path: directory of the dill file
-            :param file: name of the dill file
-            :param member: member that will be assigned the list
+            :param assignment_tuple: tuple of (name of the dill file, member that will be assigned the list)
             :return: None
             """
-            filename = os.path.join(path, file)
+            file_name, member = assignment_tuple
+            full_path = os.path.join(path, file_name)
             for container in member:
                 container.stop_stats_stream()
-            with open(filename, 'wb') as f:
+            with open(full_path, 'wb') as f:
+                self.logger.debug("Dumping '{}'..".format(full_path))
                 dill.dump(member, f)
 
         if key == 'all':
             for item in self.mapping.values():
-                save_single(self.paths['history'], *item)
+                save_single(self.paths['history'], item)
         else:
             if key == 'running':
                 self.update_running_containers()
             elif key == 'list':
                 self.update_container_list()
-            save_single(self.paths['history'], *self.mapping[key])
+            save_single(self.paths['history'], self.mapping[key])
 
     def update_container_list(self):
         update_list = []
