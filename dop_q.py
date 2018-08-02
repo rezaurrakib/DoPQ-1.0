@@ -64,9 +64,6 @@ class DopQ(hp.HelperProcess):
         self.container_list = []
         self.running_containers = []
         self.history = []
-        self.mapping = {'history': [self.history_file, self.history],
-                        'list': [self.container_list_file, self.container_list],
-                        'running': [self.running_containers_file, self.running_containers]}
         self.restore('all')
 
         # init helper processes and classes
@@ -86,6 +83,14 @@ class DopQ(hp.HelperProcess):
 
         # initialize interface as a thread (so that members of the queue are accessible by the interface)
         self.thread = threading.Thread(target=self.run_queue)
+
+    @property
+    def mapping(self):
+        return {
+            'history': [self.history_file, self.history],
+            'list': [self.container_list_file, self.container_list],
+            'running': [self.running_containers_file, self.running_containers]
+        }
 
     @property
     def uptime(self):
@@ -190,7 +195,7 @@ class DopQ(hp.HelperProcess):
 
     def save(self, key):
         """
-        restores history, container_list, running_containers, or all three
+        saves history, container_list, running_containers, or all three
         :param key: dictionary key of self.mapping or 'all'
         :return: None
         """
