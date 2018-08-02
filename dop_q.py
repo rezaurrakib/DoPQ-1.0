@@ -64,7 +64,7 @@ class DopQ(hp.HelperProcess):
         self.container_list = []
         self.running_containers = []
         self.history = []
-        self.restore('all')
+        self.mapping = self.restore('all')
 
         # init helper processes and classes
         self.queue = mp.Queue()
@@ -91,6 +91,13 @@ class DopQ(hp.HelperProcess):
             'list': [self.container_list_file, self.container_list],
             'running': [self.running_containers_file, self.running_containers]
         }
+
+    @mapping.setter
+    def mapping(self, value):
+        self.history_file, self.history = value['history']
+        self.container_list_file, self.container_list = value['list']
+        self.running_containers_file, self.running_containers = value['running']
+        self.logger.debug("Mapping assignment done!")
 
     @property
     def uptime(self):
@@ -185,13 +192,16 @@ class DopQ(hp.HelperProcess):
             else:
                 assignment_tuple[1] = []
 
+        mapping_dict = self.mapping
         if key == 'all':
-            for item in self.mapping.values():
+            for item in mapping_dict.values():
                 restore_single(self.paths['history'], item)
         else:
-            restore_single(self.paths['history'], self.mapping[key])
+            restore_single(self.paths['history'], mapping_dict[key])
             if key == 'running':
                 self.update_running_containers()
+        self.logger.debug("Restored: {}".format(mapping_dict))
+        return mapping_dict
 
     def save(self, key):
         """
