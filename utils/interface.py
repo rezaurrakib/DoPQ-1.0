@@ -390,8 +390,8 @@ class Interface(Window):
         super(Interface, self).__init__(screen, offset, indent)
         self.header_attr = self.CYAN
         self.dopq = dopq
-        self.v_ration = v_ratio
-        self.h_ration = h_ratio
+        self.v_ratio = v_ratio
+        self.h_ratio = h_ratio
         self.functions = interface_funcs.FUNCTIONS
         self.interval = interval
 
@@ -479,10 +479,10 @@ class Interface(Window):
         horizontal_gap, vertical_gap = self.indent // 2, self.offset // 6
 
         # calculate subwindow sizes
-        sub_height_upper = int(VERTICAL_RATIO * win_height - vertical_gap // 2)
-        sub_height_lower = int((1 - VERTICAL_RATIO) * win_height - vertical_gap // 2)
-        sub_width_left = int(HORIZONTAL_RATIO * win_width - horizontal_gap // 2)
-        sub_width_right = int((1 - HORIZONTAL_RATIO) * win_width - horizontal_gap // 2)
+        sub_height_upper = int(self.v_ratio * win_height - vertical_gap // 2)
+        sub_height_lower = int((1 - self.v_ratio) * win_height - vertical_gap // 2)
+        sub_width_left = int(self.h_ratio * win_width - horizontal_gap // 2)
+        sub_width_right = int((1 - self.h_ratio) * win_width - horizontal_gap // 2)
 
         # create subwindows
         subwindows = {
@@ -521,7 +521,7 @@ class Interface(Window):
                                     func=ContainerList,
                                     mode='enqueued'),
             'history': self.subwin(pad=True,
-                                   height=sub_height_lower // 2 + vertical_gap // 2,
+                                   height=sub_height_lower // 2, #+ vertical_gap // 2,
                                    width=sub_width_right,
                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
                                    x=self.indent + sub_width_left + horizontal_gap,
