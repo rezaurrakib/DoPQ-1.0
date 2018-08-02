@@ -97,7 +97,6 @@ class DopQ(hp.HelperProcess):
         self.history_file, self.history = value['history']
         self.container_list_file, self.container_list = value['list']
         self.running_containers_file, self.running_containers = value['running']
-        self.logger.debug("Mapping assignment done!")
 
     @property
     def uptime(self):
@@ -187,7 +186,6 @@ class DopQ(hp.HelperProcess):
             full_path = os.path.join(path, file_name)
             if os.path.isfile(full_path):
                 with open(full_path, 'rb') as f:
-                    self.logger.debug("Restoring '{}'..".format(full_path))
                     assignment_tuple[1] = dill.load(f)
             else:
                 assignment_tuple[1] = []
@@ -200,7 +198,6 @@ class DopQ(hp.HelperProcess):
             restore_single(self.paths['history'], mapping_dict[key])
             if key == 'running':
                 self.update_running_containers()
-        self.logger.debug("Restored: {}".format(mapping_dict))
         return mapping_dict
 
     def save(self, key):
@@ -222,7 +219,6 @@ class DopQ(hp.HelperProcess):
             for container in member:
                 container.stop_stats_stream()
             with open(full_path, 'wb') as f:
-                self.logger.debug("Dumping '{}'..".format(full_path))
                 dill.dump(member, f)
 
         if key == 'all':
