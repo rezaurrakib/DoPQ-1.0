@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="315b97d8-313e-4c66-bc91-bb3a053fffa9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/dop_q.py" beforeDir="false" afterPath="$PROJECT_DIR$/dop_q.py" afterDir="false" />
+    <list default="true" id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="BugFix: replaced global variables with instance attributes in spit_screen">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -10,69 +10,71 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="DatabaseView">
-    <option name="SHOW_INTERMEDIATE" value="true" />
-    <option name="GROUP_DATA_SOURCES" value="true" />
-    <option name="GROUP_SCHEMA" value="true" />
-    <option name="GROUP_CONTENTS" value="false" />
-    <option name="SORT_POSITIONED" value="false" />
-    <option name="SHOW_EMPTY_GROUPS" value="false" />
-    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
-    <option name="HIDDEN_KINDS">
-      <set />
-    </option>
-    <expand />
-    <select />
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/dop_q$provider.coverage" NAME="provider Coverage Results" MODIFIED="1530005628049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$dop_q.coverage" NAME="dop_q Coverage Results" MODIFIED="1529559352363" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$test_suite.coverage" NAME="test_suite Coverage Results" MODIFIED="1533129295117" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$container.coverage" NAME="container Coverage Results" MODIFIED="1533129521564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
+    <SUITE FILE_PATH="coverage/dop_q$container_handler.coverage" NAME="container_handler Coverage Results" MODIFIED="1516981479797" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$process_info_test.coverage" NAME="process_info_test Coverage Results" MODIFIED="1530264103822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$docker_gpu_testing.coverage" NAME="docker_gpu_testing Coverage Results" MODIFIED="1516892965333" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/dop_q$keyhook_test.coverage" NAME="keyhook_test Coverage Results" MODIFIED="1529994526134" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FUSProjectUsageTrigger">
-    <session id="-1215154610">
+    <session id="-2005857267">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="1" />
+          <entry key="project.closed" value="10" />
           <entry key="project.open.time.0" value="1" />
-          <entry key="project.open.time.1" value="1" />
-          <entry key="project.opened" value="2" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.open">
-        <counts>
-          <entry key="py" value="2" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.open">
-        <counts>
-          <entry key="Python" value="2" />
+          <entry key="project.open.time.1" value="2" />
+          <entry key="project.open.time.11" value="2" />
+          <entry key="project.open.time.13" value="1" />
+          <entry key="project.open.time.2" value="4" />
+          <entry key="project.open.time.3" value="1" />
+          <entry key="project.opened" value="11" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="36" />
-          <entry key="py" value="447" />
+          <entry key="Python Console" value="5839" />
+          <entry key="py" value="5295" />
+          <entry key="txt" value="2552" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="483" />
+          <entry key="PLAIN_TEXT" value="2552" />
+          <entry key="Python" value="11134" />
         </counts>
       </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="PLAIN_TEXT" value="1" />
+          <entry key="Python" value="17" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="py" value="17" />
+          <entry key="sh" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.js.language.service.starts" />
     </session>
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="dop-q" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/hmlstm.py">
+        <entry file="file://$PROJECT_DIR$/provider.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="14" column="30" selection-start-line="14" selection-start-column="30" selection-end-line="14" selection-end-column="30" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/stacked.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5796">
-              <caret line="325" column="26" selection-start-line="325" selection-start-column="8" selection-end-line="325" selection-end-column="26" />
+            <state relative-caret-position="1694">
+              <caret line="85" selection-start-line="85" selection-end-line="85" />
+              <folding>
+                <element signature="e#0#28#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -80,43 +82,26 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/container.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9990">
-              <caret line="569" column="8" selection-start-line="569" selection-start-column="8" selection-end-line="569" selection-end-column="8" />
+            <state relative-caret-position="13398">
+              <caret line="630" column="128" selection-start-line="630" selection-start-column="128" selection-end-line="630" selection-end-column="128" />
               <folding>
+                <element signature="n#!!doc" />
+                <element signature="e#40#102#1" />
+                <element signature="e#104#171#0" />
                 <element signature="e#223#232#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/dop_q.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="452">
-              <caret line="101" column="13" lean-forward="true" selection-start-line="101" selection-start-column="13" selection-end-line="101" selection-end-column="13" />
-              <folding>
-                <element signature="e#378#415#0" expanded="true" />
-                <marker date="1533218058951" expanded="true" signature="3251:3257" ph="..." />
-                <marker date="1533218058951" expanded="true" signature="3252:3257" ph="..." />
+                <marker date="1533195251389" expanded="false" signature="12833:12930" ph="..." />
+                <marker date="1533195251389" expanded="false" signature="13298:13331" ph="..." />
+                <marker date="1533195251389" expanded="false" signature="16702:16921" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///opt/anaconda3/envs/py27/lib/python2.7/os.py">
+        <entry file="file://$PROJECT_DIR$/providerfuncs/build.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="636">
-              <caret line="156" selection-start-line="156" selection-end-line="156" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils/interface.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12618">
-              <caret line="711" selection-start-line="711" selection-end-line="711" />
+            <state relative-caret-position="3938">
+              <caret line="185" column="11" selection-start-line="185" selection-start-column="11" selection-end-line="185" selection-end-column="38" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -125,10 +110,13 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/containerconfig.py">
+        <entry file="file://$PROJECT_DIR$/container_handler.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="576">
-              <caret line="34" column="11" selection-start-line="34" selection-start-column="11" selection-end-line="34" selection-end-column="11" />
+            <state relative-caret-position="1584">
+              <caret line="76" column="109" selection-start-line="76" selection-start-column="66" selection-end-line="76" selection-end-column="109" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -136,49 +124,204 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
+            <state relative-caret-position="2156">
+              <caret line="103" column="66" selection-start-line="103" selection-start-column="66" selection-end-line="103" selection-end-column="66" />
+              <folding>
+                <element signature="e#95#104#0" expanded="true" />
+                <marker date="1533129150917" expanded="true" signature="171:174" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///opt/anaconda3/envs/tf/lib/python3.6/site-packages/docker/models/containers.py">
+        <entry file="file://$PROJECT_DIR$/dop_q.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5940">
-              <caret line="338" column="13" selection-start-line="338" selection-start-column="8" selection-end-line="338" selection-end-column="13" />
+            <state relative-caret-position="484">
+              <caret line="98" column="80" selection-start-line="98" selection-start-column="80" selection-end-line="98" selection-end-column="80" />
+              <folding>
+                <element signature="n#!!doc" />
+                <element signature="e#47#376#1" />
+                <element signature="e#1141#2665#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test_suite.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2156">
+              <caret line="106" column="46" selection-start-line="106" selection-start-column="42" selection-end-line="106" selection-end-column="46" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/containerconfig.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1474">
+              <caret line="69" column="50" selection-start-line="69" selection-start-column="50" selection-end-line="69" selection-end-column="50" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/utils/interface.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="44">
+              <caret line="477" column="65" selection-start-line="477" selection-start-column="65" selection-end-line="477" selection-end-column="65" />
+              <folding>
+                <element signature="e#339#7704#0" />
+                <element signature="e#408#1393#0" />
+                <element signature="e#408#816#1" />
+                <element signature="e#1437#1580#0" />
+                <element signature="e#1437#1542#1" />
+                <element signature="e#1622#1753#0" />
+                <element signature="e#1622#1718#1" />
+                <element signature="e#1784#1945#0" />
+                <element signature="e#1784#1877#1" />
+                <element signature="e#1990#2293#0" />
+                <element signature="e#1990#2170#1" />
+                <element signature="e#2396#3378#0" />
+                <element signature="e#2396#2812#1" />
+                <element signature="e#3465#5169#0" />
+                <element signature="e#3465#3894#1" />
+                <element signature="e#4359#4737#0" />
+                <element signature="e#4432#4645#0" />
+                <element signature="e#4843#5082#0" />
+                <element signature="e#4934#4985#0" />
+                <element signature="e#5266#6123#0" />
+                <element signature="e#5266#5586#1" />
+                <element signature="e#6173#6697#0" />
+                <element signature="e#6173#6490#1" />
+                <element signature="e#6730#6860#0" />
+                <element signature="e#6730#6830#1" />
+                <element signature="e#6891#7017#0" />
+                <element signature="e#6891#6989#1" />
+                <element signature="e#7048#7197#0" />
+                <element signature="e#7048#7162#1" />
+                <element signature="e#7231#7377#0" />
+                <element signature="e#7231#7346#1" />
+                <element signature="e#7415#7704#0" />
+                <element signature="e#7415#7569#1" />
+                <element signature="e#7849#9509#0" />
+                <element signature="e#7849#8626#1" />
+                <element signature="e#9139#9216#0" />
+                <element signature="e#9280#9354#0" />
+                <element signature="e#9381#9486#0" />
+                <element signature="e#9553#9834#0" />
+                <element signature="e#9553#9786#1" />
+                <element signature="e#9866#9949#1" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>build</find>
-      <find>build_image</find>
-      <find>now(</find>
+      <find>sleep.int</find>
+      <find>logging_intervall</find>
+      <find>min</find>
+      <find>logg</find>
+      <find>limit</find>
+      <find>prin</find>
+      <find>max_gpus</find>
+      <find>clear</find>
+      <find>GPUtil</find>
+      <find>refresh</find>
+      <find>cpu</find>
+      <find>scroll_l</find>
+      <find>penalties</find>
+      <find>pid</find>
+      <find>not be</find>
+      <find>log_pid</find>
+      <find>log_pi</find>
+      <find>ctime</find>
+      <find>-1</find>
       <find>stats</find>
-      <find>t</find>
-      <find>restore</find>
-      <find>history</find>
-      <find>mapping</find>
+      <find>self.stats</find>
+      <find>def stats</find>
+      <find>def run</find>
+      <find>reload</find>
+      <find>run</find>
+      <find>print</find>
+      <find>get_gpu</find>
+      <find>set_gpu</find>
+      <find>client</find>
+      <find>logger.debu</find>
     </findStrings>
+    <replaceStrings>
+      <replace>paths['log']</replace>
+      <replace>paths['local_containers']</replace>
+      <replace>paths['max_history']</replace>
+      <replace>config['paths']</replace>
+      <replace>container_list</replace>
+      <replace>target_dir</replace>
+      <replace>image_list</replace>
+      <replace>self.history</replace>
+      <replace>self.get_user_oh</replace>
+      <replace>self.logger.info</replace>
+      <replace>self.logger.error</replace>
+    </replaceStrings>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Ilja Manakov &lt;ilja.manakov@med.uni-muenchen.de&gt;" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="SET_USER_NAME_GLOBALLY" value="false" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/hmlstm.py" />
-        <option value="$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/stacked.py" />
-        <option value="$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/train.py" />
+        <option value="$PROJECT_DIR$/run.py" />
+        <option value="$PROJECT_DIR$/fetcher.py" />
+        <option value="$PROJECT_DIR$/docker_gpu_testing.py" />
+        <option value="$PROJECT_DIR$/gpu_handler.py" />
+        <option value="$PROJECT_DIR$/builder.py" />
+        <option value="$PROJECT_DIR$/ContainerWrapper.py" />
+        <option value="$PROJECT_DIR$/provider/fetch.py" />
+        <option value="$PROJECT_DIR$/provider/build.py" />
+        <option value="$PROJECT_DIR$/provider/parse.py" />
+        <option value="$PROJECT_DIR$/container/container.py" />
         <option value="$PROJECT_DIR$/core/containerconfig.py" />
+        <option value="/media/data/Documents/Promotion/Projects/dop-q/providerfuncs/build.py" />
+        <option value="$PROJECT_DIR$/simple_terminal_test.py" />
+        <option value="$PROJECT_DIR$/keyhook_test.py" />
+        <option value="$PROJECT_DIR$/interface.py" />
+        <option value="$PROJECT_DIR$/process_info_test.py" />
+        <option value="$PROJECT_DIR$/utils/test_suite.py" />
+        <option value="$PROJECT_DIR$/container_handler.py" />
+        <option value="$PROJECT_DIR$/curses_pad_test.py" />
+        <option value="$PROJECT_DIR$/setup.sh" />
+        <option value="$PROJECT_DIR$/utils/log.py" />
+        <option value="$PROJECT_DIR$/config.ini" />
+        <option value="$PROJECT_DIR$/utils/interface_funcs.py" />
+        <option value="$PROJECT_DIR$/helper_process.py" />
+        <option value="$PROJECT_DIR$/providerfuncs/fetch.py" />
+        <option value="$PROJECT_DIR$/utils/cpu.py" />
         <option value="$PROJECT_DIR$/providerfuncs/build.py" />
-        <option value="$PROJECT_DIR$/provider.py" />
         <option value="$PROJECT_DIR$/utils/gpu.py" />
+        <option value="$PROJECT_DIR$/provider.py" />
         <option value="$PROJECT_DIR$/core/container.py" />
+        <option value="$PROJECT_DIR$/test_suite.py" />
         <option value="$PROJECT_DIR$/utils/interface.py" />
         <option value="$PROJECT_DIR$/dop_q.py" />
       </list>
@@ -191,8 +334,8 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="260" />
-    <option name="y" value="52" />
+    <option name="x" value="-9" />
+    <option name="y" value="-9" />
     <option name="width" value="1400" />
     <option name="height" value="1000" />
   </component>
@@ -209,26 +352,6 @@
               <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
               <item name="dop-q" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
-              <item name="core" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
-              <item name="examples" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
-              <item name="providerfuncs" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
-              <item name="utils" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -236,12 +359,17 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="SearchEverywhereHistoryKey" value=".0&#9;null&#9;null" />
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///home/kazuki/Documents/Promotion/Projects/dop-q/core/container.py&#10;log_pid&#9;null&#9;null" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/utils" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -255,186 +383,868 @@
       </list>
     </option>
   </component>
+  <component name="RunManager" selected="Python.container">
+    <configuration name="container" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dop-q" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/core" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/core/container.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="keyhook_test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dop-q" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/keyhook_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="process_info_test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dop-q" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/process_info_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="provider" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dop-q" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/provider.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_suite" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="dop-q" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_suite.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.provider" />
+      <item itemvalue="Python.keyhook_test" />
+      <item itemvalue="Python.process_info_test" />
+      <item itemvalue="Python.test_suite" />
+      <item itemvalue="Python.container" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.container" />
+        <item itemvalue="Python.test_suite" />
+        <item itemvalue="Python.process_info_test" />
+        <item itemvalue="Python.provider" />
+        <item itemvalue="Python.keyhook_test" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SvnConfiguration">
-    <configuration />
+    <configuration>$USER_HOME$/.subversion</configuration>
+    <myIsUseDefaultProxy>true</myIsUseDefaultProxy>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="315b97d8-313e-4c66-bc91-bb3a053fffa9" name="Default" comment="" />
-      <created>1530015373211</created>
+      <changelist id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="" />
+      <created>1515750853630</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1530015373211</updated>
+      <updated>1515750853630</updated>
     </task>
+    <task id="LOCAL-00058" summary="bug fixes">
+      <created>1532515002459</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1532515002460</updated>
+    </task>
+    <task id="LOCAL-00059" summary="bug fixes">
+      <created>1532515900631</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1532515900631</updated>
+    </task>
+    <task id="LOCAL-00060" summary="bug fixes">
+      <created>1532516049305</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1532516049305</updated>
+    </task>
+    <task id="LOCAL-00061" summary="adjusted logging">
+      <created>1532518667883</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1532518667883</updated>
+    </task>
+    <task id="LOCAL-00062" summary="adjusted logging">
+      <created>1532519096246</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1532519096246</updated>
+    </task>
+    <task id="LOCAL-00063" summary="fixed bug where a bool property of the container was called, causing an error">
+      <created>1532520470846</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1532520470846</updated>
+    </task>
+    <task id="LOCAL-00064" summary="BugFix: set_gpu_minors expected a list of strings but start was passing a lsit of int">
+      <created>1532521151981</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1532521151982</updated>
+    </task>
+    <task id="LOCAL-00065" summary="BugFix: run_queue and run_interface operated on different DopQ objects since they ran in different processes. Changed it so that a reference is passed to the interface which is updated in run_queue">
+      <created>1532524027569</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1532524027569</updated>
+    </task>
+    <task id="LOCAL-00066" summary="BugFix: run_queue and run_interface operated on different DopQ objects since they ran in different processes. Changed it so that a reference is passed to the interface which is updated in run_queue">
+      <created>1532524316253</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1532524316253</updated>
+    </task>
+    <task id="LOCAL-00067" summary="BugFix: run_queue and run_interface operated on different DopQ objects since they ran in different processes. Changed it so that a reference is passed to the interface which is updated in run_queue">
+      <created>1532524505690</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1532524505690</updated>
+    </task>
+    <task id="LOCAL-00068" summary="BugFix: run_queue and run_interface operated on different DopQ objects since they ran in different processes. Changed it so that a reference is passed to the interface which is updated in run_queue">
+      <created>1532524812906</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1532524812906</updated>
+    </task>
+    <task id="LOCAL-00069" summary="BugFix: run_queue and run_interface operated on different DopQ objects since they ran in different processes. Changed it so that a reference is passed to the interface which is updated in run_queue">
+      <created>1532547087036</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1532547087039</updated>
+    </task>
+    <task id="LOCAL-00070" summary="added spaces between time componentes in uptime">
+      <created>1532547136527</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1532547136527</updated>
+    </task>
+    <task id="LOCAL-00071" summary="BugFix: added an if to prevent Status from accesing provider.process.pid if provider.process is not initialized">
+      <created>1532582737949</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1532582737949</updated>
+    </task>
+    <task id="LOCAL-00072" summary="BugFix: added the missing line that starts the provider">
+      <created>1532582778704</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1532582778704</updated>
+    </task>
+    <task id="LOCAL-00073" summary="BugFix: added reload to methods that access container attrs&#10;BugFix: made all times in the runtime calculation offset-naive">
+      <created>1532591799319</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1532591799320</updated>
+    </task>
+    <task id="LOCAL-00074" summary="removed timestamps from logs since its already part of the formatter">
+      <created>1532592236653</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1532592236653</updated>
+    </task>
+    <task id="LOCAL-00075" summary="bugfixes">
+      <created>1533025800768</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1533025800769</updated>
+    </task>
+    <task id="LOCAL-00076" summary="bugfixes">
+      <created>1533029335412</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1533029335412</updated>
+    </task>
+    <task id="LOCAL-00077" summary="bugfixes">
+      <created>1533029495146</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1533029495146</updated>
+    </task>
+    <task id="LOCAL-00078" summary="bugfixes">
+      <created>1533029545414</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1533029545414</updated>
+    </task>
+    <task id="LOCAL-00079" summary="bugfixes">
+      <created>1533029893014</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1533029893014</updated>
+    </task>
+    <task id="LOCAL-00080" summary="bugfixes">
+      <created>1533031388878</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1533031388878</updated>
+    </task>
+    <task id="LOCAL-00081" summary="bugfixes">
+      <created>1533036535502</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1533036535502</updated>
+    </task>
+    <task id="LOCAL-00082" summary="bugfixes">
+      <created>1533039742627</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1533039742627</updated>
+    </task>
+    <task id="LOCAL-00083" summary="bugfixes">
+      <created>1533040213285</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1533040213285</updated>
+    </task>
+    <task id="LOCAL-00084" summary="bugfixes">
+      <created>1533041096631</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1533041096631</updated>
+    </task>
+    <task id="LOCAL-00085" summary="BugFix: removed interaction with the queue from write_template methods of Containers and ContainerList. This could cause an issue where the queue had already advanced and update() and write_template() had different information about the containers">
+      <created>1533042894869</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1533042894869</updated>
+    </task>
+    <task id="LOCAL-00086" summary="BugFix: added default values to write_template in Containers and ContainerList so that it won't crash on __call__">
+      <created>1533043113962</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1533043113962</updated>
+    </task>
+    <task id="LOCAL-00087" summary="BugFix: wrapped reload in a try block so that it doesn't crash if the container does not exixt anymore">
+      <created>1533043434264</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1533043434264</updated>
+    </task>
+    <task id="LOCAL-00088" summary="BugFix: correctly set displayed_information to an empty list in Containers and ContainerList">
+      <created>1533044243381</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1533044243381</updated>
+    </task>
+    <task id="LOCAL-00089" summary="BugFix: gpu_stats() should not be blocking anymore">
+      <created>1533108274547</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1533108274547</updated>
+    </task>
+    <task id="LOCAL-00090" summary="BugFix: stopped container stat streams before pickling">
+      <created>1533111435914</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1533111435914</updated>
+    </task>
+    <task id="LOCAL-00091" summary="added method to stop gpu hardware monitor">
+      <created>1533111519165</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1533111519165</updated>
+    </task>
+    <task id="LOCAL-00092" summary="added small wrapper for stopping container stat streams">
+      <created>1533111538170</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1533111538170</updated>
+    </task>
+    <task id="LOCAL-00093" summary="BugFix: moved exited container check further up so it is not skipped when now new containers are enqueued">
+      <created>1533112546825</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1533112546825</updated>
+    </task>
+    <task id="LOCAL-00094" summary="BugFix: gpus were not assigned correctly because the environment variable was already set with 'all' during container creation">
+      <created>1533118816478</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1533118816478</updated>
+    </task>
+    <task id="LOCAL-00095" summary="BugFix: get_gpu_infos was comparing int ids against str id provided by the containers get_gpu_minors">
+      <created>1533121350560</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1533121350560</updated>
+    </task>
+    <task id="LOCAL-00096" summary="BugFix: added a case for containers that have 'none' or 'void' in NVIDIA_VISIBLE_DEVICES">
+      <created>1533129159534</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1533129159534</updated>
+    </task>
+    <task id="LOCAL-00097" summary="BugFix: changed Container init to accept a docker image. docker container is now build at Container.start(). Once a container is created there appears to be no way of changing the GPU isolation">
+      <created>1533194023033</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1533194023034</updated>
+    </task>
+    <task id="LOCAL-00098" summary="BugFix: queue was crashing if the container object was not created yet due to the way created_at worked. fixed it">
+      <created>1533194865027</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1533194865027</updated>
+    </task>
+    <task id="LOCAL-00099" summary="cosmetic changes">
+      <created>1533196912024</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1533196912024</updated>
+    </task>
+    <task id="LOCAL-00100" summary="BugFix: history is now loaded properly">
+      <created>1533199151921</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1533199151921</updated>
+    </task>
+    <task id="LOCAL-00101" summary="BugFix: redraw() now correctly checks if the self.func is an instance DisplayFunction or a subclass of it in SubWindow and SunWindowAndPad">
+      <created>1533199237664</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1533199237664</updated>
+    </task>
+    <task id="LOCAL-00102" summary="undid last bugfix, it didnt work">
+      <created>1533208902143</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1533208902143</updated>
+    </task>
+    <task id="LOCAL-00103" summary="BugFix: fixed disappearing borders after tabbing out">
+      <created>1533217238555</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1533217238555</updated>
+    </task>
+    <task id="LOCAL-00104" summary="BugFix: wrapped update in Containers in a try block to avoid some timing issues">
+      <created>1533217323508</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1533217323508</updated>
+    </task>
+    <task id="LOCAL-00105" summary="BugFix: replaced global variables with instance attributes in spit_screen">
+      <created>1533219159086</created>
+      <option name="number" value="00105" />
+      <option name="presentableId" value="LOCAL-00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1533219159086</updated>
+    </task>
+    <task id="LOCAL-00106" summary="removed debug logs">
+      <created>1533219937057</created>
+      <option name="number" value="00106" />
+      <option name="presentableId" value="LOCAL-00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1533219937057</updated>
+    </task>
+    <option name="localTasksCounter" value="107" />
     <servers />
   </component>
+  <component name="TodoView" selected-index="5">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="-11" width="1922" height="1092" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="27" width="1920" height="1053" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.27908218" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48070174" visible="true" weight="0.16595517" />
+      <window_info id="Structure" order="1" sideWeight="0.51929826" side_tool="true" weight="0.15795091" />
+      <window_info id="Favorites" order="2" sideWeight="0.5053111" side_tool="true" weight="0.15955175" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info active="true" anchor="bottom" id="Find" order="1" visible="true" weight="0.32845187" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49893278" visible="true" weight="0.24432433" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4994664" weight="0.3935135" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49199572" weight="0.39891893" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32756758" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="9" />
-      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Version Control" order="11" />
-      <window_info anchor="bottom" id="Python Console" order="12" weight="0.3294979" />
+      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49786553" weight="0.3394794" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5010672" side_tool="true" weight="0.24432433" />
+      <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.48399147" weight="0.26702702" />
+      <window_info anchor="bottom" id="Messages" order="11" />
+      <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.49252936" weight="0.3545946" />
+      <window_info anchor="bottom" id="Database Changes" order="13" show_stripe_button="false" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" />
-      <window_info anchor="right" id="Database" order="4" weight="0.32977587" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="right" id="SciView" order="4" />
+      <window_info anchor="right" id="Notes" order="5" weight="0.32977587" />
+      <window_info anchor="right" x="0" y="0" width="430" height="853" id="Documentation" order="6" side_tool="true" visible="true" weight="0.19423692" />
     </layout>
+    <layout-to-restore>
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.48070174" weight="0.16435432" />
+      <window_info id="Structure" order="1" sideWeight="0.51929826" side_tool="true" weight="0.15795091" />
+      <window_info id="Favorites" order="2" sideWeight="0.5053111" side_tool="true" weight="0.15955175" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4994664" weight="0.2451193" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4994664" weight="0.39370933" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49199572" weight="0.3991323" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32792208" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49786553" weight="0.3394794" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.51600856" side_tool="true" weight="0.27006507" />
+      <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.48399147" weight="0.2681081" />
+      <window_info anchor="bottom" id="Messages" order="11" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="12" sideWeight="0.49252936" visible="true" weight="0.31567568" />
+      <window_info anchor="bottom" id="Database Changes" order="13" show_stripe_button="false" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="right" id="SciView" order="4" />
+      <window_info anchor="right" id="Notes" order="5" weight="0.32977587" />
+      <window_info anchor="right" x="0" y="0" width="430" height="853" id="Documentation" order="6" side_tool="true" visible="true" weight="0.19423692" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="BugFix: added reload to methods that access container attrs&#10;BugFix: made all times in the runtime calculation offset-naive" />
+    <MESSAGE value="removed timestamps from logs since its already part of the formatter" />
+    <MESSAGE value="bugfixes" />
+    <MESSAGE value="BugFix: removed interaction with the queue from write_template methods of Containers and ContainerList. This could cause an issue where the queue had already advanced and update() and write_template() had different information about the containers" />
+    <MESSAGE value="BugFix: added default values to write_template in Containers and ContainerList so that it won't crash on __call__" />
+    <MESSAGE value="BugFix: wrapped reload in a try block so that it doesn't crash if the container does not exixt anymore" />
+    <MESSAGE value="BugFix: correctly set displayed_information to an empty list in Containers and ContainerList" />
+    <MESSAGE value="BugFix: gpu_stats() should not be blocking anymore" />
+    <MESSAGE value="BugFix: stopped container stat streams before pickling" />
+    <MESSAGE value="added method to stop gpu hardware monitor" />
+    <MESSAGE value="added small wrapper for stopping container stat streams" />
+    <MESSAGE value="BugFix: moved exited container check further up so it is not skipped when now new containers are enqueued" />
+    <MESSAGE value="BugFix: gpus were not assigned correctly because the environment variable was already set with 'all' during container creation" />
+    <MESSAGE value="BugFix: get_gpu_infos was comparing int ids against str id provided by the containers get_gpu_minors" />
+    <MESSAGE value="BugFix: added a case for containers that have 'none' or 'void' in NVIDIA_VISIBLE_DEVICES" />
+    <MESSAGE value="BugFix: changed Container init to accept a docker image. docker container is now build at Container.start(). Once a container is created there appears to be no way of changing the GPU isolation" />
+    <MESSAGE value="BugFix: queue was crashing if the container object was not created yet due to the way created_at worked. fixed it" />
+    <MESSAGE value="cosmetic changes" />
+    <MESSAGE value="BugFix: history is now loaded properly" />
+    <MESSAGE value="BugFix: redraw() now correctly checks if the self.func is an instance DisplayFunction or a subclass of it in SubWindow and SunWindowAndPad" />
+    <MESSAGE value="undid last bugfix, it didnt work" />
+    <MESSAGE value="BugFix: fixed disappearing borders after tabbing out" />
+    <MESSAGE value="BugFix: wrapped update in Containers in a try block to avoid some timing issues" />
+    <MESSAGE value="BugFix: replaced global variables with instance attributes in spit_screen" />
+    <MESSAGE value="removed debug logs" />
+    <option name="LAST_COMMIT_MESSAGE" value="removed debug logs" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/process_info_test.py</url>
+          <line>47</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/core/container.py</url>
+          <line>704</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/utils/interface.py</url>
+          <line>897</line>
+          <option name="timeStamp" value="67" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/.PyCharm2018.1/system/python_stubs/896705418/time.py">
+    <entry file="file://$PROJECT_DIR$/curses_pad_test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4338">
-          <caret line="241" column="4" selection-start-line="241" selection-start-column="4" selection-end-line="241" selection-end-column="4" />
+        <state relative-caret-position="836">
+          <caret line="41" column="21" selection-start-line="41" selection-start-column="21" selection-end-line="41" selection-end-column="21" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/mlstm.py">
+    <entry file="file://$PROJECT_DIR$/config.ini">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/log.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-97">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+        <state relative-caret-position="1106">
+          <caret line="57" column="5" selection-start-line="57" selection-start-column="5" selection-end-line="57" selection-end-column="5" />
+          <folding>
+            <element signature="e#81#95#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/train.py">
+    <entry file="file://$PROJECT_DIR$/utils/interface_funcs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="429">
-          <caret line="134" selection-start-line="134" selection-end-line="134" />
+        <state relative-caret-position="1122">
+          <caret line="63" column="26" selection-start-line="63" selection-start-column="26" selection-end-line="63" selection-end-column="26" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/providerfuncs/build.py">
+    <entry file="file://$PROJECT_DIR$/providerfuncs/parse.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$USER_HOME$/miniconda3/envs/dop-q/lib/python2.7/site-packages/dateutil/parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="39" column="35" selection-start-line="39" selection-start-column="26" selection-end-line="39" selection-end-column="35" />
+        <state relative-caret-position="-330" />
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/python_stubs/-651041491/syslog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="79">
+          <caret line="25" column="16" lean-forward="true" selection-start-line="25" selection-start-column="16" selection-end-line="25" selection-end-column="16" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///opt/anaconda3/envs/py27/lib/python2.7/site-packages/GPUtil/GPUtil.py">
+    <entry file="file://$PROJECT_DIR$/providerfuncs/fetch.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="185">
-          <caret line="162" column="70" selection-start-line="162" selection-start-column="69" selection-end-line="162" selection-end-column="70" />
+        <state relative-caret-position="1012">
+          <caret line="50" column="18" selection-start-line="50" selection-start-column="18" selection-end-line="50" selection-end-column="18" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///opt/anaconda3/envs/py27/lib/python2.7/site-packages/GPUtil/__init__.py">
+    <entry file="file://$PROJECT_DIR$/helper_process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="461">
-          <caret line="32" column="21" selection-start-line="32" selection-start-column="21" selection-end-line="32" selection-end-column="21" />
+        <state relative-caret-position="1474">
+          <caret line="71" column="24" selection-start-line="71" selection-start-column="24" selection-end-line="71" selection-end-column="24" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/provider.py">
+    <entry file="file://$PROJECT_DIR$/utils/cpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1314">
-          <caret line="81" column="52" selection-start-line="81" selection-start-column="52" selection-end-line="81" selection-end-column="52" />
+        <state relative-caret-position="726">
+          <caret line="33" column="44" selection-start-line="33" selection-start-column="44" selection-end-line="33" selection-end-column="44" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/builder.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1087">
-          <caret line="63" column="89" selection-start-line="63" selection-start-column="79" selection-end-line="63" selection-end-column="89" />
+        <state relative-caret-position="-1078">
+          <caret line="2" selection-start-line="2" selection-end-line="2" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/container_handler.py">
+    <entry file="file:///media/data/Documents/Promotion/Projects/dop-q/helper_process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1860">
-          <caret line="111" column="47" selection-start-line="111" selection-start-column="47" selection-end-line="111" selection-end-column="47" />
+        <state relative-caret-position="418">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/hmlstm.py">
+    <entry file="file://$USER_HOME$/miniconda3/envs/dop-q/lib/python2.7/site-packages/docker/models/resource.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="30" selection-start-line="14" selection-start-column="30" selection-end-line="14" selection-end-column="30" />
+        <state relative-caret-position="330">
+          <caret line="48" selection-start-line="48" selection-end-line="48" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../../../../markus/DataXChange/docker/hmlstm_se/stacked.py">
+    <entry file="file://$PROJECT_DIR$/setup.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5796">
-          <caret line="325" column="26" selection-start-line="325" selection-start-column="8" selection-end-line="325" selection-end-column="26" />
+        <state relative-caret-position="154">
+          <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/provider.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1694">
+          <caret line="85" selection-start-line="85" selection-end-line="85" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/container.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9990">
-          <caret line="569" column="8" selection-start-line="569" selection-start-column="8" selection-end-line="569" selection-end-column="8" />
+        <state relative-caret-position="13398">
+          <caret line="630" column="128" selection-start-line="630" selection-start-column="128" selection-end-line="630" selection-end-column="128" />
           <folding>
+            <element signature="n#!!doc" />
+            <element signature="e#40#102#1" />
+            <element signature="e#104#171#0" />
             <element signature="e#223#232#0" expanded="true" />
+            <marker date="1533195251389" expanded="false" signature="12833:12930" ph="..." />
+            <marker date="1533195251389" expanded="false" signature="13298:13331" ph="..." />
+            <marker date="1533195251389" expanded="false" signature="16702:16921" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/interface.py">
+    <entry file="file://$PROJECT_DIR$/providerfuncs/build.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12618">
-          <caret line="711" selection-start-line="711" selection-end-line="711" />
+        <state relative-caret-position="3938">
+          <caret line="185" column="11" selection-start-line="185" selection-start-column="11" selection-end-line="185" selection-end-column="38" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/containerconfig.py">
+    <entry file="file://$PROJECT_DIR$/container_handler.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="576">
-          <caret line="34" column="11" selection-start-line="34" selection-start-column="11" selection-end-line="34" selection-end-column="11" />
+        <state relative-caret-position="1584">
+          <caret line="76" column="109" selection-start-line="76" selection-start-column="66" selection-end-line="76" selection-end-column="109" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///opt/anaconda3/envs/tf/lib/python3.6/site-packages/docker/models/containers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5940">
-          <caret line="338" column="13" selection-start-line="338" selection-start-column="8" selection-end-line="338" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///opt/anaconda3/envs/py27/lib/python2.7/os.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="636">
-          <caret line="156" selection-start-line="156" selection-end-line="156" />
+        <state relative-caret-position="2156">
+          <caret line="103" column="66" selection-start-line="103" selection-start-column="66" selection-end-line="103" selection-end-column="66" />
+          <folding>
+            <element signature="e#95#104#0" expanded="true" />
+            <marker date="1533129150917" expanded="true" signature="171:174" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/dop_q.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="452">
-          <caret line="101" column="13" lean-forward="true" selection-start-line="101" selection-start-column="13" selection-end-line="101" selection-end-column="13" />
+        <state relative-caret-position="484">
+          <caret line="98" column="80" selection-start-line="98" selection-start-column="80" selection-end-line="98" selection-end-column="80" />
           <folding>
-            <element signature="e#378#415#0" expanded="true" />
-            <marker date="1533218058951" expanded="true" signature="3251:3257" ph="..." />
-            <marker date="1533218058951" expanded="true" signature="3252:3257" ph="..." />
+            <element signature="n#!!doc" />
+            <element signature="e#47#376#1" />
+            <element signature="e#1141#2665#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_suite.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2156">
+          <caret line="106" column="46" selection-start-line="106" selection-start-column="42" selection-end-line="106" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/containerconfig.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1474">
+          <caret line="69" column="50" selection-start-line="69" selection-start-column="50" selection-end-line="69" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/interface.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="44">
+          <caret line="477" column="65" selection-start-line="477" selection-start-column="65" selection-end-line="477" selection-end-column="65" />
+          <folding>
+            <element signature="e#339#7704#0" />
+            <element signature="e#408#1393#0" />
+            <element signature="e#408#816#1" />
+            <element signature="e#1437#1580#0" />
+            <element signature="e#1437#1542#1" />
+            <element signature="e#1622#1753#0" />
+            <element signature="e#1622#1718#1" />
+            <element signature="e#1784#1945#0" />
+            <element signature="e#1784#1877#1" />
+            <element signature="e#1990#2293#0" />
+            <element signature="e#1990#2170#1" />
+            <element signature="e#2396#3378#0" />
+            <element signature="e#2396#2812#1" />
+            <element signature="e#3465#5169#0" />
+            <element signature="e#3465#3894#1" />
+            <element signature="e#4359#4737#0" />
+            <element signature="e#4432#4645#0" />
+            <element signature="e#4843#5082#0" />
+            <element signature="e#4934#4985#0" />
+            <element signature="e#5266#6123#0" />
+            <element signature="e#5266#5586#1" />
+            <element signature="e#6173#6697#0" />
+            <element signature="e#6173#6490#1" />
+            <element signature="e#6730#6860#0" />
+            <element signature="e#6730#6830#1" />
+            <element signature="e#6891#7017#0" />
+            <element signature="e#6891#6989#1" />
+            <element signature="e#7048#7197#0" />
+            <element signature="e#7048#7162#1" />
+            <element signature="e#7231#7377#0" />
+            <element signature="e#7231#7346#1" />
+            <element signature="e#7415#7704#0" />
+            <element signature="e#7415#7569#1" />
+            <element signature="e#7849#9509#0" />
+            <element signature="e#7849#8626#1" />
+            <element signature="e#9139#9216#0" />
+            <element signature="e#9280#9354#0" />
+            <element signature="e#9381#9486#0" />
+            <element signature="e#9553#9834#0" />
+            <element signature="e#9553#9786#1" />
+            <element signature="e#9866#9949#1" />
           </folding>
         </state>
       </provider>

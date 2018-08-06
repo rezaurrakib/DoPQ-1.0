@@ -279,12 +279,15 @@ class Container:
                 minors = [str(m) for m in free_gpus[:n_gpus]]
                 self.gpu_minors = minors
 
-                # create the container
-                try:
-                    self.create_container()
-                except APIError as e:
-                    LOG.error(traceback.format_exc())
-                    raise e
+            else:
+                self.gpu_minors = ['none']
+
+            # create the container
+            try:
+                self.create_container()
+            except APIError as e:
+                LOG.error(traceback.format_exc())
+                raise e
 
             # start it
             self._stats = self.container_obj.stats(decode=True, stream=True)
