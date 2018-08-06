@@ -294,8 +294,7 @@ class SubWindow(Window):
         self.erase()
         self.screen.box()
         self.print_header()
-        if isinstance(self.func, DisplayFunction) or issubclass(self.func, DisplayFunction):
-            self.func.first_call = True
+        self.func.displayed_information = []
 
 
 class SubWindowAndPad(SubWindow):
