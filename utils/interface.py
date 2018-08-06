@@ -294,7 +294,6 @@ class SubWindow(Window):
         self.erase()
         self.screen.box()
         self.print_header()
-        self.func.displayed_information = []
 
 
 class SubWindowAndPad(SubWindow):
@@ -910,8 +909,7 @@ class Containers(DisplayFunction):
                     continue
 
         # update stored information
-        if information:
-            self.displayed_information = information
+        self.displayed_information = information
 
     def write_template(self, containers=[]):
         """
@@ -1020,8 +1018,7 @@ class UserStats(DisplayFunction):
                     continue
 
         # update displayed information
-        if user_stats:
-            self.displayed_information = user_stats
+        self.displayed_information = user_stats
 
         self.rewrite_all = False
 
@@ -1150,8 +1147,7 @@ class ContainerList(DisplayFunction):
                     continue
 
         # update stored information
-        if information:
-            self.displayed_information = information
+        self.displayed_information = information
 
     def write_template(self, n_containers=0):
         """
