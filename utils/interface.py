@@ -1086,7 +1086,7 @@ class ContainerList(DisplayFunction):
 
         # init template
         self.template = [['', '  ', # position
-                          'name:  ',  # name
+                          ' name:  ',  # name
                           pad_with_spaces('status:  ', 5 * width_unit, 'prepend')],  # end of first line
                          ['-' * (width - 2 * self.screen.indent -1 )],  # hline
                          [pad_with_spaces('docker name:  ', 2 * width_unit, 'prepend'),

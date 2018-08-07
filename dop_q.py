@@ -243,10 +243,11 @@ class DopQ(hp.HelperProcess):
         self.container_list = sorted(self.container_list, key=self.sort_fn)
 
     def update_running_containers(self):
-        running_containers = self.client.containers.list()
-        for i, container in enumerate(self.running_containers):
-            if container not in running_containers:
-                self.running_containers.pop(i)
+        for container in self.running_containers:
+            if container.status == 'exited':
+                container.stop_stats_stream()
+                self.history.insert(0, container)
+                self.running_containers.remove(container)
 
     def get_user_oh(self, user_name):
         user_oh = [int(self.get_user(el) == user_name.lower()) for el in self.history]
@@ -423,11 +424,7 @@ class DopQ(hp.HelperProcess):
                 self.update_container_list()
 
                 # clean up running containers
-                for container in self.running_containers:
-                    if container.status == 'exited':
-                        container.stop_stats_stream()
-                        self.history.append(container)
-                        self.running_containers.remove(container)
+                self.update_running_containers()
 
                 # check if there are containers in the queue
                 if len(self.container_list) == 0:

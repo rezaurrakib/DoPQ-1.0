@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="BugFix: container was only created if it uses gpu. fixed it">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="BugFix: container was only created if it uses gpu. fixed it" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +22,7 @@
     <session id="-2005857267">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="11" />
+          <entry key="project.closed" value="12" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.1" value="3" />
           <entry key="project.open.time.11" value="2" />
@@ -37,14 +35,14 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="Python Console" value="5839" />
-          <entry key="py" value="5342" />
+          <entry key="py" value="5345" />
           <entry key="txt" value="2735" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="2735" />
-          <entry key="Python" value="11181" />
+          <entry key="Python" value="11184" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
@@ -205,8 +203,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/interface.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="611">
-              <caret line="782" column="32" selection-start-line="782" selection-start-column="29" selection-end-line="782" selection-end-column="32" />
+            <state relative-caret-position="1310">
+              <caret line="1057" column="37" selection-start-line="1057" selection-start-column="37" selection-end-line="1057" selection-end-column="37" />
               <folding>
                 <element signature="e#339#7704#0" />
                 <element signature="e#408#1393#0" />
@@ -310,6 +308,7 @@
                 <element signature="e#28997#29078#1" />
                 <element signature="e#29240#29574#0" />
                 <element signature="e#29697#29756#0" />
+                <element signature="e#29960#36298#0" />
                 <element signature="e#30005#30180#1" />
                 <element signature="e#30359#30717#0" />
                 <element signature="e#30360#30716#0" />
@@ -347,7 +346,6 @@
                 <element signature="e#36738#36886#0" />
                 <element signature="e#37034#37395#0" />
                 <element signature="e#37153#37394#0" />
-                <element signature="e#37473#38498#0" />
                 <element signature="e#37473#37577#1" />
                 <element signature="e#37822#37879#0" />
                 <element signature="e#38025#38349#0" />
@@ -369,7 +367,6 @@
                 <element signature="e#41265#41406#0" />
                 <element signature="e#41572#42136#0" />
                 <element signature="e#41572#41715#1" />
-                <element signature="e#42168#43544#0" />
                 <element signature="e#42168#42290#1" />
                 <element signature="e#42608#42679#0" />
                 <element signature="e#42800#43430#0" />
@@ -699,13 +696,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1515750853630</updated>
-    </task>
-    <task id="LOCAL-00060" summary="bug fixes">
-      <created>1532516049305</created>
-      <option name="number" value="00060" />
-      <option name="presentableId" value="LOCAL-00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1532516049305</updated>
     </task>
     <task id="LOCAL-00061" summary="adjusted logging">
       <created>1532518667883</created>
@@ -1043,7 +1033,14 @@
       <option name="project" value="LOCAL" />
       <updated>1533564234393</updated>
     </task>
-    <option name="localTasksCounter" value="109" />
+    <task id="LOCAL-00109" summary="BugFix: container was only created if it uses gpu. fixed it">
+      <created>1533564720894</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1533564720894</updated>
+    </task>
+    <option name="localTasksCounter" value="110" />
     <servers />
   </component>
   <component name="TodoView" selected-index="5">
@@ -1177,9 +1174,9 @@
     <MESSAGE value="BugFix: wrapped update in Containers in a try block to avoid some timing issues" />
     <MESSAGE value="BugFix: replaced global variables with instance attributes in spit_screen" />
     <MESSAGE value="removed debug logs" />
-    <MESSAGE value="BugFix: container was only created if it uses gpu. fixed it" />
     <MESSAGE value="BugFix: fixed a bug where subdwindows where not redrawn properly" />
-    <option name="LAST_COMMIT_MESSAGE" value="BugFix: fixed a bug where subdwindows where not redrawn properly" />
+    <MESSAGE value="BugFix: container was only created if it uses gpu. fixed it" />
+    <option name="LAST_COMMIT_MESSAGE" value="BugFix: container was only created if it uses gpu. fixed it" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1196,7 +1193,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/utils/interface.py</url>
-          <line>896</line>
+          <line>895</line>
           <option name="timeStamp" value="67" />
         </line-breakpoint>
       </breakpoints>
@@ -1418,8 +1415,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/interface.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="611">
-          <caret line="782" column="32" selection-start-line="782" selection-start-column="29" selection-end-line="782" selection-end-column="32" />
+        <state relative-caret-position="1310">
+          <caret line="1057" column="37" selection-start-line="1057" selection-start-column="37" selection-end-line="1057" selection-end-column="37" />
           <folding>
             <element signature="e#339#7704#0" />
             <element signature="e#408#1393#0" />
@@ -1523,6 +1520,7 @@
             <element signature="e#28997#29078#1" />
             <element signature="e#29240#29574#0" />
             <element signature="e#29697#29756#0" />
+            <element signature="e#29960#36298#0" />
             <element signature="e#30005#30180#1" />
             <element signature="e#30359#30717#0" />
             <element signature="e#30360#30716#0" />
@@ -1560,7 +1558,6 @@
             <element signature="e#36738#36886#0" />
             <element signature="e#37034#37395#0" />
             <element signature="e#37153#37394#0" />
-            <element signature="e#37473#38498#0" />
             <element signature="e#37473#37577#1" />
             <element signature="e#37822#37879#0" />
             <element signature="e#38025#38349#0" />
@@ -1582,7 +1579,6 @@
             <element signature="e#41265#41406#0" />
             <element signature="e#41572#42136#0" />
             <element signature="e#41572#41715#1" />
-            <element signature="e#42168#43544#0" />
             <element signature="e#42168#42290#1" />
             <element signature="e#42608#42679#0" />
             <element signature="e#42800#43430#0" />
