@@ -138,7 +138,8 @@ class ContainerConfig:
         # add default build parameters
         build_params = {'mem_limit': mem_limit,
                         'image': image,
-                        'detach': detach}
+                        'detach': detach,
+                        'shm_size': '1g'}
         docker_params.update(build_params)
 
         # add or update mounts
