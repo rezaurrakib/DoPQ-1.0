@@ -15,13 +15,13 @@ History:
 @author: markus
 """
 
-from __future__ import print_function
+
 import os
 import numpy as np
 import logging
 import time
 # import configparser # python 3
-import ConfigParser  # python 2
+import configparser  # python 2
 import fetcher as ft
 import builder as bd
 import container_handler as ch
@@ -72,7 +72,7 @@ class DopQ(object):
         assert (self.config['queue']['max_gpus'] > 0)
 
         # build all non-existent directories, except the network container share
-        keys = self.paths.keys()
+        keys = list(self.paths.keys())
         for key in keys:
             if key != 'network_containers':
                 if not os.path.isdir(self.paths[key]):
@@ -138,7 +138,7 @@ class DopQ(object):
                 for tag in tags:
                     if user in tag.lower():
                         return user
-        elif type(image) is str or type(image) is unicode:
+        elif type(image) is str or type(image) is str:
             for user in self.config['fetcher']['executors']:
                     if user in image:
                         return user
@@ -163,7 +163,7 @@ class DopQ(object):
         :return: None
         """
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
 
         config.add_section('paths')
         config.set('paths', 'container.dir', '/media/local/input_container/reception/')
@@ -205,7 +205,7 @@ class DopQ(object):
     def parse_config(configfile):
 
         # create config parser and read file
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
 
         # parse settings into dicts

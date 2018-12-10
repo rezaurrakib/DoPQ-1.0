@@ -79,9 +79,9 @@ class Builder(hp.HelperProcess):
             data = f.read()
         try:
             output = self.client.images.load(data)
-            output = output.next()
+            output = next(output)
 
-            if 'error' in output.keys():
+            if 'error' in list(output.keys()):
                 self.handle_failed_files(self.paths['local_containers'], image_name, self.config['remove_invalid'])
                 raise Exception('error while loading image: ' + output['errorDetails'])
 
