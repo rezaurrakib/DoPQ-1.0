@@ -20,8 +20,7 @@ import os
 import numpy as np
 import logging
 import time
-# import configparser # python 3
-import configparser  # python 2
+import configparser
 import fetcher as ft
 import builder as bd
 import container_handler as ch

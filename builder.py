@@ -7,7 +7,6 @@ import time
 import docker.errors
 import multiprocessing as mp
 import helper_process as hp
-import json
 
 
 class Builder(hp.HelperProcess):
@@ -17,7 +16,7 @@ class Builder(hp.HelperProcess):
         super(Builder, self).__init__()
 
         # make sure queue is mp.Queue
-        assert(type(queue) is mp.queues.Queue)
+        assert (type(queue) is mp.queues.Queue)
 
         # init members
         self.paths = config['paths']
@@ -54,8 +53,8 @@ class Builder(hp.HelperProcess):
             foldername = self.unzip_docker_files(image_name)
         except Exception as e:
             self.logger.error(time.ctime() + '\terror while unzipping file {}: '
-                                         '\n\t\t{}'.format(image_name, e))
-            self.handle_failed_files(self.paths['local_containers'], image_name,  self.config['remove_invalid'])
+                                             '\n\t\t{}'.format(image_name, e))
+            self.handle_failed_files(self.paths['local_containers'], image_name, self.config['remove_invalid'])
             raise e
 
         else:
@@ -64,7 +63,7 @@ class Builder(hp.HelperProcess):
                 image = self.client.images.build(path=foldername, rm=True, tag=image_name.lower())
             except (docker.errors.BuildError, docker.errors.APIError) as e:
                 self.logger.error(time.ctime() + '\terror while building image {}: '
-                                             '\n\t\t{}'.format(image_name, e))
+                                                 '\n\t\t{}'.format(image_name, e))
                 self.handle_failed_files(self.paths['unzip'], image_name, self.config['remove_invalid'])
                 raise e
             else:
@@ -120,6 +119,7 @@ class Builder(hp.HelperProcess):
                 suffix = filename.split('.')[-1]
 
                 # build file according to suffix
+                # noinspection PyBroadException
                 try:
                     image = None
                     if suffix in self.config['build']:
@@ -128,7 +128,7 @@ class Builder(hp.HelperProcess):
                         image = self.load_image(filename)
                     else:
                         self.logger.error(time.ctime() + '\tcould not build/load file {}:'
-                                                     ' file extension unknown'.format(filename))
+                                                         ' file extension unknown'.format(filename))
                         self.handle_failed_files(self.paths['local_containers'], filename)
                 except Exception:
                     continue
@@ -144,7 +144,3 @@ class Builder(hp.HelperProcess):
 
         super(Builder, self).start(self.build)
         return self.process.pid
-
-
-
-
