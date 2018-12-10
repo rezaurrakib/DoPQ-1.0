@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="315b97d8-313e-4c66-bc91-bb3a053fffa9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/dop_q.py" beforeDir="false" afterPath="$PROJECT_DIR$/dop_q.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +28,7 @@
     <session id="-1215154610">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="1" />
+          <entry key="project.closed" value="2" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.opened" value="2" />
@@ -92,8 +92,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dop_q.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="452">
-              <caret line="101" column="13" lean-forward="true" selection-start-line="101" selection-start-column="13" selection-end-line="101" selection-end-column="13" />
+            <state relative-caret-position="186">
+              <caret line="207" column="71" lean-forward="true" selection-start-line="207" selection-start-column="71" selection-end-line="207" selection-end-column="71" />
               <folding>
                 <element signature="e#378#415#0" expanded="true" />
                 <marker date="1533218058951" expanded="true" signature="3251:3257" ph="..." />
@@ -115,8 +115,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/interface.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12618">
-              <caret line="711" selection-start-line="711" selection-end-line="711" />
+            <state relative-caret-position="12582">
+              <caret line="709" selection-start-line="709" selection-end-line="709" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -241,7 +241,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -275,8 +275,9 @@
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.27908218" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Metrics" visible="true" weight="0.3294979" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info active="true" anchor="bottom" id="Find" order="1" visible="true" weight="0.32845187" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32845187" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -391,8 +392,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/interface.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12618">
-          <caret line="711" selection-start-line="711" selection-end-line="711" />
+        <state relative-caret-position="12582">
+          <caret line="709" selection-start-line="709" selection-end-line="709" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
@@ -429,8 +430,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dop_q.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="452">
-          <caret line="101" column="13" lean-forward="true" selection-start-line="101" selection-start-column="13" selection-end-line="101" selection-end-column="13" />
+        <state relative-caret-position="186">
+          <caret line="207" column="71" lean-forward="true" selection-start-line="207" selection-start-column="71" selection-end-line="207" selection-end-column="71" />
           <folding>
             <element signature="e#378#415#0" expanded="true" />
             <marker date="1533218058951" expanded="true" signature="3251:3257" ph="..." />
