@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="825e4331-876e-4683-b6b3-409a84df1edc" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dop_q.py" beforeDir="false" afterPath="$PROJECT_DIR$/dop_q.py" afterDir="false" />
-    </list>
+    <list default="true" id="825e4331-876e-4683-b6b3-409a84df1edc" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,7 +13,7 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dop_q.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="327">
+            <state relative-caret-position="-1638">
               <caret line="157" column="20" lean-forward="true" selection-start-line="157" selection-start-column="20" selection-end-line="157" selection-end-column="20" />
             </state>
           </provider>
@@ -142,12 +139,20 @@
       <updated>1544470845712</updated>
       <workItem from="1544470847214" duration="1126000" />
       <workItem from="1544509477750" duration="1969000" />
-      <workItem from="1544601449545" duration="303000" />
+      <workItem from="1544601449545" duration="344000" />
     </task>
+    <task id="LOCAL-00001" summary="Minor adjustments">
+      <created>1544601784489</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1544601784489</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="3398000" />
+    <option name="totallyTimeSpent" value="3439000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="27" width="1920" height="1053" extended-state="6" />
@@ -179,6 +184,10 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Minor adjustments" />
+    <option name="LAST_COMMIT_MESSAGE" value="Minor adjustments" />
+  </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/helper_process.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -189,7 +198,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dop_q.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
+        <state relative-caret-position="-1638">
           <caret line="157" column="20" lean-forward="true" selection-start-line="157" selection-start-column="20" selection-end-line="157" selection-end-column="20" />
         </state>
       </provider>
