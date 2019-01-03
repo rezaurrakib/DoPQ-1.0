@@ -16,26 +16,24 @@ History:
 """
 
 
-import os
-import numpy as np
-import time
-import docker
-from docker.errors import APIError
-# import configparser # python 3
-import configparser  # python 2
-import provider
-import gpu_handler as gh
-from pathos.helpers import mp
-import threading
-import dill
-import helper_process as hp
-# import multiprocessing as mp  # cannot pass our container objects through the queue
-# import pickle as pkl          # cannot pickle our container object, which causes the failure of the mp.Queue
-import json
-from utils import log
-from utils import interface
+import configparser
 import datetime
+import os
+import threading
+import time
 import traceback
+
+import dill
+import docker
+import numpy as np
+from docker.errors import APIError
+from pathos.helpers import mp
+
+import gpu_handler as gh
+import helper_process as hp
+import provider
+from utils import interface
+from utils import log
 from utils.gpu import GPU
 
 
