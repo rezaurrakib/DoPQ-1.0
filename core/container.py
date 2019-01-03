@@ -632,7 +632,7 @@ class Container:
             if self.use_gpu:
                 gpu_info = get_gpu_infos(self.gpu_minors)
                 base_info['gpu'] = [{'id': gpu_dt['id'], 'usage': round(gpu_dt['memoryUsed'] * 100.0 / gpu_dt['memoryTotal'], 1)}
-                                    for gpu_dt in gpu_info.values()]
+                                    for gpu_dt in list(gpu_info.values())]
 
         return base_info
 
@@ -692,7 +692,7 @@ class Container:
         self.container_obj = container
 
 if __name__ == '__main__':
-    from containerconfig import ContainerConfig
+    from .containerconfig import ContainerConfig
     import docker
 
     client = docker.from_env()
@@ -701,10 +701,10 @@ if __name__ == '__main__':
     docker_container = client.containers.create('pt-base', 'sleep 60', environment=["NVIDIA_VISIBLE_DEVICES=none"])
     container = Container(config, docker_container)
     # container.set_gpu_minors(['0'])
-    print(container.gpu_minors)
+    print((container.gpu_minors))
     import time
     time.sleep(1)
     container.start()
-    print(container.gpu_minors)
+    print((container.gpu_minors))
 
     stats = container.container_stats()

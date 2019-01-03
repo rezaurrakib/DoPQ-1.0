@@ -186,7 +186,7 @@ class DummyContainer(object):
 
             base_info['gpu'] = [
                 {'id': gpu_dt['id'], 'usage': gpu_dt['usage']}
-                for gpu_dt in gpu_info.values()]
+                for gpu_dt in list(gpu_info.values())]
 
         return base_info
 

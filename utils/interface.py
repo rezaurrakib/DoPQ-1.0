@@ -1,13 +1,13 @@
 import curses
 from curses import panel
 import time
-import gpu
-import interface_funcs
+from . import gpu
+from . import interface_funcs
 from math import floor, ceil
 from collections import OrderedDict
 import copy
 import types
-import log
+from . import log
 import traceback
 
 X_L = 2
@@ -425,7 +425,7 @@ class Interface(Window):
                 curses.flushinp()
 
                 # run the specified function
-                if key in self.functions.keys():
+                if key in list(self.functions.keys()):
                     self.execute_function(self.functions[key])
 
                 if key == KEY_TAB:
@@ -539,7 +539,7 @@ class Interface(Window):
         :return:
         """
 
-        for sub in self.subwindows.values():
+        for sub in list(self.subwindows.values()):
             sub()
 
     def redraw(self):
@@ -550,7 +550,7 @@ class Interface(Window):
 
         self.print_header(self) # print header is a static method
 
-        for sub in self.subwindows.values():
+        for sub in list(self.subwindows.values()):
             sub.redraw()
 
     def refresh(self):
@@ -560,7 +560,7 @@ class Interface(Window):
         """
 
         self.screen.refresh()
-        for sub in self.subwindows.values():
+        for sub in list(self.subwindows.values()):
             sub.refresh()
 
     @staticmethod # static because i wanted to use this method with instances of Window as well
@@ -684,7 +684,7 @@ class DisplayFunction(object):
         width = self.screen.size[1] - self.screen.indent
 
         # cycle items in the ordered dict to calculate lengths
-        item_list = fields.items()
+        item_list = list(fields.items())
         for index, (field, coordinates) in enumerate(item_list[:-1]):
 
             # get the next field name and its coordinates
@@ -717,7 +717,7 @@ class DisplayFunction(object):
             if isinstance(info, str):
                 self.displayed_information[info] = ''
             else:
-                for field in info.keys():
+                for field in list(info.keys()):
                     self.displayed_information[index][field] = ''
 
 
@@ -776,7 +776,7 @@ class Status(DisplayFunction):
             information['provider uptime'], information['provider starttime'] = '', ''
 
         # update displayed information
-        for field, value in information.items():
+        for field, value in list(information.items()):
 
             # skip if information has not changed
             if value == self.displayed_information[field]:
@@ -808,7 +808,7 @@ class Status(DisplayFunction):
         def sort_fn(item):
             return item[1]['beginning']['y'], item[1]['beginning']['x']
 
-        fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+        fields = OrderedDict(sorted(list(fields.items()), key=sort_fn))
         self.fields = self.calculate_field_properties(fields)
         self.first_call = False
 
@@ -893,7 +893,7 @@ class Containers(DisplayFunction):
 
         # update displayed information
         for index, container_information in enumerate(information):
-            for field, value in container_information.items():
+            for field, value in list(container_information.items()):
 
                 if rewrite_all or value != self.displayed_information[index][field]:
                     attrs = 0
@@ -954,7 +954,7 @@ class Containers(DisplayFunction):
                 return item[1]['beginning']['y'], item[1]['beginning']['x']
 
             # sort the fields by their y coordinate first and x coordinate second
-            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields = OrderedDict(sorted(list(fields.items()), key=sort_fn))
             fields_list.append(self.calculate_field_properties(fields))
 
         self.fields = fields_list
@@ -1010,7 +1010,7 @@ class UserStats(DisplayFunction):
 
         # cycle users and print their stats if they have changed or if redraw_all
         for index, user in enumerate(user_stats):
-            for field, value in user.items():
+            for field, value in list(user.items()):
                 if self.rewrite_all or value != self.displayed_information[index][field]:
                     attrs = self.screen.BOLD if 'user' in field else 0
                     self.update_field(value, self.fields[index][field], attrs)
@@ -1045,7 +1045,7 @@ class UserStats(DisplayFunction):
             def sort_fn(item):
                 return item[1]['beginning']['y'], item[1]['beginning']['x']
 
-            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields = OrderedDict(sorted(list(fields.items()), key=sort_fn))
             fields_list.append(self.calculate_field_properties(fields))
 
         self.fields = fields_list
@@ -1133,7 +1133,7 @@ class ContainerList(DisplayFunction):
         # update displayed information
         for index, container_information in enumerate(information):
             container_information['position'] = index
-            for field, value in container_information.items():
+            for field, value in list(container_information.items()):
 
                 # only rewrite field if it has changed
                 if rewrite_all or value != self.displayed_information[index][field]:
@@ -1182,7 +1182,7 @@ class ContainerList(DisplayFunction):
                 return item[1]['beginning']['y'], item[1]['beginning']['x']
 
             # sort the fields by their y coordinate first and x coordinate second
-            fields = OrderedDict(sorted(fields.items(), key=sort_fn))
+            fields = OrderedDict(sorted(list(fields.items()), key=sort_fn))
             fields_list.append(self.calculate_field_properties(fields))
 
         self.fields = fields_list if fields_list else self.fields

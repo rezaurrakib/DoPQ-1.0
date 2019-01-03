@@ -191,11 +191,11 @@ class Fetcher(hp.HelperProcess):
 if __name__ == "__main__":
 
     import argparse
-    import ConfigParser
+    import configparser
 
     def parse_config(configfile):
         # create config parser and read file
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
 
         # parse settings into dicts

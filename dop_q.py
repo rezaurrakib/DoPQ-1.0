@@ -15,14 +15,14 @@ History:
 @author: markus
 """
 
-from __future__ import print_function
+
 import os
 import numpy as np
 import time
 import docker
 from docker.errors import APIError
 # import configparser # python 3
-import ConfigParser  # python 2
+import configparser  # python 2
 import provider
 import gpu_handler as gh
 from pathos.helpers import mp
@@ -72,7 +72,7 @@ class DopQ(hp.HelperProcess):
         self.provider = provider.Provider(self.config, self.queue)
 
         # build all non-existent directories, except the network container share
-        keys = self.paths.keys()
+        keys = list(self.paths.keys())
         for key in keys:
             if key != 'network_containers':
                 if not os.path.isdir(self.paths[key]):
@@ -192,7 +192,7 @@ class DopQ(hp.HelperProcess):
 
         mapping_dict = self.mapping
         if key == 'all':
-            for item in mapping_dict.values():
+            for item in list(mapping_dict.values()):
                 restore_single(self.paths['history'], item)
         else:
             restore_single(self.paths['history'], mapping_dict[key])
@@ -222,7 +222,7 @@ class DopQ(hp.HelperProcess):
                 dill.dump(member, f)
 
         if key == 'all':
-            for item in self.mapping.values():
+            for item in list(self.mapping.values()):
                 save_single(self.paths['history'], item)
         else:
             if key == 'running':
@@ -290,7 +290,7 @@ class DopQ(hp.HelperProcess):
         :return: None
         """
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
 
         config.add_section('paths')
         config.set('paths', 'container.dir', '/media/local/input_container/reception/')
@@ -332,7 +332,7 @@ class DopQ(hp.HelperProcess):
     def parse_config(configfile):
 
         # create config parser and read file
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configfile)
 
         # parse settings into dicts

@@ -97,9 +97,9 @@ def load_image(filename, failed_dir="", rm_invalid=False, logger=LOG):
         data = f.read()
     try:
         client = docker.from_env()
-        output = client.images.load(data).next()
+        output = next(client.images.load(data))
 
-        if 'error' in output.keys():
+        if 'error' in list(output.keys()):
             clear_unzipped(filename, failed_dir, rm_invalid)
             raise Exception('error while loading image: ' + output['errorDetails'])
 

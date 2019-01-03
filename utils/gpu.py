@@ -146,10 +146,10 @@ def get_gpu_infos(device_ids=None, interval=2):
     # cast to set if int
     if isinstance(device_ids, int):
         device_ids = {device_ids}
-    elif isinstance(device_ids, str) or isinstance(device_ids, unicode):
+    elif isinstance(device_ids, str) or isinstance(device_ids, str):
         if device_ids == 'all':
             device_ids = None
-    elif isinstance(device_ids, list) and (isinstance(device_ids[0], str) or isinstance(device_ids[0], unicode)):
+    elif isinstance(device_ids, list) and (isinstance(device_ids[0], str) or isinstance(device_ids[0], str)):
         if device_ids == ['all']:
             device_ids = None
 
