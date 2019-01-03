@@ -2,7 +2,10 @@
 docker_containers
 docker_load
 docker_build
-queue.log
+*.log
 push-to-repo.sh
 pull-from-repo.sh
+pull-from-repo_fvj.sh
+push-to-repo_fvj.sh
 *.pyc
+.fuse*
