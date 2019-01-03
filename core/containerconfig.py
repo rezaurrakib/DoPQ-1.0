@@ -113,7 +113,7 @@ class ContainerConfig:
         with open(file_path, 'w') as file_h:
             json.dump(config_dict, file_h)
 
-    def docker_params(self, image, detach, mounts, environment=[]):
+    def docker_params(self, image, detach, mounts, environment=None):
         """
         Build docker params from config and given parameters. Will perform a merge operation, if overlap exists.
 
@@ -127,6 +127,11 @@ class ContainerConfig:
         :param environment: Environment variables.
         :return: Dictionary which can be passed as kwargs to client.containers.run
         """
+
+        # create a default if not given
+        if environment is None:
+            environment = list()
+
         docker_params = self.run_params.copy()
 
         # fix mem limit
