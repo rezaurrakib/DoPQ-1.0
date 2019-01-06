@@ -1,5 +1,4 @@
 import multiprocessing as mp
-import sys
 import datetime
 import time
 import subprocess
@@ -26,7 +25,8 @@ class HelperProcess(object):
     @property
     def status(self):
 
-        if not isinstance(self.process, mp.Process): return 'not started'
+        if not isinstance(self.process, mp.Process):
+            return 'not started'
 
         if self.process.exitcode is None:
             return 'running'
@@ -42,7 +42,7 @@ class HelperProcess(object):
         proc.wait()
 
         # retrive uptime from standard output
-        uptime = proc.stdout.readlines()[0].strip()
+        uptime = "".format(proc.stdout.readlines()[0].strip())
 
         # check if uptime contains days
         uptime = uptime.split('-')
@@ -55,14 +55,18 @@ class HelperProcess(object):
 
         # split uptime into hours, minutes and seconds
         uptime = uptime.split(':')
-        if len(uptime) < 3:  # if process has not been running for at least one hour
+        if len(uptime) == 2:  # if process has not been running for at least one hour
             hours = 0
             minutes = int(uptime[0])
             seconds = int(uptime[1])
-        else:
+        elif len(uptime) > 2:
             hours = int(uptime[0])
             minutes = int(uptime[1])
             seconds = int(uptime[2])
+        else:
+            hours = 0
+            minutes = 0
+            seconds = 0
 
         # convert information to print format
         uptime = ''
