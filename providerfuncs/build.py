@@ -76,7 +76,7 @@ def build_image(filename, unzip_dir="", tag=None, logger=LOG):
         else:
             logger.info('\tsuccessfully build image {} (tag={})'.format(filename, tag))
             clear_unzipped(unzip_dir)
-            return image
+            return image[0]
 
 
 def load_image(filename, failed_dir="", rm_invalid=False, logger=LOG):
