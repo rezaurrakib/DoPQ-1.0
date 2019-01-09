@@ -6,6 +6,7 @@ from utils import log
 
 LOG = log.get_module_log(__name__)
 
+
 def get_free_space(path, logger=LOG):
     """
     helper function for examining free space on a drive
@@ -35,25 +36,28 @@ def get_free_space(path, logger=LOG):
     return free_space_abs, free_space_rel
 
 
-def move_container(filename, target_dir, logger=LOG):
+def move_container(filepath, target_dir, logger=LOG):
     """
     helper function for moving containers from network share to local drive
     --------------
     args:
-        - filname: name of the file that will be moved
+        - filpath: name of the file that will be moved
         - target_dir: directory on the local drive where the containers should be moved to (destination)
     """
 
     # move file
-    shutil.move(filename, target_dir)
+    filename = os.path.basename(filepath)
+    targetpath = os.path.join(target_dir, filename)
+    shutil.copy(filepath, targetpath)
+    os.remove(filepath)
 
     # log containers that has been moved
-    logger.info(":\tMoved container {} to {}".format(os.path.basename(filename), target_dir))
+    logger.info(":\tMoved container {} to {}".format(os.path.basename(filepath), target_dir))
 
     # write LF to log for better readability
     logger.info("\n")
 
-    return os.path.join(target_dir, os.path.basename(filename))
+    return os.path.join(target_dir, os.path.basename(filepath))
 
 
 def handle_invalid_container(filename, rm_invalid=False, json_error=False, no_space=False, logger=LOG):

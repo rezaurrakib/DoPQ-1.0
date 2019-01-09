@@ -55,7 +55,7 @@ class ContainerConfig:
                 return None
 
         # check if we have enough system GPUs to run this container
-        num_sys_gpus = get_system_gpus()
+        num_sys_gpus = len(get_system_gpus())
         if num_gpus > num_sys_gpus:
             LOG.error("There are not enough GPUs on this system to run this container "
                       "(requested={}, available={}!".format(num_gpus, num_sys_gpus))

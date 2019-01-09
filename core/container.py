@@ -32,7 +32,7 @@ class Container:
     Wrapper for docker container objects
     """
 
-    def __init__(self, config, image, log_dir=None, mounts=None):
+    def __init__(self, config, image_id, log_dir=None, mounts=None):
         """
         Creates a new container instance.
 
@@ -42,7 +42,7 @@ class Container:
 
         self.config = config
         self.container_obj = None
-        self.image = image
+        self.image_id = image_id
         self.last_log_update = int(time.time())
         self.last_log_file_update = int(time.time())
         self.log_dir = log_dir if log_dir is not None else ""
@@ -56,6 +56,11 @@ class Container:
         else:
             self.mounts = mounts
         self.mounts = self.create_mounts()
+
+    @property
+    def image(self):
+        client = docker.from_env()
+        return client.images.get(self.image_id)
 
     @property
     def start_time(self):

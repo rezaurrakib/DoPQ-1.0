@@ -46,7 +46,7 @@ class Provider(hp.HelperProcess):
                     # get config from json
                     try:
                         container_config = parse.parse_zipped_config(filename)
-                    except (RuntimeError, zipfile.BadZipfile) as e:
+                    except (RuntimeError, zipfile.BadZipfile):
                         fetch.handle_invalid_container(filename, self.fetcher_conf['remove_invalid'], json_error=True)
                         self.logger.error(traceback.format_exc())
                         continue
@@ -84,7 +84,7 @@ class Provider(hp.HelperProcess):
                     # except docker.errors.APIError as e:
                     #     continue
 
-                    queue_container = Container(container_config, image, mounts=self.docker_conf['mounts'])
+                    queue_container = Container(container_config, image.id, mounts=self.docker_conf['mounts'])
                     self.queue.put(queue_container)
 
                 # leave the loop if terminate flag is set
