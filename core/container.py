@@ -166,12 +166,6 @@ class Container:
         """
         return self.container_obj.name
 
-    def image(self):
-        """
-        The image of the container.
-        """
-        return self.container_obj.image()
-
     @property
     def status(self):
         """
@@ -537,7 +531,7 @@ class Container:
     def gpu_minors(self, minors):
 
         assert isinstance(minors, list), 'gpu minors must be provided as a list'
-        assert all([isinstance(m, int) for m in minors]), 'gpu minors must have integer values'
+        assert all([isinstance(m, str) for m in minors]), 'gpu minors must have string values'
 
         self._gpu_minors = minors
 
