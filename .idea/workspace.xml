@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="BugFix: container was only created if it uses gpu. fixed it">
+    <list default="true" id="76de01c8-f08a-4fad-a573-4440521cd132" name="Default" comment="BugFix: helper process fix for python 3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_process.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_process.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/interface.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -50,49 +50,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/container.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1350">
-              <caret line="282" column="42" selection-start-line="282" selection-start-column="42" selection-end-line="282" selection-end-column="42" />
+            <state relative-caret-position="18">
+              <caret line="10" selection-start-line="10" selection-end-line="10" />
               <folding>
                 <element signature="n#!!doc" />
-                <element signature="e#40#102#1" />
-                <element signature="e#104#171#0" />
+                <element signature="e#223#232#0" expanded="true" />
                 <element signature="e#547#599#1" />
-                <element signature="e#675#1471#0" />
-                <element signature="e#675#883#1" />
-                <element signature="e#1521#1982#0" />
-                <element signature="e#1521#1657#1" />
-                <element signature="e#1784#1928#0" />
-                <element signature="e#2033#2820#0" />
-                <element signature="e#2033#2169#1" />
-                <element signature="e#2297#2691#0" />
-                <element signature="e#2391#2691#0" />
-                <element signature="e#2557#2630#0" />
-                <element signature="e#2867#3059#0" />
-                <element signature="e#2867#3017#1" />
-                <element signature="e#3103#3262#0" />
-                <element signature="e#3103#3221#1" />
-                <element signature="e#3310#4057#0" />
-                <element signature="e#3310#3421#1" />
-                <element signature="e#4101#4287#0" />
-                <element signature="e#4101#4255#1" />
-                <element signature="e#4335#4508#0" />
-                <element signature="e#4335#4467#1" />
-                <element signature="e#4559#4727#0" />
-                <element signature="e#4559#4688#1" />
-                <element signature="e#4758#4851#0" />
-                <element signature="e#4758#4809#1" />
-                <element signature="e#4897#5147#0" />
-                <element signature="e#4897#4990#1" />
-                <element signature="e#5089#5147#0" />
-                <element signature="e#5189#6044#0" />
-                <element signature="e#5189#5993#1" />
-                <element signature="e#6254#7793#0" />
-                <element signature="e#6254#7619#1" />
-                <element signature="e#7834#8076#1" />
-                <element signature="e#8181#8356#0" />
-                <element signature="e#8193#8311#0" />
-                <element signature="e#8763#8956#0" />
-                <element signature="e#8814#8924#0" />
               </folding>
             </state>
           </provider>
@@ -153,23 +116,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/helper_process.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="227">
-              <caret line="28" column="12" selection-start-line="28" selection-start-column="12" selection-end-line="28" selection-end-column="12" />
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="36">
+              <caret line="2" column="11" selection-start-line="2" selection-start-column="11" selection-end-line="2" selection-end-column="11" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/interface.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18846">
-              <caret line="1057" column="37" selection-start-line="1057" selection-start-column="37" selection-end-line="1057" selection-end-column="37" />
+            <state relative-caret-position="231">
+              <caret line="1202" column="22" lean-forward="true" selection-start-line="1202" selection-start-column="22" selection-end-line="1202" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -185,7 +145,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>logging_intervall</find>
       <find>min</find>
       <find>logg</find>
       <find>limit</find>
@@ -215,6 +174,7 @@
       <find>client</find>
       <find>logger.debu</find>
       <find>handle_invalid_containers</find>
+      <find>pad_with</find>
     </findStrings>
     <replaceStrings>
       <replace>paths['log']</replace>
@@ -275,19 +235,18 @@
         <option value="$PROJECT_DIR$/provider.py" />
         <option value="$PROJECT_DIR$/test_suite.py" />
         <option value="$PROJECT_DIR$/core/container.py" />
-        <option value="$PROJECT_DIR$/utils/interface.py" />
         <option value="$PROJECT_DIR$/fetcher.py" />
         <option value="$PROJECT_DIR$/dop_q.py" />
         <option value="$PROJECT_DIR$/core/containerconfig.py" />
         <option value="$PROJECT_DIR$/helper_process.py" />
+        <option value="$PROJECT_DIR$/utils/interface.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-9" />
-    <option name="y" value="-9" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
+    <option name="y" value="27" />
+    <option name="width" value="930" />
+    <option name="height" value="1047" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -306,6 +265,16 @@
               <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
               <item name="dop-q" type="462c0819:PsiDirectoryNode" />
               <item name="core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
+              <item name="providerfuncs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dop-q" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dop-q" type="462c0819:PsiDirectoryNode" />
+              <item name="utils" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -479,14 +448,13 @@
       <updated>1515750853630</updated>
       <workItem from="1546540873601" duration="1676000" />
       <workItem from="1546542557470" duration="432000" />
-      <workItem from="1546789600140" duration="435000" />
-    </task>
-    <task id="LOCAL-00062" summary="adjusted logging">
-      <created>1532519096246</created>
-      <option name="number" value="00062" />
-      <option name="presentableId" value="LOCAL-00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1532519096246</updated>
+      <workItem from="1546789600140" duration="1885000" />
+      <workItem from="1546853881502" duration="281000" />
+      <workItem from="1546927055610" duration="1835000" />
+      <workItem from="1546969317487" duration="804000" />
+      <workItem from="1547112717749" duration="563000" />
+      <workItem from="1547113343569" duration="10000" />
+      <workItem from="1547125682232" duration="163000" />
     </task>
     <task id="LOCAL-00063" summary="fixed bug where a bool property of the container was called, causing an error">
       <created>1532520470846</created>
@@ -824,11 +792,18 @@
       <option name="project" value="LOCAL" />
       <updated>1546542839447</updated>
     </task>
-    <option name="localTasksCounter" value="111" />
+    <task id="LOCAL-00111" summary="BugFix: helper process fix for python 3">
+      <created>1546790154080</created>
+      <option name="number" value="00111" />
+      <option name="presentableId" value="LOCAL-00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1546790154080</updated>
+    </task>
+    <option name="localTasksCounter" value="112" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2543000" />
+    <option name="totallyTimeSpent" value="7649000" />
   </component>
   <component name="TodoView" selected-index="5">
     <todo-panel id="selected-file">
@@ -843,7 +818,7 @@
     <frame x="0" y="27" width="1920" height="1053" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.48070174" visible="true" weight="0.17235859" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.48070174" visible="true" weight="0.18463181" />
       <window_info id="Structure" order="1" sideWeight="0.51929826" side_tool="true" weight="0.15795091" />
       <window_info id="Favorites" order="2" sideWeight="0.5053111" side_tool="true" weight="0.15955175" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -949,7 +924,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="BugFix: removed interaction with the queue from write_template methods of Containers and ContainerList. This could cause an issue where the queue had already advanced and update() and write_template() had different information about the containers" />
     <MESSAGE value="BugFix: added default values to write_template in Containers and ContainerList so that it won't crash on __call__" />
     <MESSAGE value="BugFix: wrapped reload in a try block so that it doesn't crash if the container does not exixt anymore" />
     <MESSAGE value="BugFix: correctly set displayed_information to an empty list in Containers and ContainerList" />
@@ -974,7 +948,8 @@
     <MESSAGE value="BugFix: fixed a bug where subdwindows where not redrawn properly" />
     <MESSAGE value="BugFix: container was only created if it uses gpu. fixed it" />
     <MESSAGE value="Minor bugfixes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Minor bugfixes." />
+    <MESSAGE value="BugFix: helper process fix for python 3" />
+    <option name="LAST_COMMIT_MESSAGE" value="BugFix: helper process fix for python 3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -986,7 +961,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/core/container.py</url>
-          <line>707</line>
+          <line>706</line>
           <option name="timeStamp" value="60" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1091,55 +1066,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/container.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1350">
-          <caret line="282" column="42" selection-start-line="282" selection-start-column="42" selection-end-line="282" selection-end-column="42" />
-          <folding>
-            <element signature="n#!!doc" />
-            <element signature="e#40#102#1" />
-            <element signature="e#104#171#0" />
-            <element signature="e#547#599#1" />
-            <element signature="e#675#1471#0" />
-            <element signature="e#675#883#1" />
-            <element signature="e#1521#1982#0" />
-            <element signature="e#1521#1657#1" />
-            <element signature="e#1784#1928#0" />
-            <element signature="e#2033#2820#0" />
-            <element signature="e#2033#2169#1" />
-            <element signature="e#2297#2691#0" />
-            <element signature="e#2391#2691#0" />
-            <element signature="e#2557#2630#0" />
-            <element signature="e#2867#3059#0" />
-            <element signature="e#2867#3017#1" />
-            <element signature="e#3103#3262#0" />
-            <element signature="e#3103#3221#1" />
-            <element signature="e#3310#4057#0" />
-            <element signature="e#3310#3421#1" />
-            <element signature="e#4101#4287#0" />
-            <element signature="e#4101#4255#1" />
-            <element signature="e#4335#4508#0" />
-            <element signature="e#4335#4467#1" />
-            <element signature="e#4559#4727#0" />
-            <element signature="e#4559#4688#1" />
-            <element signature="e#4758#4851#0" />
-            <element signature="e#4758#4809#1" />
-            <element signature="e#4897#5147#0" />
-            <element signature="e#4897#4990#1" />
-            <element signature="e#5089#5147#0" />
-            <element signature="e#5189#6044#0" />
-            <element signature="e#5189#5993#1" />
-            <element signature="e#6254#7793#0" />
-            <element signature="e#6254#7619#1" />
-            <element signature="e#7834#8076#1" />
-            <element signature="e#8181#8356#0" />
-            <element signature="e#8193#8311#0" />
-            <element signature="e#8763#8956#0" />
-            <element signature="e#8814#8924#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/providerfuncs/build.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3222">
@@ -1178,13 +1104,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/interface.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18846">
-          <caret line="1057" column="37" selection-start-line="1057" selection-start-column="37" selection-end-line="1057" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/containerconfig.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="216">
@@ -1194,11 +1113,27 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/helper_process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="227">
-          <caret line="28" column="12" selection-start-line="28" selection-start-column="12" selection-end-line="28" selection-end-column="12" />
+        <state relative-caret-position="36">
+          <caret line="2" column="11" selection-start-line="2" selection-start-column="11" selection-end-line="2" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/container.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="10" selection-start-line="10" selection-end-line="10" />
           <folding>
-            <element signature="e#0#28#0" expanded="true" />
+            <element signature="n#!!doc" />
+            <element signature="e#223#232#0" expanded="true" />
+            <element signature="e#547#599#1" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/interface.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="1202" column="22" lean-forward="true" selection-start-line="1202" selection-start-column="22" selection-end-line="1202" selection-end-column="22" />
         </state>
       </provider>
     </entry>
