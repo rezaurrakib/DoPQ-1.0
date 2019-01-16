@@ -60,6 +60,8 @@ class Container:
 
     @property
     def container_obj(self):
+        if self.container_id is None:
+            return None
         client = docker.from_env()
         return client.containers.get(self.container_id)
 
