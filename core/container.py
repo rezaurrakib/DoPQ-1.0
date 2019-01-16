@@ -176,7 +176,7 @@ class Container:
         """
         The status of the container. For example, ``running``, or ``exited``.
         """
-        if self.container_obj is None:
+        if self.container_id is None:
             return 'not created'
         else:
             self.reload()
