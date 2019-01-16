@@ -41,7 +41,7 @@ class Container:
         """
 
         self.config = config
-        self.container_obj = None
+        self.container_id = None
         self.image_id = image_id
         self.last_log_update = int(time.time())
         self.last_log_file_update = int(time.time())
@@ -56,6 +56,11 @@ class Container:
         else:
             self.mounts = mounts
         self.mounts = self.create_mounts()
+
+    @property
+    def container_obj(self):
+        client = docker.from_env()
+        return client.containers.get(self.container_id)
 
     @property
     def image(self):
@@ -688,7 +693,7 @@ class Container:
         create_conf = self.config.docker_params(image=self.image, detach=True, mounts=self.mounts,
                                            environment=["NVIDIA_VISIBLE_DEVICES=" + str(','.join(self.gpu_minors))])
         container = client.containers.create(**create_conf)
-        self.container_obj = container
+        self.container_id = container.id
 
 if __name__ == '__main__':
     from .containerconfig import ContainerConfig
