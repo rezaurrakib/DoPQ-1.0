@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # encoding: utf-8
 """
@@ -288,6 +289,7 @@ class Container:
 
             # create the container
             try:
+                
                 self.create_container()
             except APIError as e:
                 LOG.error(traceback.format_exc())
