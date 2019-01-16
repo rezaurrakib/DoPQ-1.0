@@ -8,4 +8,5 @@ pull-from-repo.sh
 pull-from-repo_fvj.sh
 push-to-repo_fvj.sh
 *.pyc
-.fuse*
+*.fuse*
+*.ini
