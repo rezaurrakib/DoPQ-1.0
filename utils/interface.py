@@ -1196,7 +1196,9 @@ def pad_with_spaces(string, total_length, mode='append'):
     string_length = len(string)
     difference = total_length - string_length
     if difference < 0:
-        raise ValueError('total length cannot be smaller than the length of the passed string')
+        # compact given string to max length
+        string = string[:total_length]
+        difference = 0
 
     append, prepend, center = False, False, False
     if mode == 'append':
