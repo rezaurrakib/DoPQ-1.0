@@ -1,14 +1,17 @@
-import curses
-from curses import panel
-import time
-from . import gpu
-from . import interface_funcs
-from math import floor, ceil
-from collections import OrderedDict
 import copy
 import types
-from . import log
+import curses
+import time
 import traceback
+
+
+from . import log
+from . import gpu
+from . import interface_funcs
+from curses import panel
+from math import floor, ceil
+from collections import OrderedDict
+
 
 X_L = 2
 Y_T = 4
@@ -519,7 +522,7 @@ class Interface(Window):
                                     func=ContainerList,
                                     mode='enqueued'),
             'history': self.subwin(pad=True,
-                                   height=sub_height_lower // 2, #+ vertical_gap // 2,
+                                   height=(sub_height_lower // 2) + 1, #+ vertical_gap // 2,
                                    width=sub_width_right,
                                    y=self.offset + sub_height_upper + sub_height_lower // 2 + vertical_gap,
                                    x=self.indent + sub_width_left + horizontal_gap,
@@ -1262,6 +1265,7 @@ def main(screen, dopq):
     curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
+
 
     screen.idcok(False)
     screen.idlok(False)

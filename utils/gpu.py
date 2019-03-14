@@ -113,6 +113,7 @@ def get_assigned_gpus(client=None):
     return assigned_gpus
 
 
+
 def get_gpus_status(client=None):
     """
     Get free GPU minors.

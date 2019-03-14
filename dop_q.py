@@ -11,6 +11,7 @@ Created on Mon May 29 23:21:42 2017
 
 History:
     16.10.2017: Changed to python 2.7
+    14.03.2019: Code refactoring initiated	
 
 @author: markus
 """
@@ -29,12 +30,12 @@ import numpy as np
 from docker.errors import APIError
 from pathos.helpers import mp
 
-import gpu_handler as gh
+
 import helper_process as hp
 import provider
 from utils import interface
 from utils import log
-from utils.gpu import GPU
+from utils.gpu import GPU, get_gpus_status
 
 
 class DopQ(hp.HelperProcess):
@@ -66,7 +67,6 @@ class DopQ(hp.HelperProcess):
 
         # init helper processes and classes
         self.queue = mp.Queue()
-        self.gpu_handler = gh.GPUHandler()
         self.provider = provider.Provider(self.config, self.queue)
 
         # build all non-existent directories, except the network container share
@@ -291,12 +291,13 @@ class DopQ(hp.HelperProcess):
         config = configparser.ConfigParser()
 
         config.add_section('paths')
-        config.set('paths', 'container.dir', '/media/local/input_container/reception/')
-        config.set('paths', 'network.dir', '/media/temporary_network_share/')
-        config.set('paths', 'unzip.dir', '/media/local/input_container/unzipped/')
-        config.set('paths', 'log.dir', '/media/local/output_container/logging/')
-        config.set('paths', 'history.dir', './')
-        config.set('paths', 'failed.dir', '/media/local/output_container/failed/')
+
+        config.set('paths', 'container.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/container')
+        config.set('paths', 'network.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/network')
+        config.set('paths', 'unzip.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/unzip')
+        config.set('paths', 'log.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/log')
+        config.set('paths', 'history.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/history')
+        config.set('paths', 'failed.dir', '/home/rrahman/Desktop/LMU_AUGEN_REPO/DOPQ_Config_Folders/failed')
 
         config.add_section('queue')
         config.set('queue', 'max.history', '100')
@@ -312,7 +313,7 @@ class DopQ(hp.HelperProcess):
         config.set('docker', 'logging.interval', '10')
 
         config.add_section('fetcher')
-        config.set('fetcher', 'valid.executors', 'anees,ilja,ferry,markus')
+        config.set('fetcher', 'valid.executors', 'reza,anees,ilja,markus,reza')
         config.set('fetcher', 'min.space', '0.05')
         config.set('fetcher', 'remove.invalid.containers', 'yes')
         config.set('fetcher', 'sleep.interval', '60')
@@ -397,6 +398,7 @@ class DopQ(hp.HelperProcess):
 
         try:
             self.starttime = time.time()
+            #self.run_queue()
             self.thread.start()
             self.provider.start()
             interface.run_interface(self)
@@ -436,7 +438,8 @@ class DopQ(hp.HelperProcess):
                 gpu = container.use_gpu
 
                 # keep cycling if container requires gpu but none are available
-                free_minors = self.gpu_handler.free_minors
+                # Added by reza ... Use API from gpu instead of gpu_handler
+                free_minors = get_gpus_status()
                 if len(free_minors) == 0 and gpu:
                     self.container_list.insert(0, container)
                     self.sleep()
