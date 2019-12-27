@@ -60,20 +60,20 @@ class InterfacePyQT(ParentWindow):
         self.submenu_config(menu_list)
 
     def dock_main_menu(self):
-        self.menuBar().setStyleSheet("QMenuBar::item { color: rgb(255, 255, 255); }")
+        self.menuBar().setStyleSheet("QMenuBar::item { color: rgb(0, 55, 66); }")
         main_menu = self.menuBar()
 
         arena_menu = main_menu.addMenu('DoPQ-Arena')
-        arena_menu.setStyleSheet("QMenu::item { color: rgb(255, 255, 255); }")
+        arena_menu.setStyleSheet("QMenu::item { color: rgb(0, 55, 66); }")
 
         commands_menu = main_menu.addMenu('Commands')
-        commands_menu.setStyleSheet("QMenu::item { color: rgb(255, 255, 255); }")
+        commands_menu.setStyleSheet("QMenu::item { color: rgb(0, 55, 66); }")
 
         help_menu = main_menu.addMenu('Help')
-        help_menu.setStyleSheet("QMenu::item { color: rgb(255, 255, 255); }")
+        help_menu.setStyleSheet("QMenu::item { color: rgb(0, 55, 66); }")
 
         about_menu = main_menu.addMenu('About DoPQ')
-        about_menu.setStyleSheet("QMenu::item { color: rgb(255, 255, 255); }")
+        about_menu.setStyleSheet("QMenu::item { color: rgb(0, 55, 66); }")
 
         return [arena_menu, commands_menu, help_menu, about_menu]
 
