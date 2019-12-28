@@ -74,6 +74,12 @@ class FloatingWindow(QWidget):
         buttonBox.accepted.connect(self.checkboxChanged)
         buttonBox.rejected.connect(self.close)
         self.show()
+    
+    def closeEvent(self, event):
+        print('Window is closed, closeEvent() has been called')
+        self.server_obj.delete_req_enqueued_containers(self.selected)
+        print('event: {0}'.format(event))
+        event.accept()
 
     def checkboxChanged(self):
         print("Call is in checkboxChanged")
@@ -86,7 +92,6 @@ class FloatingWindow(QWidget):
                 self.selected.append(self.container_list[i])
         print("Selected buttons: ", self.selected_txt)
         self.label_result.setText("{}, {}".format(self.label_result.text(), self.selected_txt))
-        self.server_obj.delete_req_enqueued_containers(self.selected)
         self.close()
 
 
