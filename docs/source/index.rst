@@ -18,7 +18,7 @@ DoPQ stands for :customtext:`Docker Priority Queue`. It's a software primarily m
 Get the code
 -------------
 
-The `source <https://github.com/corresive/dop-q>`_ is available on Github. For any kind of information, please email to reza.rahman@tum.de
+The `source <https://github.com/rezaurrakib/dop-q>`_ is available on Github. For any kind of information, please email to reza.rahman@tum.de
 
 .. toctree::
    :maxdepth: 1
