@@ -2,9 +2,11 @@
 
     <style> .apicolor{color:#107dac; font-weight: bold; font-style:oblique; font-family:consolas } </style>
 	<style> .apicolor1{color:#107dac; font-weight: bold; font-family:consolas} </style>
-	<style> .attentiontext{color:red; font-weight: bold;} </style>
+	<style> .attentiontext{color:blue; font-weight: bold;} </style>
 
 .. role:: apicolor1
+
+.. role:: attentiontext
 
 Server Code
 ===========
@@ -31,9 +33,48 @@ Python Source Files
 
 
 container_handler Package
--------------------------
+--------------------------
+
+This package consists of two files.
+
+ - :attentiontext:`container.py`
+ - :attentiontext:`container_config.py`
+ 
+
+container_config.py
+--------------------
+
+*class* **ContainerConfig()** 
+
+	This class sets the configuration for every docker container objects. It mainly sets a docker container's:
+	
+		- Name
+		- Executor(User) of the container
+		- Required memory to run a container
+		- Number of GPUs
+		- How many slots are needed
+		- Set the build flag etc.
 
 
+container.py
+-------------
+A wrapper for docker container objects. When invokes, creates a new container instance. 
+
+.. Note:: It takes two params. 
+	
+	- *config* : Provides a running configuration for the docker container.
+	- *container_obj*: The underlying docker container instance.
+
+	It has a method called *exec_run()*, which is for running a command inside the docker container. This is similar to *docker_exec*. The function definition is as follows:
+	
+.. code-block:: python
+
+	def exec_run(self, cmd, stdout=True, stderr=True, stdin=False, tty=False,
+                 privileged=False, user='', detach=False, stream=False,
+                 socket=False, environment=None):
+				 
+If you wanna know more details about this, Have a look into `Docker SDK for Python <https://docker-py.readthedocs.io/en/stable/containers.html>`_.
+		
 docker_helper Package
 ----------------------
 
