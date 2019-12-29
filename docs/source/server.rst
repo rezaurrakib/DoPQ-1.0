@@ -77,14 +77,31 @@ If you wanna know more details about this, Have a look into `Docker SDK for Pyth
 		
 docker_helper Package
 ----------------------
+A helper package to unzip the zipped folders, load and build the docker images from docker configuration file, and finally build the docker container. It contains the following files:
+	
+	- :attentiontext:`docker_build.py`
+	- :attentiontext:`docker_fetch.py`
+	- :attentiontext:`docker_parser.py`
 
 
 utils Package
 -------------
-
+Utils package contains helper classes for calculating GPU and CPU usage percentage and monitoring hardware and GPU minors. 
+Also a customized class for writing logs of queue and provider processes updates. Contains following files:
+	
+	- :attentiontext:`cpu.py`
+	- :attentiontext:`gpu.py`
+	- :attentiontext:`log.py`
 
 provider.py
 -----------
+
+*class* **Provider()**
+Provider class is a python multiprocess. This class is designed for handling zipped docker files provided by the user to run on the DoPQ server. 
+
+	:apicolor1:`monitoring_provider()`
+		A process based thread running continuously to fetch zipped files from shared network to local machine, unzip that, then build the docker images and 
+		create the docker container. After building the docker container, it puts that into a priority queue.
 
 
 docker_pq_model.py
