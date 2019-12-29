@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Client Code &mdash; DoPQ 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Registration" href="user registration.html" />
+    <link rel="prev" title="Server Code" href="server.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> DoPQ
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.html">Server Code</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Client Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dopq-client-py">dopq_client.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#view-thread-py">view_thread.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parent-window-py">parent_window.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interface-pipeline-py">interface_pipeline.py</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user registration.html">User Registration</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DoPQ</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Client Code</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/client.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <style> .apicolor{color:#107dac; font-weight: bold; font-style:oblique; font-family:consolas } </style>
+    <style> .apicolor1{color:#107dac; font-weight: bold; font-family:consolas} </style>
+    <style> .attentiontext{color:red; font-weight: bold;} </style><div class="section" id="client-code">
+<h1>Client Code<a class="headerlink" href="#client-code" title="Permalink to this headline">¶</a></h1>
+<p>DoPQ client is a python package that supports APIs for fethcing data from remote server by exploiting Pyro4 remote server object. There are several python classes each responsible for specific tasks about this communication process. We will discuss them briefly in this section.</p>
+<ul class="simple">
+<li><a class="reference internal" href="#dopq-client-py"><span class="std std-ref">dopq_client.py</span></a></li>
+<li><a class="reference internal" href="#view-thread-py"><span class="std std-ref">view_thread.py</span></a></li>
+<li><a class="reference internal" href="#interface-pipeline-py"><span class="std std-ref">interface_pipeline.py</span></a></li>
+<li><a class="reference internal" href="#parent-window-py"><span class="std std-ref">parent_window.py</span></a></li>
+</ul>
+<div class="section" id="dopq-client-py">
+<h2>dopq_client.py<a class="headerlink" href="#dopq-client-py" title="Permalink to this headline">¶</a></h2>
+<p><em>class</em> <strong>Client</strong> (Object)</p>
+<blockquote>
+<div><p>A python class for initiating the process of locating the Pyro4 Name Server and establish connection between remote server and client.</p>
+<dl class="docutils">
+<dt><span class="apicolor1">deamon_creation()</span></dt>
+<dd>Method for locating the Name Server and get the server URI. Using that URI, the remote server object is detected.</dd>
+<dt><span class="apicolor1">view_thread_communicator(dopq_server_obj)</span></dt>
+<dd>Send the remote server object to the interface_pipeline for passing it to the QThread class.</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="view-thread-py">
+<h2>view_thread.py<a class="headerlink" href="#view-thread-py" title="Permalink to this headline">¶</a></h2>
+<p><em>class</em> <strong>QThreadWorker</strong> (QThread)</p>
+<blockquote>
+<div><p>A QThread class for invoking remote APIs from the server through the remote server object, send from the <em>Client</em> class.</p>
+<dl class="docutils">
+<dt><span class="apicolor1">run()</span></dt>
+<dd>Method representing the QThread’s activity. It invokes the following methods to get the server information.</dd>
+<dt><span class="apicolor1">fetch_running_containers_info()</span></dt>
+<dd>A client side getter method for fetching information about currently running docker containers in the DoPQ process.</dd>
+<dt><span class="apicolor1">fetch_enqueued_containers_info()</span></dt>
+<dd>Getter method for fetching the enqueued docker containers information.</dd>
+<dt><span class="apicolor1">fetch_user_stats()</span></dt>
+<dd>Fetch the user statistics of the DoPQ system</dd>
+<dt><span class="apicolor1">fetch_history_info()</span></dt>
+<dd>Getter method for fetching the docker containers history.</dd>
+<dt><span class="apicolor1">fetch_status_info()</span></dt>
+<dd>Method for collecting Queue and Provider process status and start time from server.</dd>
+</dl>
+<p>The above APIs are the initial container for the information send from the server. Using the pyqtSignal class, these information are then emitted in the <span class="apicolor1">run()</span> method.</p>
+</div></blockquote>
+</div>
+<div class="section" id="parent-window-py">
+<h2>parent_window.py<a class="headerlink" href="#parent-window-py" title="Permalink to this headline">¶</a></h2>
+<p><em>class</em> <strong>ParentWindow</strong> (QMainWindow)</p>
+<blockquote>
+<div><p>A python class for creating the GUI using PyQt5 framework. It inherits the QMainWindow class and define the sub windows as <a class="reference external" href="https://doc.qt.io/qt-5/qmdiarea.html#details">QMdiArea</a>  class objects from PyQt5.</p>
+<dl class="docutils">
+<dt><span class="apicolor1">screen_geometry_details()</span></dt>
+<dd>Method for calculating the display screen’s total height and width.</dd>
+<dt><span class="apicolor1">parent_window_layout()</span></dt>
+<dd>Method for setting the layout for the parent window.</dd>
+<dt><span class="apicolor1">init_status_dockwidget()</span></dt>
+<dd>Returns a QDockWidget object for the status sub window. The layout of the QDockWidget object is defined here.</dd>
+<dt><span class="apicolor1">create_dopq_stat_subwindow()</span></dt>
+<dd>Initialized for creating the DoPQ status sub window using <strong>QMdiArea</strong> object. From this method <span class="apicolor1">init_status_dockwidget()</span> is invoked and the returned
+QDockWidget is set on the <strong>QMdiSubWindow()</strong> object. The QMdiSubWindow() object later added as a sub window in the QMdiArea. See the following code snippet for more details.</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_userstat_subwindow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summary of the function:</span>
+<span class="sd">    ------------------------</span>
+<span class="sd">    (a) Prepare the DoPQ User Status Subwindow.</span>
+<span class="sd">    (b) Contains the user stat. dock widget inside the QMdiSubWindow</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    :arg: None</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stats_dock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">userstats_subwindow</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span> <span class="o">=</span> <span class="n">QMdiSubWindow</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;User Status&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setFixedHeight</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen_height</span> <span class="o">*</span> <span class="mf">3.4</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span><span class="p">))</span>  <span class="c1"># 34%</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setFixedWidth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen_width</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_stats_dock</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setMouseTracking</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">CustomizeWindowHint</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">WindowTitleHint</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen_height</span> <span class="o">*</span> <span class="mf">2.11</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mdi</span><span class="o">.</span><span class="n">addSubWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_stat_subwin</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><span class="apicolor1">init_userstats_dockwidget()</span></dt>
+<dd>Returns a QDockWidget object for creating a QMdiArea sub window in order to show user statistics.</dd>
+<dt><span class="apicolor1">create_userstats_subwindow()</span></dt>
+<dd>Initialized for creating a QMdiArea sub window for the user status. Invoked the method <span class="apicolor1">init_userstats_dockwidget()</span> and load the QMdiSubWindow() object with the returned QDockWidget object.</dd>
+<dt><span class="apicolor1">init_running_cont_dockwidget()</span></dt>
+<dd>Returns a QDockWidget object for running containers sub window.</dd>
+<dt><span class="apicolor1">create_running_cont_subwindow()</span></dt>
+<dd>Invokes <span class="apicolor1">init_running_cont_dockwidget()</span> and load the QMdiArea object with the dock widget returned from that method.</dd>
+<dt><span class="apicolor1">init_enqueued_cont_dockwidget()</span></dt>
+<dd>Returns a QDockWidget object for enqueued docker containers sub window.</dd>
+<dt><span class="apicolor1">create_enqueued_cont_subwindow()</span></dt>
+<dd>Invokes <span class="apicolor1">init_enqueued_cont_dockwidget()</span> and load the QMdiArea object with the dock widget returned from that method.</dd>
+<dt><span class="apicolor1">init_history_dockwidget()</span></dt>
+<dd>Returns a QDockWidget object for showing previously completed docker containers history.</dd>
+<dt><span class="apicolor1">create_history_subwindow()</span></dt>
+<dd>Invokes <span class="apicolor1">init_history_dockwidget()</span> and load the QMdiArea object with the dock widget returned from that method.</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="interface-pipeline-py">
+<h2>interface_pipeline.py<a class="headerlink" href="#interface-pipeline-py" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><span class="apicolor1">qt_main()</span></dt>
+<dd>From this API, the PyQt user interface is launched. It creates an interface object and loads the initial UI. Then it invokes the <span class="apicolor1">thread_connector()</span> API
+from the <strong>InterfacePyQt</strong> class in order to connect the signals emitted from the <span class="apicolor1">run()</span> method of <strong>QThreadWorker</strong> class.</dd>
+</dl>
+<p><em>class</em> <strong>InterfacePyQt</strong> (ParentWindow)</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><span class="apicolor1">dock_main_menu()</span></dt>
+<dd>Creating the main menu bar of the DoPQ GUI. Returns a list of menu.</dd>
+<dt><span class="apicolor1">submenu_command_options()</span></dt>
+<dd>Method defines the options in the ‘Commands’ Menu. These are the set of commands initiate from client PC.</dd>
+<dt><span class="apicolor1">onclick_command_update_enqueued_container()</span></dt>
+<dd>Defines the “Enqueued Container Update” command from the “Commands menu”. DoPQ process in the server will be <span class="attentiontext">locked until the update enqueued container is finished</span>.
+API for locking the DoPQ process invoked in here.</dd>
+</dl>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="user registration.html" class="btn btn-neutral float-right" title="User Registration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="server.html" class="btn btn-neutral float-left" title="Server Code" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Md Rezaur Rahman
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
