@@ -7,6 +7,7 @@ __History:__
 + 31.01.2018: Refactored queue from the ground up. Introduced modules builder.py, container_handler.py, gpu_handler.py and helper_process.py
 
 __Getting Started:__
+
 You can find the full documentation of DoPQ in [here](https://dop-q.readthedocs.io/en/latest/index.html). For DoPQ related inquiry, please contact the authors (_Md Rezaur Rahman, Ilja Mankov, Markus Rohm_) or send an email to reza.rahman@tum.de 
 
 
