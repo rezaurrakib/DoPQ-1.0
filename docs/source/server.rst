@@ -3,10 +3,15 @@
     <style> .apicolor{color:#107dac; font-weight: bold; font-style:oblique; font-family:consolas } </style>
 	<style> .apicolor1{color:#107dac; font-weight: bold; font-family:consolas} </style>
 	<style> .attentiontext{color:blue; font-weight: bold;} </style>
+	<style> .attentiontext1{color:#107dac; font-weight: bold;} </style>
+	
 
 .. role:: apicolor1
 
 .. role:: attentiontext
+
+.. role:: attentiontext1
+
 
 Server Code
 ===========
@@ -17,6 +22,11 @@ communicating remotely with the client processes.
 
 In the server part, there are a lot of stuffs going under the hood. Several python classes are written for running all the processes and building docker images and containers. 
 We will discuss them briefly in this section.
+
+Controller and Wrapper
+-----------------------
+* :ref:`controller.py`
+* :ref:`data_platform.py`
 
 Utility Packages
 ----------------
@@ -31,6 +41,61 @@ Python Source Files
 * :ref:`data_platform.py`
 * :ref:`model_helper.py`
 
+controller.py
+--------------
+*class* **DopqController()**
+
+	This class is the gateway for communicating with the provider and priority queue processes.
+	It initiates the execution of server processes by invoking the instances of **Provider()**
+	and **DopQContainer()** classes. From here, the remote connection daemon thread is also 
+	started by invoking *Pyro4.Daemon()*. Through this daemon, client thread communicates with the server.
+	
+.. code-block:: python
+
+    def remote_connection_starter(self, dp_obj):
+        #Pyro4.config.HOST = "10.167.183.156" # dopq_server ip as host
+        #Pyro4.config.NS_PORT = 9090
+        self.server_deamon = Pyro4.Daemon()
+        nameserver = Pyro4.locateNS()
+        uri = self.server_deamon.register(self)
+        nameserver.register("remote_dopq", uri)
+        print("Server URI is : ", uri)
+        self.server_deamon.requestLoop()
+
+DopqController() provides a series of APIs to send information and receive commands from client side. 
+The APIs are :
+
+	- :attentiontext1:`get_running_containers_info()`
+	- :attentiontext1:`get_containers_history_info()`
+	- :attentiontext1:`get_enqueued_containers_info()`
+	- :attentiontext1:`get_dopq_system_status()`
+	- :attentiontext1:`get_dopq_user_statistics()`
+	- :attentiontext1:`delete_req_enqueued_containers()`
+	- :attentiontext1:`dopq_system_lock()`
+	- :attentiontext1:`clear_dopq_history()`
+	- :attentiontext1:`shutdown_queue()`
+		
+data_platform.py
+-----------------
+*class* **DataPlatform()**
+	
+	It's a wrapper class for controller to delegate commands to the processes and fetch information from
+	the processes as well. Exposed by the Pyro4 library. A list of shared variables defined in the 
+	*DopQContainer()* class in the **docker_pq_model.py** file are updated when the queue thread is running.
+	From the *DataPlatform()* class, several delegate methods are defined, through which these shared variables 
+	can be accessed. 
+	
+	Some important APIs are:
+	
+	- :attentiontext1:`get_running_info()`
+	- :attentiontext1:`get_user_statistics()`
+	- :attentiontext1:`get_dopq_status()`
+	- :attentiontext1:`get_completed_containers_info()`
+	- :attentiontext1:`get_enqueued_container_list()`
+	- :attentiontext1:`exec_dopq_lock_state()`
+	- :attentiontext1:`update_enqueued_container_list()`
+	- :attentiontext1:`clear_dopq_history_list()`
+		
 
 container_handler Package
 --------------------------
@@ -106,10 +171,6 @@ Provider class is a python multiprocess. This class is designed for handling zip
 
 docker_pq_model.py
 -------------------
-
-
-data_platform.py
------------------
 
 
 model_helper.py
