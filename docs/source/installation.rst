@@ -1,4 +1,6 @@
-<style> .attentiontext{color:red; font-weight: bold;} </style>
+.. raw:: html
+
+	<style> .attentiontext{color:red; font-weight: bold;} </style>
 
 .. role:: attentiontext
 
