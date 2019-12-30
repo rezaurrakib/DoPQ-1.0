@@ -7,11 +7,11 @@
 
 	<style> .customtext{color:#107dac; font-weight: bold; font-family:Georgia} </style>
 
-DoPQ 1.0 documentation!
-================================
+DoPQ 1.0
+=========
 	.. role:: customtext
 	
-Welcome! This is the documentation for DoPQ 1.0. It's completely written in Python 3.
+Welcome! This is the documentation for DoPQ version 1.0. It's completely written in Python 3.
 
 DoPQ stands for :customtext:`Docker Priority Queue`. It's a software primarily made for running heavyweight deep learning models in the form of docker containers on a multi-gpu system. Internally it maintains a priority queue, including a penalty scoring system, hence ensures the balance between occupied gpu's among valid users. 
 

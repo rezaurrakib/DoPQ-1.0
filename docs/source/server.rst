@@ -34,11 +34,10 @@ Utility Packages
 * :ref:`docker_helper Package`
 * :ref:`utils Package`
 
-Python Source Files
--------------------
+Provider and Queue Classes
+---------------------------
 * :ref:`provider.py`
 * :ref:`docker_pq_model.py`
-* :ref:`data_platform.py`
 * :ref:`model_helper.py`
 
 controller.py
@@ -162,7 +161,8 @@ provider.py
 -----------
 
 *class* **Provider()**
-Provider class is a python multiprocess. This class is designed for handling zipped docker files provided by the user to run on the DoPQ server. 
+	
+	Provider class is a python multiprocess. This class is designed for handling zipped docker files provided by the user to run on the DoPQ server. 
 
 	:apicolor1:`monitoring_provider()`
 		A process based thread running continuously to fetch zipped files from shared network to local machine, unzip that, then build the docker images and 
@@ -171,8 +171,47 @@ Provider class is a python multiprocess. This class is designed for handling zip
 
 docker_pq_model.py
 -------------------
+*class* **DopQContainer()** 
+
+	Constructs a class based on higher level threading interface for parallel processing of docker containers build by the provider process.
+	It maintains a multiprocessing Queue that is updated when a Provider instance find new zip file, build a docker container from that and 
+	finally put that container on the queue. Three difference list is updated in this class.
+	
+	- :apicolor1:`running_container` (Trace the currently running containers on the GPU/Machine.)
+	- :apicolor1:`containers_list` (Contain the containers who are currently on the Queue.)
+	- :apicolor1:`history` (Have all the completed containers info.)
+	
+	:apicolor1:`start_dopq_process()`
+		Register the container queue as a threading object.
+		
+.. code-block:: python
+
+    def start_dopq_process(self
+        self.process_starttime()
+        self.dopq_process = threading.Thread(target=self.exec_dopq_process)
+        self.dopq_process.start()		
 
 
+:apicolor1:`exec_dopq_process()`
+	This private API is launched in a separate process invoked by threading module. Runs parallelly with the provider process.
+	Infinitely Checks for a new docker container from the provider process.	
+	
 model_helper.py
 ----------------
+*class* **ModelHelper()**
+	
+	This is a helper class for DoPQ model. Contains several static methods for building the **config.ini** file, read the users list from db etc.
+	
+	:apicolor1:`write_default_config()`
+		Write the default configuration. Set the container build *paths*, docker configuration, queue configuration etc.
+		
+	:apicolor1:`parse_config()`
+		Create config parser and read from **config.ini** file.
+		
+	:apicolor1:`split_and_calc_penalty()`
+		Method invoked for calculating penalty score for every user who runs docker container in the system. There are a series of APIs doing this task.
+		For more details, please look into *model_helper.py* file.
+	
+	:apicolor1:`container_freq_for_user()`
+		Helper method for counting how many containers in the list belong to a valid user.
 
